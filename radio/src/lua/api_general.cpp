@@ -1753,10 +1753,12 @@ static int luaLockKeys(lua_State * L)
   return 0;
 }
 
-static int luaIsInMenu(lua_State * L)
+static int luaCheckWidgetSetup(lua_State * L)
 {
-  bool inmenu = (menuLevel > 0);
-  lua_pushboolean(L, inmenu);
+  uint8_t res = 0;
+  if (menuLevel > 0) res |= 0x01;
+  if (getMainViewsCount() < 2) res |= 0x02;
+  lua_pushinteger(L, res);
   return 1;
 }
 //OWEND
@@ -1764,7 +1766,7 @@ static int luaIsInMenu(lua_State * L)
 const luaL_Reg opentxLib[] = {
 //OW
   { "lockKeys", luaLockKeys },
-  { "isInMenu", luaIsInMenu },
+  { "checkWidgetSetup", luaCheckWidgetSetup },
 //OWEND
   { "getTime", luaGetTime },
   { "getDateTime", luaGetDateTime },

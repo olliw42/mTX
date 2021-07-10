@@ -409,7 +409,8 @@ void LuaWidget::refresh()
 //    setErrorMessage("refresh()");
 //  }
   event_t evt = s_evt;
-  if ((zone.h < 250) || (menuLevel > 0)) { // is not full screen and is in menu
+  if ((zone.h < 250) || (menuLevel > 0) || (getMainViewsCount() < 2)) {
+    // is not full screen or is in menu or to few main views
     evt = 0; // do not pass on
     unlockKeys();
   } else
