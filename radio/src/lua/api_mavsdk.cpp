@@ -510,7 +510,7 @@ static int luaMavsdkGetRadioRssiRaw(lua_State *L)
 {
   uint8_t rssi = UINT8_MAX;
   if (mavlinkTelem.radio.is_receiving) {
-    rssi = mavlinkTelem.radio.rssi;
+    rssi = mavlinkTelem.radio.remrssi; //let's report the rssi of the air side
   }
   else if (mavlinkTelem.radio.is_receiving65) {
     rssi = mavlinkTelem.radio.rssi65;
