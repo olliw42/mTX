@@ -26,6 +26,8 @@
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+v30 2021-07-24 again
+bug with serial2 only
 v30 2021-07-24
 upgraded to otx2.3.14 as base
 prevent installation of widget on page 1
@@ -140,19 +142,6 @@ TODO:
 //OWEND
 
 
-COMMENTS:
-perMain() in main.cpp, where GPS is:
-  it seems it is called at 20 Hz or 50 ms
-  is called from TASK_FUNCTION(menusTask) in tasks.cpp
-  indeed, MENU_TASK_PERIOD_TICKS is set to 50 ms
-  this is maybe a bit slow for MAVLink
-  56700 bps => 288 bytes per 50 ms
-=> TASK_FUNCTION(mixerTask), where also BLUETOOTH, telemetryWakeup() is
-  it is very fast
-  something like a 10ms task would be great ...
-=> per10ms() in opentx,cpp, where also telemetryInterrupt10ms(), outputTelemetryBuffer.per10ms() is
-  let's try this
-
 idea:
 support LEFT, RIGHT CENTER also for drawFilledRectangle, drawRectangle, or better LEFT,RIGHT,XCENTER,TOP,BOTTOM,YCENTER
 
@@ -206,92 +195,6 @@ telemetryWakeup()
 telemetryItems[index].setValue(g_model.telemetrySensors[index], value, unit, prec);
 sportProcessTelemetryPacket
 
-struct
-opentxLib -> lauxlib.h, limit.c
-opentxConstants -> limit.c, lrotable.h
-lcdLib -> lauxlib.h, limit.c
-modelLib -> lauxlib.h, limit.c
-lsScripts lsWidgets lua_setglobal lua_istable
-malloc
-
-----
-BOARD_NAME
--> build-fw.py
--> t16   -> PCB = X10, PCBREV = T16
-   tx16s -> PCB = X10, PCBREV = TX16S
-
-horus/CMakeList
--> PCB = X10   -> -DPCBX10
--> PCBREV = T16   -> -DRADIO_T16   -DRADIO_FAMILY_T16
-   PCBREV = TX16S -> -DRADIO_TX16S -DRADIO_FAMILY_T16
--> -DPCBREV=${PCBREV}
--> -DPCBREV_${PCBREV}
-
-T16
-  BLUETOOTH = USART6
-  USART3 is free
-Tx16S
-  AUX_SERIAL = USART3
-  AUX2_SERIAL = USART6
-  INTERNAL_GPS = USART6
-  BLUETOOTH = USART6
-
-mixerTask -> bluetooth.wakeup();
-menusTask -> perMain() -> gpsWakeup();
-per10ms() ->  outputTelemetryBuffer.per10ms();
-
-
-failsafeMode
-TR_EMERGENCY_MODE              "EMERGENCY MODE"
-globalData.unexpectedShutdown  -> drawFatalErrorScreen(STR_EMERGENCY_MODE);
-  checkEeprom()
-  perMain() -> #if defined(RTC_BACKUP_RAM) -> drawFatalErrorScreen(STR_EMERGENCY_MODE);
-            -> drawFatalErrorScreen(STR_NO_SDCARD);
-  opentxInit()
-
-eeGeneral.unexpectedShutdown
--> storage/eeprom_rlc
-  #if defined(SDCARD)
-  void eepromBackup()
--> opentx
-  opentxClose(uint8_t shutdown)
-  opentxResume()
-  opentxInit()
-
-bool UNEXPECTED_SHUTDOWN()
-  WAS_RESET_BY_WATCHDOG -> true
-  WAS_RESET_BY_SOFTWARE -> check BKP
-  else -> checks BKP
-
-----
-on T16:
-USART2 = TELEMETRY_USART
-USART1 = INTMODULE_USART
-USART6 = BT_USART
-
-T16 scheme indicates:
-USART3_TX  		90		PB.10
-USART3_RX  		91		PB.11
-INTMODULE_RX	196		PB.07	USART1_RX
-INTMODULE_TX	195		PB.06	USART1_TX
-BLUETOOTH_TX	183		PG.14	USART6_TX
-BLUETOOTH_RX	178		PG.09	USART6_RX
-S.PORT_RX		172		PD.06	USART2_RX
-S.PORT_TX		169		PD.05	USART2_TX
-TRAINER_OUT		139		PC.07	USART6_RX
-TRAINER_IN      138		PC.06	USART6_TX
-
-=> USART3 is free :)
-also USART6 on BT could be used  UART
-
-common:
-aux_serial_driver.cpp  #if defined(AUX_SERIAL) #endif
-bluetooth_driver.cpp
-intmodule_serial_driver.cpp
-horus:
-extmodule_driver.cpp
-gps_driver.cpp
-telemetry_driver.cpp
 */
 
 #pragma once
