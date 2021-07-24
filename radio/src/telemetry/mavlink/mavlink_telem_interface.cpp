@@ -424,7 +424,7 @@ void MavlinkTelem::map_serials(void)
   }
   else{
     serial1_enabled = _aux1_enabled;
-    serial2_enabled = _aux1_enabled;
+    serial2_enabled = _aux2_enabled;
     serial1_isexternal = serial2_isexternal = false;
   }
 }

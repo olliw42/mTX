@@ -447,7 +447,7 @@ void MavlinkTelem::wakeup()
   if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) mavlinkTelemExternal_wakeup();
 
   // skip out if not one of the serial1, serial2 is enabled
-  if (!serial1_enabled && !serial1_enabled) return;
+  if (!serial1_enabled && !serial2_enabled) return;
 
   // look for incoming messages on all channels
   // only do one at a time
