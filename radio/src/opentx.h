@@ -19,10 +19,15 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v30rc07"
+#define OWVERSIONSTR  "v30"
 //OWEND
 
 /*
+type to getType() changes not marked with //OW
+support of hardware encoder also not marked with //OW
+
+upgraded to otx2.3.14 as base
+prevent installation of widget on page 1
 basic touch, for tx16s
 new keys
 serials moved from hardware to radio setup
@@ -57,11 +62,13 @@ mavlink submodule changed to main git repo, file generator added
 one needs to run mavgenerate_dialect.py to generate the mavlink c code files
 modified files in radio/src/
 
-    dataconstants.h:  1x
-    datastructs.h:    6x
+    cli.cpp:          2x
+    CMakeList.txt:    1x
+    dataconstants.h:  3x
+    datastructs.h:    7x
     keys.cpp:         2x
     keys.h:           1x
-    main.cpp:         2x
+    main.cpp:         5x
     opentx.cpp:       1x
     opentx.h:         2x
     options.h:        1x
@@ -69,31 +76,38 @@ modified files in radio/src/
     tasks.h:          1x
     translations.cpp: 1x
     translations.h:   1x
-    CMakeList.txt:    1x
     gui/480x272/bitmap.cpp:          1x
     gui/480x272/bitmap.h:            1x
     gui/480x272/lcd.cpp:             1x
     gui/480x272/lcd.h:               1x
+    gui/480x272/menus.h:             1x
     gui/480x272/model_setup.cpp:     3x
+    gui/480x272/radio_diaganas.cpp:  2x
     gui/480x272/radio_hardware.cpp:  6x
     gui/480x272/topbar.cpp:          2x
     gui/gui_common.cpp:              2x
     gui/gui_common.h:                1x
-    lua/api_general.cpp:             3x
+    lua/api_general.cpp:             4x
     lua/api_lcd.cpp:                 2x
+    lua/widgets.cpp:                 4x
     pulses/modules_constants.h:      1x
     pulses/modules_helpers.h:        1x
     pulses/pulses.cpp:               2x
     pulses/pulses.h:                 1x
     targets/common/arm/stm32/aux_serial_driver.cpp:  8x
+    targets/common/arm/stm32/CMakeLists.txt:         3x
     targets/common/arm/stm32/usb_driver.cpp:         1x
     targets/common/arm/stm32/usb_driver.h:           1x
     targets/common/arm/stm32/usbd_cdc.cpp:           1x
     targets/common/arm/stm32/usbd_dec.cpp:           4x
+    targets/horus/board.cpp:                         1x
+    targets/horus/board.h:                           2x
+    targets/horus/CMakeList.txt:                     3x
     targets/horus/extmodule_driver.cpp:              1x
     targets/horus/hal.h:                             1x
     targets/horus/telemetry_driver.cpp:              9x
-    targets/horus/CMakeList.txt:                     4x
+    targets/horus/tp_gt911.cpp:                      2x
+    targets/horus/tp_gt911.h:                        1x
     telemetry/telemetry.cpp:         2x
     telemetry/telemetry.h:           1x
     thirdparty/Lua/src/lauxlib.h:    1x
