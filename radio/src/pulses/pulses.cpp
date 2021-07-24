@@ -94,7 +94,7 @@ void setModuleMode(int moduleIndex, ModuleSettingsMode mode)
 
 uint8_t getModuleType(uint8_t module)
 {
-  uint8_t type = g_model.moduleData[module].type;
+  uint8_t type = g_model.moduleData[module].getType();
 
 #if defined(HARDWARE_INTERNAL_MODULE)
   if (module == INTERNAL_MODULE && isInternalModuleAvailable(type)) {
@@ -198,6 +198,14 @@ uint8_t getRequiredProtocol(uint8_t module)
       protocol = PROTOCOL_CHANNELS_GHOST;
       break;
 #endif
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+    case MODULE_TYPE_MAVLINK:
+      protocol = PROTOCOL_CHANNELS_MAVLINK;
+      break;
+#endif
+//OWEND
 
     default:
       protocol = PROTOCOL_CHANNELS_NONE;
@@ -313,6 +321,16 @@ void enablePulsesExternalModule(uint8_t protocol)
       mixerSchedulerSetPeriod(EXTERNAL_MODULE, AFHDS3_COMMAND_TIMEOUT * 1000 /* us */);
       break;
 #endif
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+    case PROTOCOL_CHANNELS_MAVLINK:
+      EXTERNAL_MODULE_ON();
+      extmoduleMavlinkTelemStart();
+      // TODO: mixerSchedulerSetPeriod() needed?? I think no, is reset by stop()
+      break;
+#endif
+//OWEND
 
     default:
       // external module stopped, set period to 50ms (necessary for USB Joystick, for instance)

@@ -41,6 +41,11 @@ void stackPaint()
 #if defined(CLI)
   cliStack.paint();
 #endif
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  mavlinkStack.paint();
+#endif
+//OWEND
 }
 
 volatile uint16_t timeForcePowerOffPressed = 0;
@@ -88,6 +93,11 @@ bool isModuleSynchronous(uint8_t moduleIdx)
     case PROTOCOL_CHANNELS_DSM2_DSM2:
     case PROTOCOL_CHANNELS_DSM2_DSMX:
 #endif
+//OW
+#if defined(TELEMETRY_MAVLINK)
+    case PROTOCOL_CHANNELS_MAVLINK: //must be true since otherwise setupPulsesExternalModule() is not called, and it will crash
+#endif
+//OWEND
       return true;
   }
   return false;
@@ -315,6 +325,12 @@ void tasksStart()
 #if !defined(SIMU)
   RTOS_CREATE_TASK(audioTaskId, audioTask, "audio", audioStack, AUDIO_STACK_SIZE, AUDIO_TASK_PRIO);
 #endif
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  mavlinkStart();
+#endif
+//OWEND
 
   RTOS_CREATE_MUTEX(audioMutex);
   RTOS_CREATE_MUTEX(mixerMutex);

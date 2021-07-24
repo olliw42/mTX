@@ -42,7 +42,40 @@ set(FIRMWARE_TARGET_SRC
   ../common/arm/stm32/usbd_hid_joystick.c
   )
 
-if(DEBUG OR CLI OR USB_SERIAL)
+# //OW
+# //this cmake runs before target/horus/CMakeList.txt
+if (TELEMETRY_MAVLINK)
+  add_definitions(-DTELEMETRY_MAVLINK)
+  # determine if usb serial should be added
+  set(TELEMETRY_MAVLINK_USB_SERIAL ON)
+  if (DEBUG OR CLI)
+    #set(TELEMETRY_MAVLINK_USB_SERIAL OFF)
+    #message(FATAL_ERROR "don't compile with DEBUG or CLI")
+  endif()
+  # generate required header files from fastmavlink submodule
+  execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} fmav_generate_c_library.py 
+    WORKING_DIRECTORY ${RADIO_DIRECTORY}/src/${THIRDPARTY_DIR}/Mavlink
+    RESULT_VARIABLE FMAV_GENERATE_CLIB_RESULT
+    )
+  if (NOT FMAV_GENERATE_CLIB_RESULT EQUAL "0")
+    message(FATAL_ERROR "fmav_generate_c_library.py could not be run: ${FMAV_GENERATE_CLIB_RESULT}")
+  endif()
+  execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} fmav_generate_lua_lib.py -nw
+    WORKING_DIRECTORY ${RADIO_DIRECTORY}/src/${THIRDPARTY_DIR}/Mavlink
+    RESULT_VARIABLE FMAV_GENERATE_LUALIB_RESULT
+    )
+  if (NOT FMAV_GENERATE_LUALIB_RESULT EQUAL "0")
+    message(FATAL_ERROR "fmav_generate_lua_lib.py could not be run: ${FMAV_GENERATE_LUALIB_RESULT}")
+  endif()
+endif()
+# //OWEND
+
+# //OW
+# //if(DEBUG OR CLI OR USB_SERIAL)
+if (DEBUG OR CLI OR USB_SERIAL OR TELEMETRY_MAVLINK_USB_SERIAL)
+# //OWEND
   set(STM32USB_SRC
     ${STM32USB_SRC}
     STM32_USB_Device_Library/Class/cdc/src/usbd_cdc_core.c
@@ -51,7 +84,15 @@ if(DEBUG OR CLI OR USB_SERIAL)
     ${FIRMWARE_TARGET_SRC}
     ../common/arm/stm32/usbd_cdc.cpp
   )
-  add_definitions(-DUSB_SERIAL)
+# //OW
+# //  add_definitions(-DUSB_SERIAL)
+  if (DEBUG OR CLI OR USB_SERIAL)
+    add_definitions(-DUSB_SERIAL)
+  endif()
+  if (TELEMETRY_MAVLINK_USB_SERIAL)
+    add_definitions(-DTELEMETRY_MAVLINK_USB_SERIAL)
+  endif()
+# //OWEND
 endif()
 
 set(STM32USB_SRC

@@ -381,6 +381,11 @@ enum ChannelsProtocols {
   PROTOCOL_CHANNELS_PXX2_HIGHSPEED,
   PROTOCOL_CHANNELS_AFHDS3,
   PROTOCOL_CHANNELS_GHOST
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  ,PROTOCOL_CHANNELS_MAVLINK, // uff, ModuleState.protocol, which this is assigned to, has 4 bits ...
+#endif
+//OWEND
 };
 
 inline void stopPulses()

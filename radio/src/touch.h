@@ -30,6 +30,18 @@ enum TouchEvent
   TE_SLIDE_END
 };
 
+//OW
+enum TouchEventExtended
+{
+  TE_EXT_NONE,
+  TE_TAP,
+  TE_WIPE_UP,
+  TE_WIPE_DOWN,
+  TE_WIPE_LEFT,
+  TE_WIPE_RIGHT,
+};
+//OWEND
+
 struct TouchState
 {
   unsigned char event;
@@ -41,6 +53,12 @@ struct TouchState
   short deltaY;
   short lastDeltaX;
   short lastDeltaY;
+//OW
+  unsigned char extEvent;
+  short _deltaX;
+  short _deltaY;
+  tmr10ms_t _last;
+//OWEND
 };
 
 constexpr uint8_t SLIDE_RANGE = 6;

@@ -72,6 +72,9 @@ bool isSourceAvailableInResetSpecialFunction(int index);
 bool isSourceAvailableInGlobalResetSpecialFunction(int index);
 bool isAux1ModeAvailable(int mode);
 bool isAux2ModeAvailable(int mode);
+//OW
+bool isUsbModeAvailable(int mode);
+//OWEND
 bool isSwitchAvailableInLogicalSwitches(int swtch);
 bool isSwitchAvailableInCustomFunctions(int swtch);
 bool isSwitchAvailableInMixes(int swtch);
@@ -179,6 +182,13 @@ inline uint8_t MODULE_CHANNELS_ROWS(int moduleIdx)
   else if (isModuleDSM2(moduleIdx) || isModuleCrossfire(moduleIdx) || isModuleGhost(moduleIdx) || isModuleSBUS(moduleIdx)) {
     return 0;
   }
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  else if (isModuleMavlink(moduleIdx)) {
+    return HIDDEN_ROW;
+  }
+#endif
+//OWEND
   else {
     return 1;
   }

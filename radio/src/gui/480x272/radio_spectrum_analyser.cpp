@@ -84,7 +84,7 @@ bool menuRadioSpectrumAnalyser(event_t event)
     memclear(&reusableBuffer.spectrumAnalyser, sizeof(reusableBuffer.spectrumAnalyser));
 
 #if defined(INTERNAL_MODULE_MULTI)
-    if (g_moduleIdx == INTERNAL_MODULE && g_model.moduleData[INTERNAL_MODULE].type == MODULE_TYPE_NONE) {
+    if (g_moduleIdx == INTERNAL_MODULE && g_model.moduleData[INTERNAL_MODULE].getType() == MODULE_TYPE_NONE) {
       reusableBuffer.spectrumAnalyser.moduleOFF = true;
       setModuleType(INTERNAL_MODULE, MODULE_TYPE_MULTIMODULE);
     }

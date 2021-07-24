@@ -155,7 +155,7 @@ bool menuModelSensor(event_t event)
           drawReceiverName(SENSOR_2ND_COLUMN, y, sensor->frskyInstance.rxIndex >> 2, sensor->frskyInstance.rxIndex & 0x03, 0);
         }
 #if defined(HARDWARE_INTERNAL_MODULE)
-        else if (isModuleUsingSport(INTERNAL_MODULE, g_model.moduleData[INTERNAL_MODULE].type)) {
+        else if (isModuleUsingSport(INTERNAL_MODULE, g_model.moduleData[INTERNAL_MODULE].getType())) {
           // far from perfect
           lcdDrawText(SENSOR_2ND_COLUMN, y, STR_INTERNAL_MODULE);
         }

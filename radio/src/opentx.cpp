@@ -216,6 +216,16 @@ void per10ms()
 
   outputTelemetryBuffer.per10ms();
 
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  mavlinkTelem.tick10ms();
+#endif
+  checkEventLockTmo();
+#if defined(HARDWARE_TOUCH)
+  checkTouchTmo();
+#endif
+//OWEND
+
   heartbeat |= HEART_TIMER_10MS;
 }
 

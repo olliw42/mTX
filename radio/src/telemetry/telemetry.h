@@ -39,7 +39,10 @@
   #include "flysky_ibus.h"
 #endif
 
-extern uint8_t telemetryStreaming; // >0 (true) == data is streaming in. 0 = no data detected for some time
+//OW
+//extern uint8_t telemetryStreaming; // >0 (true) == data is streaming in. 0 = no data detected for some time
+extern uint16_t telemetryStreaming; // >0 (true) == data is streaming in. 0 = no data detected for some time
+//OWEND
 
 inline bool TELEMETRY_STREAMING()
 {
@@ -142,7 +145,7 @@ extern uint8_t telemetryProtocol;
 #if defined(PCBTARANIS) || defined(PCBHORUS)
 inline bool isSportLineUsedByInternalModule()
 {
-  return g_model.moduleData[INTERNAL_MODULE].type == MODULE_TYPE_XJT_PXX1;
+  return g_model.moduleData[INTERNAL_MODULE].getType() == MODULE_TYPE_XJT_PXX1;
 }
 #else
 inline bool isSportLineUsedByInternalModule()
@@ -156,33 +159,33 @@ inline uint8_t modelTelemetryProtocol()
   bool sportUsed = isSportLineUsedByInternalModule();
 
 #if defined(CROSSFIRE)
-  if (g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_CROSSFIRE) {
+  if (g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_CROSSFIRE) {
     return PROTOCOL_TELEMETRY_CROSSFIRE;
   }
 #endif
 
 #if defined(GHOST)
-  if (g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_GHOST) {
+  if (g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_GHOST) {
     return PROTOCOL_TELEMETRY_GHOST;
   }
 #endif
 
-  if (!sportUsed && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_PPM) {
+  if (!sportUsed && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_PPM) {
     return g_model.telemetryProtocol;
   }
 
 #if defined(MULTIMODULE)
-  if (!sportUsed && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_MULTIMODULE) {
+  if (!sportUsed && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_MULTIMODULE) {
     return PROTOCOL_TELEMETRY_MULTIMODULE;
   }
 #if defined(INTERNAL_MODULE_MULTI)
-  if (g_model.moduleData[INTERNAL_MODULE].type == MODULE_TYPE_MULTIMODULE && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_NONE) {
+  if (g_model.moduleData[INTERNAL_MODULE].getType() == MODULE_TYPE_MULTIMODULE && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_NONE) {
     return PROTOCOL_TELEMETRY_MULTIMODULE;
   }
 #endif
 #endif
 #if defined(AFHDS3)
-  if (g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_AFHDS3) {
+  if (g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_AFHDS3) {
     return PROTOCOL_TELEMETRY_AFHDS3;
   }
 #endif

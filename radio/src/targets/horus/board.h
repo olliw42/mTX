@@ -26,6 +26,12 @@
 #include "board_common.h"
 #include "hal.h"
 
+//OW
+#if defined(HARDWARE_TOUCH)
+#include "tp_gt911.h"
+#endif
+//OWEND
+
 PACK(typedef struct {
   uint8_t pcbrev:2;
   uint8_t sticksPwmDisabled:1;
@@ -632,7 +638,10 @@ void sportUpdatePowerInit();
 #endif
 
 // Aux serial port driver
-#if defined(RADIO_TX16S)
+//OW
+//#if defined(RADIO_TX16S)
+#if defined(RADIO_TX16S) && !defined(TELEMETRY_MAVLINK)
+//OWEND
   #define DEBUG_BAUDRATE                  400000
   #define LUA_DEFAULT_BAUDRATE            115200
 #else

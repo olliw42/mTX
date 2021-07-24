@@ -57,7 +57,7 @@ enum MenuModelTelemetryFrskyItems {
 #else
   #define VARIO_ROWS
 #endif
-#define TELEMETRY_TYPE_ROWS           (!IS_INTERNAL_MODULE_ENABLED() && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_PPM) ? (uint8_t)0 : HIDDEN_ROW,
+#define TELEMETRY_TYPE_ROWS           (!IS_INTERNAL_MODULE_ENABLED() && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_PPM) ? (uint8_t)0 : HIDDEN_ROW,
 
 void onSensorMenu(const char * result)
 {

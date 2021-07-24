@@ -538,6 +538,10 @@ if(NOT MSVC)
     add_custom_command(
       TARGET firmware POST_BUILD
       COMMAND arm-none-eabi-objcopy -O binary firmware.elf firmware.bin
+# //OW
+      COMMAND arm-none-eabi-size --format=berkeley firmware.elf
+      COMMAND arm-none-eabi-size --format=sysv firmware.elf
+# //OWEND
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 

@@ -77,7 +77,7 @@ inline uint8_t getMaxMultiSubtype(uint8_t moduleIdx)
 
 inline bool isModuleMultimodule(uint8_t idx)
 {
-  return g_model.moduleData[idx].type == MODULE_TYPE_MULTIMODULE;
+  return g_model.moduleData[idx].getType() == MODULE_TYPE_MULTIMODULE;
 }
 
 inline bool isModuleMultimoduleDSM2(uint8_t idx)
@@ -103,7 +103,7 @@ inline bool isModuleTypeXJT(uint8_t type)
 
 inline bool isModuleXJT(uint8_t idx)
 {
-  return isModuleTypeXJT(g_model.moduleData[idx].type);
+  return isModuleTypeXJT(g_model.moduleData[idx].getType());
 }
 
 inline bool isModuleXJTD8(uint8_t idx)
@@ -123,12 +123,12 @@ inline bool isModuleXJTD16(uint8_t idx)
 
 inline bool isModuleISRM(uint8_t idx)
 {
-  return g_model.moduleData[idx].type == MODULE_TYPE_ISRM_PXX2;
+  return g_model.moduleData[idx].getType() == MODULE_TYPE_ISRM_PXX2;
 }
 
 inline bool isModuleISRMD16(uint8_t idx)
 {
-  return g_model.moduleData[idx].type == MODULE_TYPE_ISRM_PXX2 && g_model.moduleData[idx].subType == MODULE_SUBTYPE_ISRM_PXX2_ACCST_D16;
+  return g_model.moduleData[idx].getType() == MODULE_TYPE_ISRM_PXX2 && g_model.moduleData[idx].subType == MODULE_SUBTYPE_ISRM_PXX2_ACCST_D16;
 }
 
 inline bool isModuleD16(uint8_t idx)
@@ -138,13 +138,13 @@ inline bool isModuleD16(uint8_t idx)
 
 inline bool isModuleISRMAccess(uint8_t idx)
 {
-  return g_model.moduleData[idx].type == MODULE_TYPE_ISRM_PXX2 && g_model.moduleData[idx].subType == MODULE_SUBTYPE_ISRM_PXX2_ACCESS;
+  return g_model.moduleData[idx].getType() == MODULE_TYPE_ISRM_PXX2 && g_model.moduleData[idx].subType == MODULE_SUBTYPE_ISRM_PXX2_ACCESS;
 }
 
 #if defined(CROSSFIRE)
 inline bool isModuleCrossfire(uint8_t idx)
 {
-  return idx == EXTERNAL_MODULE && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_CROSSFIRE;
+  return idx == EXTERNAL_MODULE && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_CROSSFIRE;
 }
 #else
 inline bool isModuleCrossfire(uint8_t idx)
@@ -156,7 +156,7 @@ inline bool isModuleCrossfire(uint8_t idx)
 #if defined(GHOST)
 inline bool isModuleGhost(uint8_t idx)
 {
-  return idx == EXTERNAL_MODULE && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_GHOST;
+  return idx == EXTERNAL_MODULE && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_GHOST;
 }
 #else
 inline bool isModuleGhost(uint8_t idx)
@@ -188,7 +188,7 @@ inline bool isModulePPM(uint8_t moduleIdx)
   if (moduleIdx == EXTRA_MODULE)
     return true;
 #endif
-  return isModuleTypePPM(g_model.moduleData[moduleIdx].type);
+  return isModuleTypePPM(g_model.moduleData[moduleIdx].getType());
 }
 
 inline bool isModuleTypeR9MNonAccess(uint8_t type)
@@ -198,7 +198,7 @@ inline bool isModuleTypeR9MNonAccess(uint8_t type)
 
 inline bool isModuleR9MNonAccess(uint8_t idx)
 {
-  return isModuleTypeR9MNonAccess(g_model.moduleData[idx].type);
+  return isModuleTypeR9MNonAccess(g_model.moduleData[idx].getType());
 }
 
 inline bool isModuleTypeR9MAccess(uint8_t type)
@@ -208,7 +208,7 @@ inline bool isModuleTypeR9MAccess(uint8_t type)
 
 inline bool isModuleR9MAccess(uint8_t idx)
 {
-  return isModuleTypeR9MAccess(g_model.moduleData[idx].type);
+  return isModuleTypeR9MAccess(g_model.moduleData[idx].getType());
 }
 
 inline bool isModuleTypeR9M(uint8_t type)
@@ -218,7 +218,7 @@ inline bool isModuleTypeR9M(uint8_t type)
 
 inline bool isModuleR9M(uint8_t idx)
 {
-  return isModuleTypeR9M(g_model.moduleData[idx].type);
+  return isModuleTypeR9M(g_model.moduleData[idx].getType());
 }
 
 inline bool isModuleTypeR9MLiteNonPro(uint8_t type)
@@ -228,7 +228,7 @@ inline bool isModuleTypeR9MLiteNonPro(uint8_t type)
 
 inline bool isModuleR9MLiteNonPro(uint8_t idx)
 {
-  return isModuleTypeR9MLiteNonPro(g_model.moduleData[idx].type);
+  return isModuleTypeR9MLiteNonPro(g_model.moduleData[idx].getType());
 }
 
 inline bool isModuleTypeR9MLitePro(uint8_t type)
@@ -243,7 +243,7 @@ inline bool isModuleTypeR9MLite(uint8_t type)
 
 inline bool isModuleR9MLite(uint8_t idx)
 {
-  return isModuleTypeR9MLite(g_model.moduleData[idx].type);
+  return isModuleTypeR9MLite(g_model.moduleData[idx].getType());
 }
 
 inline bool isModuleR9M_FCC(uint8_t idx)
@@ -283,12 +283,12 @@ inline bool isModuleTypePXX1(uint8_t type)
 
 inline bool isModulePXX1(uint8_t idx)
 {
-  return isModuleTypePXX1(g_model.moduleData[idx].type);
+  return isModuleTypePXX1(g_model.moduleData[idx].getType());
 }
 
 inline bool isModuleXJTLite(uint8_t idx)
 {
-  return g_model.moduleData[idx].type == MODULE_TYPE_XJT_LITE_PXX2;
+  return g_model.moduleData[idx].getType() == MODULE_TYPE_XJT_LITE_PXX2;
 }
 
 inline bool isModulePXX2(uint8_t idx)
@@ -311,18 +311,27 @@ inline bool isModuleRFAccess(uint8_t idx)
 
 inline bool isModuleDSM2(uint8_t moduleIdx)
 {
-  return g_model.moduleData[moduleIdx].type == MODULE_TYPE_DSM2;
+  return g_model.moduleData[moduleIdx].getType() == MODULE_TYPE_DSM2;
 }
 
 inline bool isModuleSBUS(uint8_t moduleIdx)
 {
-  return g_model.moduleData[moduleIdx].type == MODULE_TYPE_SBUS;
+  return g_model.moduleData[moduleIdx].getType() == MODULE_TYPE_SBUS;
 }
 
 inline bool isModuleAFHDS3(uint8_t idx)
 {
-  return g_model.moduleData[idx].type == MODULE_TYPE_AFHDS3;
+  return g_model.moduleData[idx].getType() == MODULE_TYPE_AFHDS3;
 }
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+inline bool isModuleMavlink(uint8_t idx)
+{
+  return idx == EXTERNAL_MODULE && g_model.moduleData[idx].getType() == MODULE_TYPE_MAVLINK;
+}
+#endif
+//OWEND
 
 // order is the same as in enum Protocols in myeeprom.h (none, ppm, pxx, pxx2, dsm, crossfire, multi, r9m, r9m2, sbus)
 //qba667 count is not matching!
@@ -355,7 +364,7 @@ inline int8_t maxModuleChannels_M8(uint8_t moduleIdx)
     return 10;
   }
   else {
-    return maxChannelsModules[g_model.moduleData[moduleIdx].type];
+    return maxChannelsModules[g_model.moduleData[moduleIdx].getType()];
   }
 }
 
@@ -530,14 +539,14 @@ inline bool isTelemAllowedOnBind(uint8_t moduleIndex)
     return false;
 #endif
 
-  if (g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_R9M_LITE_PXX1) {
+  if (g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_R9M_LITE_PXX1) {
     if (isModuleR9M_LBT(EXTERNAL_MODULE))
       return g_model.moduleData[EXTERNAL_MODULE].pxx.power < R9M_LITE_LBT_POWER_100_16CH_NOTELEM;
     else
       return true;
   }
 
-  if (g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_R9M_PXX1) {
+  if (g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_R9M_PXX1) {
     if (isModuleR9M_LBT(EXTERNAL_MODULE))
       return g_model.moduleData[EXTERNAL_MODULE].pxx.power < R9M_LBT_POWER_200_16CH_NOTELEM;
     else
@@ -617,13 +626,13 @@ inline void setModuleType(uint8_t moduleIdx, uint8_t moduleType)
 {
   ModuleData & moduleData = g_model.moduleData[moduleIdx];
   memclear(&moduleData, sizeof(ModuleData));
-  moduleData.type = moduleType;
+  moduleData.setType(moduleType);
   moduleData.channelsCount = defaultModuleChannels_M8(moduleIdx);
-  if (moduleData.type == MODULE_TYPE_SBUS)
+  if (moduleData.getType() == MODULE_TYPE_SBUS)
     moduleData.sbus.refreshRate = -31;
-  else if (moduleData.type == MODULE_TYPE_PPM)
+  else if (moduleData.getType() == MODULE_TYPE_PPM)
     setDefaultPpmFrameLength(moduleIdx);
-  else if (moduleData.type == MODULE_TYPE_AFHDS3)
+  else if (moduleData.getType() == MODULE_TYPE_AFHDS3)
     resetAfhds3Options(moduleIdx);
   else
     resetAccessAuthenticationCount();

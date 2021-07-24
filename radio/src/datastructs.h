@@ -408,7 +408,10 @@ PACK(struct TrainerModuleData {
 #define MM_RF_CUSTOM_SELECTED 0xff
 #define MULTI_MAX_PROTOCOLS 127 //  rfProtocol:4 +  rfProtocolExtra:3
 PACK(struct ModuleData {
-  uint8_t type:4;
+//OW    
+//  uint8_t type:4;
+  uint8_t type4Bits:4; //we rename it to catch all occurences
+//OWEND  
   // TODO some refactoring is needed, rfProtocol is only used by DSM2 and MULTI, it could be merged with subType
   int8_t  rfProtocol:4;
   uint8_t channelsStart;
@@ -491,6 +494,23 @@ PACK(struct ModuleData {
   {
     return channelsCount + 8;
   })
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  uint8_t typeExtraBits:4; // extension bits
+
+  NOBACKUP(uint8_t getType(void) {
+    return (uint8_t)type4Bits + ((uint8_t)typeExtraBits << 4);
+  })
+
+  NOBACKUP(void setType(uint8_t _type) {
+    type4Bits = (_type & 0x0F); // lower 4 bits
+    typeExtraBits = (_type & 0xF0) >> 4; // extension bits
+  })
+#else
+  NOBACKUP(inline uint8_t getType(void) { return (uint8_t)type4Bits; })
+  NOBACKUP(inline void setType(uint8_t _type) { type4Bits = _type; })
+#endif
+//OWEND
 });
 
 /*
@@ -635,6 +655,17 @@ PACK(struct ModelData {
 
   char modelRegistrationID[PXX2_LEN_REGISTRATION_ID];
 
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  uint16_t mavlinkRssi:1;
+  uint16_t mavlinkMimicSensors:3; // currently just off/on, but allow e.g. FrSky, CF, FrSky passthrough.
+  uint16_t mavlinkRcOverride:5; // currently only 15 needed, but keep space
+  uint16_t mavlinkSpare1:7;
+  uint8_t  mavlinkRssiScale;
+  uint8_t  mavlinkSpare2;
+  // needs to adapt CHKSIZE below //if not all are used compile optimizes to lowest size, which may raise error
+#endif
+//OWEND
 
   uint8_t getThrottleStickTrimSource() const
   {
@@ -810,7 +841,10 @@ PACK(struct RadioData {
   NOBACKUP(uint8_t  imperial:1);
   NOBACKUP(uint8_t  jitterFilter:1); /* 0 - active */
   NOBACKUP(uint8_t  disableRssiPoweroffAlarm:1);
-  NOBACKUP(uint8_t  USBMode:2);
+//OW
+//  NOBACKUP(uint8_t  USBMode:2);
+  NOBACKUP(uint8_t  spare_oldUSBMode:2);
+//OWEND
   NOBACKUP(uint8_t  jackMode:2);
   NOBACKUP(uint8_t  sportUpdatePower:1);
   NOBACKUP(char     ttsLanguage[2]);
@@ -830,6 +864,15 @@ PACK(struct RadioData {
   char ownerRegistrationID[PXX2_LEN_REGISTRATION_ID];
 
   GYRO_FIELDS
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  uint16_t mavlinkBaudrate:3;
+  uint16_t mavlinkBaudrate2:3;
+  NOBACKUP(uint16_t USBMode:3);
+  uint16_t mavlinkSpare:7;
+  // needs to adapt CHKSIZE below
+#endif
+//OWEND
 });
 
 #undef SWITCHES_WARNING_DATA
@@ -940,7 +983,14 @@ static inline void check_struct()
 
   CHKSIZE(LogicalSwitchData, 9);
   CHKSIZE(TelemetrySensor, 14);
+//OW
+//  CHKSIZE(ModuleData, 29);
+#if defined(TELEMETRY_MAVLINK)
+  CHKSIZE(ModuleData, 29+1);
+#else
   CHKSIZE(ModuleData, 29);
+#endif
+//OWEND
   CHKSIZE(GVarData, 7);
   CHKSIZE(RssiAlarmData, 2);
   CHKSIZE(TrainerData, 16);
@@ -964,8 +1014,17 @@ static inline void check_struct()
   CHKSIZE(RadioData, 735);
   CHKSIZE(ModelData, 5301);
 #elif defined(PCBHORUS)
+//OW
+//  CHKSIZE(RadioData, 881);
+//  CHKSIZE(ModelData, 9736);
+#if defined(TELEMETRY_MAVLINK)
+  CHKSIZE(RadioData, 881+2);
+  CHKSIZE(ModelData, 9736+4+NUM_MODULES);
+#else
   CHKSIZE(RadioData, 881);
   CHKSIZE(ModelData, 9736);
+#endif
+//OWEND
 #endif
 
 #undef CHKSIZE

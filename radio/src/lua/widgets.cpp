@@ -23,6 +23,11 @@
 #include "opentx.h"
 #include "bin_allocator.h"
 #include "lua_api.h"
+//OW
+#if defined(HARDWARE_TOUCH)
+#include "touch.h"
+#endif
+//OWEND
 
 #define WIDGET_SCRIPTS_MAX_INSTRUCTIONS    (10000/100)
 #define MANUAL_SCRIPTS_MAX_INSTRUCTIONS    (20000/100)
@@ -380,6 +385,17 @@ void LuaWidget::refresh()
   if (errorMessage) {
     lcdSetColor(RED);
     lcdDrawText(zone.x, zone.y, "Disabled", SMLSIZE|CUSTOM_COLOR);
+//OW
+    int len = strlen(errorMessage);
+    int y = zone.y + 16;
+    const char *p = errorMessage;
+    while (len > 0) {
+      lcdDrawSizedText(zone.x, y, p, 60, SMLSIZE|CUSTOM_COLOR);
+      p += 60;
+      y += 16;
+      len -= 60;
+    }
+//OWEND
     return;
   }
 
@@ -387,14 +403,54 @@ void LuaWidget::refresh()
   LuaWidgetFactory * factory = (LuaWidgetFactory *)this->factory;
   lua_rawgeti(lsWidgets, LUA_REGISTRYINDEX, factory->refreshFunction);
   lua_rawgeti(lsWidgets, LUA_REGISTRYINDEX, widgetData);
-  if (lua_pcall(lsWidgets, 1, 0, 0) != 0) {
+
+//OW
+//  if (lua_pcall(lsWidgets, 1, 0, 0) != 0) {
+//    setErrorMessage("refresh()");
+//  }
+  event_t evt = s_evt;
+  if ((zone.h < 250) || (menuLevel > 0) || (getMainViewsCount() < 2)) {
+    // is not full screen or is in menu or to few main views
+    evt = 0; // do not pass on
+    unlockKeys();
+  } else
+  // only allow locked keys & ROT events to get through
+  if (eventIsLocked(evt) || (evt == EVT_ROTARY_LEFT) || (evt == EVT_ROTARY_RIGHT)) {
+    s_evt = 0; // clear event
+  }
+  else {
+    evt = 0; // do not pass on
+    unlockKeys();
+  }
+
+  lua_newtable(lsWidgets);
+  l_pushtableint("event", evt);
+#if defined(HARDWARE_TOUCH)
+  TouchState touch = touchState;
+  lua_pushstring(lsWidgets, "touch");
+  lua_newtable(lsWidgets);
+  l_pushtableint("event", touch.event);
+  l_pushtableint("x", touch.x);
+  l_pushtableint("y", touch.y);
+  l_pushtableint("startX", touch.startX);
+  l_pushtableint("startY", touch.startY);
+  l_pushtableint("extEvent", touch.extEvent);
+  lua_rawset(lsWidgets, -3);
+  touchState.extEvent = TE_EXT_NONE; // clear event
+#endif
+  if (lua_pcall(lsWidgets, 2, 0, 0) != 0) {
     setErrorMessage("refresh()");
   }
+//OWEND
 }
 
 void LuaWidget::background()
 {
   if (lsWidgets == 0 || errorMessage) return;
+
+//OW
+  unlockKeys();
+//OWEND
 
   luaSetInstructionsLimit(lsWidgets, WIDGET_SCRIPTS_MAX_INSTRUCTIONS);
   LuaWidgetFactory * factory = (LuaWidgetFactory *)this->factory;

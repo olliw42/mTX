@@ -23,7 +23,10 @@
 #include "pulses/afhds3.h"
 #include "mixer_scheduler.h"
 
-uint8_t telemetryStreaming = 0;
+//OW
+//uint8_t telemetryStreaming = 0;
+uint16_t telemetryStreaming = 0;
+//OWEND
 uint8_t telemetryRxBuffer[TELEMETRY_RX_PACKET_SIZE];   // Receive buffer. 9 bytes (full packet), worst case 18 bytes with byte-stuffing (+1)
 uint8_t telemetryRxBufferCount = 0;
 
@@ -202,7 +205,14 @@ void telemetryWakeup()
     }
 #endif
 
+//OW
+//    if (!g_model.rssiAlarms.disabled) {
+#if defined(TELEMETRY_MAVLINK)
+    if (!g_model.rssiAlarms.disabled && mavlinkTelem.telemetryVoiceEnabled()) {
+#else
     if (!g_model.rssiAlarms.disabled) {
+#endif
+//OWEND
       if (TELEMETRY_STREAMING()) {
         if (TELEMETRY_RSSI() < g_model.rssiAlarms.getCriticalRssi() ) {
           AUDIO_RSSI_RED();

@@ -131,7 +131,7 @@ void postModelLoad(bool alarms)
 #endif
 
 #if defined(HARDWARE_INTERNAL_MODULE)
-  if (!isInternalModuleAvailable(g_model.moduleData[INTERNAL_MODULE].type)) {
+  if (!isInternalModuleAvailable(g_model.moduleData[INTERNAL_MODULE].getType())) {
     memclear(&g_model.moduleData[INTERNAL_MODULE], sizeof(ModuleData));
   }
 #if defined(MULTIMODULE)
@@ -140,7 +140,7 @@ void postModelLoad(bool alarms)
 #endif
 #endif
 
-  if (!isExternalModuleAvailable(g_model.moduleData[EXTERNAL_MODULE].type)) {
+  if (!isExternalModuleAvailable(g_model.moduleData[EXTERNAL_MODULE].getType())) {
     memclear(&g_model.moduleData[EXTERNAL_MODULE], sizeof(ModuleData));
   }
 #if defined(MULTIMODULE)

@@ -152,8 +152,8 @@ void ModelCell::setRfData(ModelData* model)
 
 void ModelCell::setRfModuleData(uint8_t moduleIdx, ModuleData* modData)
 {
-  moduleData[moduleIdx].type = modData->type;
-  if (modData->type != MODULE_TYPE_MULTIMODULE) {
+  moduleData[moduleIdx].type = modData->getType(); //gladly, Simle_ModuleData.type is uint8_t
+  if (modData->getType() != MODULE_TYPE_MULTIMODULE) {
     moduleData[moduleIdx].rfProtocol = (uint8_t)modData->rfProtocol;
   }
   else {

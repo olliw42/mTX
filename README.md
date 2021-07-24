@@ -1,3 +1,13 @@
+## OlliW's MAVLink for OpenTX Branch
+
+This adds bi-directional, native MAVLink support to the OpenTx firmware.
+
+Project web page: http://www.olliw.eu/2020/olliwtelem/
+
+Discussion thread: https://www.rcgroups.com/forums/showthread.php?3532969-MAVLink-for-OpenTx-and-Telemetry-Script
+
+Youtube playlist: https://youtube.com/playlist?list=PLCgau2zkFD_nKGHDyU4nltgT2IfCj1CN2
+
 ## OpenTX 2.3 Branch
 
 [![Travis build Status](https://travis-ci.org/opentx/opentx.svg?branch=2.3)](https://travis-ci.org/opentx/opentx)

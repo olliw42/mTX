@@ -133,6 +133,15 @@ enum MenuModelSetupItems {
 #endif
   ITEM_MODEL_SETUP_TRAINER_CHANNELS,
   ITEM_MODEL_SETUP_TRAINER_PPM_PARAMS,
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  ITEM_MODEL_SETUP_MAVLINK_LABEL,
+  ITEM_MODEL_SETUP_MAVLINK_RSSI,
+  ITEM_MODEL_SETUP_MAVLINK_RSSISCALE,
+  ITEM_MODEL_SETUP_MAVLINK_MIMICSENSORS,
+  ITEM_MODEL_SETUP_MAVLINK_RCOVERRIDE,
+#endif
+//OWEND
   ITEM_MODEL_SETUP_MAX
 };
 
@@ -653,13 +662,19 @@ bool menuModelSetup(event_t event)
            IF_ACCESS_MODULE_RF(EXTERNAL_MODULE, 0),   // Receiver 3
 
          TRAINER_ROWS
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+         ,LABEL(Mavlink), 0, 0, 0, 0
+#endif
+//OWEND
        });
 
   if (event == EVT_ENTRY || event == EVT_ENTRY_UP) {
     memclear(&reusableBuffer.moduleSetup, sizeof(reusableBuffer.moduleSetup));
     reusableBuffer.moduleSetup.r9mPower = g_model.moduleData[EXTERNAL_MODULE].pxx.power;
-    reusableBuffer.moduleSetup.previousType = g_model.moduleData[EXTERNAL_MODULE].type;
-    reusableBuffer.moduleSetup.newType = g_model.moduleData[EXTERNAL_MODULE].type;
+    reusableBuffer.moduleSetup.previousType = g_model.moduleData[EXTERNAL_MODULE].getType();
+    reusableBuffer.moduleSetup.newType = g_model.moduleData[EXTERNAL_MODULE].getType();
 #if defined(INTERNAL_MODULE_PXX1) && defined(EXTERNAL_ANTENNA)
     reusableBuffer.moduleSetup.antennaMode = g_model.moduleData[INTERNAL_MODULE].pxx.antennaMode;
 #endif
@@ -1030,14 +1045,14 @@ bool menuModelSetup(event_t event)
 #if !defined(INTERNAL_MODULE_MULTI)
       case ITEM_MODEL_SETUP_INTERNAL_MODULE_TYPE:
         lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MODE);
-        lcdDrawTextAtIndex(MODEL_SETUP_2ND_COLUMN, y, STR_INTERNAL_MODULE_PROTOCOLS, g_model.moduleData[INTERNAL_MODULE].type, menuHorizontalPosition==0 ? attr : 0);
+        lcdDrawTextAtIndex(MODEL_SETUP_2ND_COLUMN, y, STR_INTERNAL_MODULE_PROTOCOLS, g_model.moduleData[INTERNAL_MODULE].getType(), menuHorizontalPosition==0 ? attr : 0);
         if (isModuleXJT(INTERNAL_MODULE))
           lcdDrawTextAtIndex(MODEL_SETUP_3RD_COLUMN, y, STR_XJT_ACCST_RF_PROTOCOLS, 1 + g_model.moduleData[INTERNAL_MODULE].subType, menuHorizontalPosition==1 ? attr : 0);
         else if (isModuleISRM(INTERNAL_MODULE))
           lcdDrawTextAtIndex(MODEL_SETUP_3RD_COLUMN, y, STR_ISRM_RF_PROTOCOLS, g_model.moduleData[INTERNAL_MODULE].subType, menuHorizontalPosition==1 ? attr : 0);
         if (attr) {
           if (menuHorizontalPosition == 0) {
-            uint8_t moduleType = checkIncDec(event, g_model.moduleData[INTERNAL_MODULE].type, MODULE_TYPE_NONE, MODULE_TYPE_MAX, EE_MODEL, isInternalModuleAvailable);
+            uint8_t moduleType = checkIncDec(event, g_model.moduleData[INTERNAL_MODULE].getType(), MODULE_TYPE_NONE, MODULE_TYPE_MAX, EE_MODEL, isInternalModuleAvailable);
             if (checkIncDec_Ret) {
               setModuleType(INTERNAL_MODULE, moduleType);
             }
@@ -1084,7 +1099,7 @@ bool menuModelSetup(event_t event)
 #endif
       case ITEM_MODEL_SETUP_EXTERNAL_MODULE_TYPE:
         lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MODE);
-        lcdDrawTextAtIndex(MODEL_SETUP_2ND_COLUMN, y, STR_EXTERNAL_MODULE_PROTOCOLS, moduleIdx == EXTERNAL_MODULE ? reusableBuffer.moduleSetup.newType : g_model.moduleData[INTERNAL_MODULE].type, menuHorizontalPosition==0 ? attr : 0);
+        lcdDrawTextAtIndex(MODEL_SETUP_2ND_COLUMN, y, STR_EXTERNAL_MODULE_PROTOCOLS, moduleIdx == EXTERNAL_MODULE ? reusableBuffer.moduleSetup.newType : g_model.moduleData[INTERNAL_MODULE].getType(), menuHorizontalPosition==0 ? attr : 0);
         if (isModuleXJT(moduleIdx))
           lcdDrawTextAtIndex(MODEL_SETUP_3RD_COLUMN, y, STR_XJT_ACCST_RF_PROTOCOLS, 1+g_model.moduleData[moduleIdx].subType, (menuHorizontalPosition==1 ? attr : 0));
         else if (isModuleDSM2(moduleIdx))
@@ -1106,15 +1121,15 @@ bool menuModelSetup(event_t event)
 #endif
         if (attr && menuHorizontalPosition == 0 && moduleIdx == EXTERNAL_MODULE) {
           if (s_editMode > 0) {
-            g_model.moduleData[EXTERNAL_MODULE].type = MODULE_TYPE_NONE;
+              g_model.moduleData[EXTERNAL_MODULE].setType(MODULE_TYPE_NONE);
           }
           else if (reusableBuffer.moduleSetup.newType != reusableBuffer.moduleSetup.previousType) {
-            g_model.moduleData[EXTERNAL_MODULE].type = reusableBuffer.moduleSetup.newType;
+            g_model.moduleData[EXTERNAL_MODULE].setType(reusableBuffer.moduleSetup.newType);
             reusableBuffer.moduleSetup.previousType = reusableBuffer.moduleSetup.newType;
-            setModuleType(EXTERNAL_MODULE, g_model.moduleData[EXTERNAL_MODULE].type);
+            setModuleType(EXTERNAL_MODULE, g_model.moduleData[EXTERNAL_MODULE].getType());
           }
-          else if (g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_NONE) {
-            g_model.moduleData[EXTERNAL_MODULE].type = reusableBuffer.moduleSetup.newType;
+          else if (g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_NONE) {
+            g_model.moduleData[EXTERNAL_MODULE].setType(reusableBuffer.moduleSetup.newType);
           }
         }
         if (attr) {
@@ -1123,7 +1138,7 @@ bool menuModelSetup(event_t event)
               case 0: {
 #if defined(HARDWARE_INTERNAL_MODULE)
                 if (moduleIdx == INTERNAL_MODULE) {
-                  uint8_t moduleType = checkIncDec(event, g_model.moduleData[moduleIdx].type, MODULE_TYPE_NONE, MODULE_TYPE_MAX, EE_MODEL,
+                  uint8_t moduleType = checkIncDec(event, g_model.moduleData[moduleIdx].getType(), MODULE_TYPE_NONE, MODULE_TYPE_MAX, EE_MODEL,
                                                    isInternalModuleAvailable);
                   if (checkIncDec_Ret) {
                     setModuleType(moduleIdx, moduleType);
@@ -1239,8 +1254,8 @@ bool menuModelSetup(event_t event)
                 CHECK_INCDEC_MODELVAR_ZERO(event, moduleData.channelsStart, 32-8-moduleData.channelsCount);
                 break;
               case 1:
-                CHECK_INCDEC_MODELVAR_CHECK(event, moduleData.channelsCount, -4, min<int8_t>(maxModuleChannels_M8(moduleIdx), 32-8-moduleData.channelsStart), moduleData.type == MODULE_TYPE_ISRM_PXX2 ? isPxx2IsrmChannelsCountAllowed : nullptr);
-                if (checkIncDec_Ret && moduleData.type == MODULE_TYPE_PPM) {
+                CHECK_INCDEC_MODELVAR_CHECK(event, moduleData.channelsCount, -4, min<int8_t>(maxModuleChannels_M8(moduleIdx), 32-8-moduleData.channelsStart), moduleData.getType() == MODULE_TYPE_ISRM_PXX2 ? isPxx2IsrmChannelsCountAllowed : nullptr);
+                if (checkIncDec_Ret && moduleData.getType() == MODULE_TYPE_PPM) {
                   setDefaultPpmFrameLength(moduleIdx);
                 }
                 break;
@@ -1360,6 +1375,44 @@ bool menuModelSetup(event_t event)
           }
         }
         break;
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+      case ITEM_MODEL_SETUP_MAVLINK_LABEL:
+        lcdDrawText(MENUS_MARGIN_LEFT, y, STR_MAVLINK);
+        break;
+
+      case ITEM_MODEL_SETUP_MAVLINK_RSSI: {
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MAVLINK_RSSI);
+        g_model.mavlinkRssi = editCheckBox(g_model.mavlinkRssi, MODEL_SETUP_2ND_COLUMN, y, attr, event);
+        break;
+      }
+
+      case ITEM_MODEL_SETUP_MAVLINK_RSSISCALE: {
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MAVLINK_RSSI_SCALE);
+        lcdDrawNumber(MODEL_SETUP_2ND_COLUMN, y, (int16_t)g_model.mavlinkRssiScale, attr | LEFT, 0, NULL, "");
+        if (attr) {
+          int16_t scale = g_model.mavlinkRssiScale;
+          CHECK_INCDEC_MODELVAR_ZERO(event, scale, 255);
+          g_model.mavlinkRssiScale = scale;
+        }
+        break;
+      }
+
+      case ITEM_MODEL_SETUP_MAVLINK_MIMICSENSORS: {
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MAVLINK_SENSOR_MIMICRY);
+        g_model.mavlinkMimicSensors = editCheckBox(g_model.mavlinkMimicSensors, MODEL_SETUP_2ND_COLUMN, y, attr, event);
+        break;
+      }
+
+      case ITEM_MODEL_SETUP_MAVLINK_RCOVERRIDE: {
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MAVLINK_RC_OVERRIDE);
+        if (g_model.mavlinkRcOverride > 14) g_model.mavlinkRcOverride = 7; // sanitize
+        g_model.mavlinkRcOverride = editChoice(MODEL_SETUP_2ND_COLUMN, y, STR_MAVLINK_RC_OVERRIDE_FREQUENCIES, g_model.mavlinkRcOverride, 0, 14, attr, event);
+        break;
+      }
+#endif
+//OWEND
 
 #if defined(PXX2)
       case ITEM_MODEL_SETUP_REGISTRATION_ID:
@@ -1932,7 +1985,7 @@ bool menuModelSetup(event_t event)
             break;
         case ITEM_MODEL_SETUP_EXTERNAL_MODULE_TYPE:
           mod_cell->setRfData(&g_model);
-          if (g_model.moduleData[EXTERNAL_MODULE].type != MODULE_TYPE_NONE)
+          if (g_model.moduleData[EXTERNAL_MODULE].getType() != MODULE_TYPE_NONE)
             checkModelIdUnique(EXTERNAL_MODULE);
           break;
       }

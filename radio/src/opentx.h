@@ -18,6 +18,267 @@
  * GNU General Public License for more details.
  */
 
+//OW
+#define OWVERSIONSTR  "v30rc07"
+//OWEND
+
+/*
+basic touch, for tx16s
+new keys
+serials moved from hardware to radio setup
+usb serial revamped
+upgraded to otx2.3.13 as base
+v28 2021-06-18
+module mavlink handling even further improved
+upgraded to otx2.3.12 as base
+v27 2021-06-10
+ext rf module mavlink, poweron/off sorted
+backport of some good stuff from etx2.4 pr
+update mavlink, fastmavlink, have invalid attr
+correct power handling for SPort bidirectional
+SPort bidirectional
+mavMsgOut w fifo
+mavMsgOut
+mavMsgList
+v26 2021-03-21
+fastMavlink v003, prearm checks
+v25 2021-03-07
+fastMavlink
+v24 2021-02-11
+v22 2021-02-5:
+mavlink submodule changed to main git repo, 600xx storm32
+v20 2021-01-23:
+mavlink submodule changed to main git repo, file generator updated
+uart totally revised, uses now AUX_SERIAL and AUX2_SERIAL
+v18 2020-12-07:
+mavlink storm32.xml, qshots
+v17 2020-10-15:
+mavlink submodule changed to main git repo, file generator added
+one needs to run mavgenerate_dialect.py to generate the mavlink c code files
+modified files in radio/src/
+
+    dataconstants.h:  1x
+    datastructs.h:    6x
+    keys.cpp:         2x
+    keys.h:           1x
+    main.cpp:         2x
+    opentx.cpp:       1x
+    opentx.h:         2x
+    options.h:        1x
+    tasks.cpp:        3x
+    tasks.h:          1x
+    translations.cpp: 1x
+    translations.h:   1x
+    CMakeList.txt:    1x
+    gui/480x272/bitmap.cpp:          1x
+    gui/480x272/bitmap.h:            1x
+    gui/480x272/lcd.cpp:             1x
+    gui/480x272/lcd.h:               1x
+    gui/480x272/model_setup.cpp:     3x
+    gui/480x272/radio_hardware.cpp:  6x
+    gui/480x272/topbar.cpp:          2x
+    gui/gui_common.cpp:              2x
+    gui/gui_common.h:                1x
+    lua/api_general.cpp:             3x
+    lua/api_lcd.cpp:                 2x
+    pulses/modules_constants.h:      1x
+    pulses/modules_helpers.h:        1x
+    pulses/pulses.cpp:               2x
+    pulses/pulses.h:                 1x
+    targets/common/arm/stm32/aux_serial_driver.cpp:  8x
+    targets/common/arm/stm32/usb_driver.cpp:         1x
+    targets/common/arm/stm32/usb_driver.h:           1x
+    targets/common/arm/stm32/usbd_cdc.cpp:           1x
+    targets/common/arm/stm32/usbd_dec.cpp:           4x
+    targets/horus/extmodule_driver.cpp:              1x
+    targets/horus/hal.h:                             1x
+    targets/horus/telemetry_driver.cpp:              9x
+    targets/horus/CMakeList.txt:                     4x
+    telemetry/telemetry.cpp:         2x
+    telemetry/telemetry.h:           1x
+    thirdparty/Lua/src/lauxlib.h:    1x
+    thirdparty/Lua/src/linit.c:      1x
+    thirdparty/Lua/src/lrotable.h:   1x
+    translations/untranslated.h:     2x
+
+added files
+    telemetry/mavlink/mavlink_telem_autopilot.cpp
+    telemetry/mavlink/mavlink_telem_camera.cpp
+    telemetry/mavlink/mavlink_telem_gimbal.cpp
+    telemetry/mavlink/mavlink_telem_interface.cpp
+    telemetry/mavlink/mavlink_telem_mavapi.cpp
+    telemetry/mavlink/mavlink_telem_qshot.cpp
+    telemetry/mavlink/mavlink_telem.cpp
+    telemetry/mavlink/mavlink_telem.h
+    lua/api_mavlink.cpp
+    lua/api_mavsdk.cpp
+    thirdparty/Mavlink/
+
+
+TODO:
+- TELEMETRY_USART_IRQHandler: optimize, USART_xxx() functions are not very efficient
+- mavlink router: wipeout&reassign when link changes? wipeout after timeout?
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+#endif
+//OWEND
+
+
+COMMENTS:
+perMain() in main.cpp, where GPS is:
+  it seems it is called at 20 Hz or 50 ms
+  is called from TASK_FUNCTION(menusTask) in tasks.cpp
+  indeed, MENU_TASK_PERIOD_TICKS is set to 50 ms
+  this is maybe a bit slow for MAVLink
+  56700 bps => 288 bytes per 50 ms
+=> TASK_FUNCTION(mixerTask), where also BLUETOOTH, telemetryWakeup() is
+  it is very fast
+  something like a 10ms task would be great ...
+=> per10ms() in opentx,cpp, where also telemetryInterrupt10ms(), outputTelemetryBuffer.per10ms() is
+  let's try this
+
+idea:
+support LEFT, RIGHT CENTER also for drawFilledRectangle, drawRectangle, or better LEFT,RIGHT,XCENTER,TOP,BOTTOM,YCENTER
+
+----
+
+TASK_FUNCTION(menusTask) -> perMain() -> handleUsbConnection()
+g_eeGeneral.USBMode
+USB_UNSELECTED_MODE
+USB_JOYSTICK_MODE
+USB_MASS_STORAGE_MODE
+USB_SERIAL_MODE   if defined(USB_SERIAL) usbd_cdc_core  TR_USBMODES   error
+
+----
+
+STR_AUX_SERIAL_MODES
+MAVLINK_AUX_SERIAL_MODES
+INTERNAL_GPS MIXSRC_TX_GPS
+BLUETOOTH
+TELEMETRY_MAVLINK   TELEMETRY_MAVLINK_USB_SERIAL  USB_SERIAL  DEBUG  AUX_SERIAL  AUX2_SERIAL  CLI
+T16 TX16S T18 X10
+
+external
+problem is: the moduleData.type is only 4 bits, and there are already 16 modules, so one can't go the native way
+the "simplest" would be to just increase but this would break storage format
+thus, idea: add some more bits somewhere else so as to not break storage compatibility
+the type is then made up by fusing the 4 original bits with the new bits, effectively extending size
++ add setter getter to struct and ensure that the type is never used directly but only through the
+I now see: this kind of trick was in fact used before for rfProtocolExtra LOL
+
+moduleData[idx].type
+MULTIMODULE
+ITEM_MODEL_SETUP_EXTERNAL_MODULE_TYPE
+STR_EXTERNAL_MODULE_PROTOCOLS
+TelemetryProtocol
+setModuleType(uint8_t moduleIdx, uint8_t moduleType)
+EXTERNAL_MODULE
+
+enablePulsesExternalModule()
+extmoduleSerialStart()
+extmoduleStop()
+
+rssi
+telemetryData.rssi
+telemetryData.clear()
+class TelemetryData
+TelemetryFilterDecorator
+TELEMETRY_RSSI()
+TELEMETRY_STREAMING()
+MODEL_TELEMETRY_STREAMING()
+telemetryWakeup()
+telemetryItems[index].setValue(g_model.telemetrySensors[index], value, unit, prec);
+sportProcessTelemetryPacket
+
+struct
+opentxLib -> lauxlib.h, limit.c
+opentxConstants -> limit.c, lrotable.h
+lcdLib -> lauxlib.h, limit.c
+modelLib -> lauxlib.h, limit.c
+lsScripts lsWidgets lua_setglobal lua_istable
+malloc
+
+----
+BOARD_NAME
+-> build-fw.py
+-> t16   -> PCB = X10, PCBREV = T16
+   tx16s -> PCB = X10, PCBREV = TX16S
+
+horus/CMakeList
+-> PCB = X10   -> -DPCBX10
+-> PCBREV = T16   -> -DRADIO_T16   -DRADIO_FAMILY_T16
+   PCBREV = TX16S -> -DRADIO_TX16S -DRADIO_FAMILY_T16
+-> -DPCBREV=${PCBREV}
+-> -DPCBREV_${PCBREV}
+
+T16
+  BLUETOOTH = USART6
+  USART3 is free
+Tx16S
+  AUX_SERIAL = USART3
+  AUX2_SERIAL = USART6
+  INTERNAL_GPS = USART6
+  BLUETOOTH = USART6
+
+mixerTask -> bluetooth.wakeup();
+menusTask -> perMain() -> gpsWakeup();
+per10ms() ->  outputTelemetryBuffer.per10ms();
+
+
+failsafeMode
+TR_EMERGENCY_MODE              "EMERGENCY MODE"
+globalData.unexpectedShutdown  -> drawFatalErrorScreen(STR_EMERGENCY_MODE);
+  checkEeprom()
+  perMain() -> #if defined(RTC_BACKUP_RAM) -> drawFatalErrorScreen(STR_EMERGENCY_MODE);
+            -> drawFatalErrorScreen(STR_NO_SDCARD);
+  opentxInit()
+
+eeGeneral.unexpectedShutdown
+-> storage/eeprom_rlc
+  #if defined(SDCARD)
+  void eepromBackup()
+-> opentx
+  opentxClose(uint8_t shutdown)
+  opentxResume()
+  opentxInit()
+
+bool UNEXPECTED_SHUTDOWN()
+  WAS_RESET_BY_WATCHDOG -> true
+  WAS_RESET_BY_SOFTWARE -> check BKP
+  else -> checks BKP
+
+----
+on T16:
+USART2 = TELEMETRY_USART
+USART1 = INTMODULE_USART
+USART6 = BT_USART
+
+T16 scheme indicates:
+USART3_TX  		90		PB.10
+USART3_RX  		91		PB.11
+INTMODULE_RX	196		PB.07	USART1_RX
+INTMODULE_TX	195		PB.06	USART1_TX
+BLUETOOTH_TX	183		PG.14	USART6_TX
+BLUETOOTH_RX	178		PG.09	USART6_RX
+S.PORT_RX		172		PD.06	USART2_RX
+S.PORT_TX		169		PD.05	USART2_TX
+TRAINER_OUT		139		PC.07	USART6_RX
+TRAINER_IN      138		PC.06	USART6_TX
+
+=> USART3 is free :)
+also USART6 on BT could be used  UART
+
+common:
+aux_serial_driver.cpp  #if defined(AUX_SERIAL) #endif
+bluetooth_driver.cpp
+intmodule_serial_driver.cpp
+horus:
+extmodule_driver.cpp
+gps_driver.cpp
+telemetry_driver.cpp
+*/
+
 #pragma once
 
 #include <stdlib.h>
@@ -558,10 +819,6 @@ bool setTrimValue(uint8_t phase, uint8_t idx, int trim);
 
 #if defined(PCBSKY9X)
   #define ROTARY_ENCODER_GRANULARITY (2 << g_eeGeneral.rotarySteps)
-#elif defined(RADIO_FAMILY_T16) && !defined(RADIO_T18)
-  #define ROTARY_ENCODER_GRANULARITY (1)
-#elif defined(RADIO_TX12)
-  #define ROTARY_ENCODER_GRANULARITY (1)
 #else
   #define ROTARY_ENCODER_GRANULARITY (2)
 #endif
@@ -1043,6 +1300,12 @@ constexpr uint8_t SD_SCREEN_FILE_LENGTH = 64;
 #if defined(BLUETOOTH)
 #include "bluetooth.h"
 #endif
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+#include "telemetry/mavlink/mavlink_telem.h"
+#endif
+//OWEND
 
 constexpr uint8_t TEXT_FILENAME_MAXLEN = 40;
 

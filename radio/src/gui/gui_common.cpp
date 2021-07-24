@@ -384,6 +384,15 @@ bool isAux1ModeAvailable(int mode)
 #if defined(AUX2_SERIAL)
   if (mode == UART_MODE_SBUS_TRAINER)
     return g_eeGeneral.aux2SerialMode != UART_MODE_SBUS_TRAINER;
+//OW
+  else
+  if (mode == UART_MODE_MAVLINK)
+#if defined(TELEMETRY_MAVLINK)
+    return true;
+#else
+  return false;
+#endif
+//OWEND
 #if defined(RADIO_TX16S)
   else
     return (g_model.trainerData.mode != TRAINER_MODE_MASTER_BATTERY_COMPARTMENT || g_eeGeneral.aux2SerialMode == UART_MODE_SBUS_TRAINER);
@@ -397,6 +406,15 @@ bool isAux2ModeAvailable(int mode)
 #if defined(AUX_SERIAL)
   if (mode == UART_MODE_SBUS_TRAINER)
     return g_eeGeneral.auxSerialMode != UART_MODE_SBUS_TRAINER;
+//OW
+  else
+  if (mode == UART_MODE_MAVLINK)
+#if defined(TELEMETRY_MAVLINK)
+    return true;
+#else
+  return false;
+#endif
+//OWEND
 #if defined(RADIO_TX16S)
   else
     return (g_model.trainerData.mode != TRAINER_MODE_MASTER_BATTERY_COMPARTMENT || g_eeGeneral.auxSerialMode == UART_MODE_SBUS_TRAINER);
@@ -404,6 +422,29 @@ bool isAux2ModeAvailable(int mode)
 #endif
   return true;
 }
+
+//OW
+bool isUsbModeAvailable(int mode)
+{
+  if (mode == USB_SERIAL_MODE) {
+#if defined(USB_SERIAL)
+    return true;
+#else
+    return false;
+#endif
+  }
+
+  if (mode == USB_MAVLINK_MODE) {
+#if defined(TELEMETRY_MAVLINK_USB_SERIAL)
+    return true;
+#else
+    return false;
+#endif
+  }
+
+  return true;
+}
+//OWEND
 
 bool isSwitchAvailableInLogicalSwitches(int swtch)
 {
@@ -685,10 +726,10 @@ bool isExternalModuleAvailable(int moduleType)
 #endif
 
 #if defined(HARDWARE_INTERNAL_MODULE)
-  if (areModulesConflicting(g_model.moduleData[INTERNAL_MODULE].type, moduleType))
+  if (areModulesConflicting(g_model.moduleData[INTERNAL_MODULE].getType(), moduleType))
     return false;
 
-  if (isTrainerUsingModuleBay() || (isModuleUsingSport(EXTERNAL_MODULE, moduleType) && isModuleUsingSport(INTERNAL_MODULE, g_model.moduleData[INTERNAL_MODULE].type)))
+  if (isTrainerUsingModuleBay() || (isModuleUsingSport(EXTERNAL_MODULE, moduleType) && isModuleUsingSport(INTERNAL_MODULE, g_model.moduleData[INTERNAL_MODULE].getType())))
     return false;
 #endif
 
@@ -708,12 +749,12 @@ bool isExternalModuleAvailable(int moduleType)
 bool isRfProtocolAvailable(int protocol)
 {
 #if defined(CROSSFIRE)
-  if (protocol != MODULE_SUBTYPE_PXX1_OFF && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_CROSSFIRE) {
+    if (protocol != MODULE_SUBTYPE_PXX1_OFF && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_CROSSFIRE) {
     return false;
   }
 #endif
 #if defined(GHOST)
-  if (protocol != MODULE_SUBTYPE_PXX1_OFF && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_GHOST) {
+  if (protocol != MODULE_SUBTYPE_PXX1_OFF && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_GHOST) {
     return false;
   }
 #endif
@@ -723,10 +764,10 @@ bool isRfProtocolAvailable(int protocol)
   }
 #endif
 #if defined(PCBTARANIS) || defined(PCBHORUS)
-  if (protocol != MODULE_SUBTYPE_PXX1_OFF && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_R9M_PXX1) {
+  if (protocol != MODULE_SUBTYPE_PXX1_OFF && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_R9M_PXX1) {
     return false;
   }
-  if (protocol != MODULE_SUBTYPE_PXX1_OFF && g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_R9M_PXX2) {
+  if (protocol != MODULE_SUBTYPE_PXX1_OFF && g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_R9M_PXX2) {
     return false;
   }
 #endif

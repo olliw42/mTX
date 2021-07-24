@@ -25,6 +25,9 @@
 #include "lua_api.h"
 #include "telemetry/frsky.h"
 #include "telemetry/multi.h"
+//OW
+#include "touch.h"
+//OWEND
 
 #if defined(PCBX12S)
   #include "lua/lua_exports_x12s.inc"   // this line must be after lua headers
@@ -1742,7 +1745,29 @@ static int luaSerialRead(lua_State * L)
   return 1;
 }
 
+//OW
+static int luaLockKeys(lua_State * L)
+{
+  uint16_t mask = luaL_checkunsigned(L, 1);
+  lockKeys(mask);
+  return 0;
+}
+
+static int luaCheckWidgetSetup(lua_State * L)
+{
+  uint8_t res = 0;
+  if (menuLevel > 0) res |= 0x01;
+  if (getMainViewsCount() < 2) res |= 0x02;
+  lua_pushinteger(L, res);
+  return 1;
+}
+//OWEND
+
 const luaL_Reg opentxLib[] = {
+//OW
+  { "lockKeys", luaLockKeys },
+  { "checkWidgetSetup", luaCheckWidgetSetup },
+//OWEND
   { "getTime", luaGetTime },
   { "getDateTime", luaGetDateTime },
 #if defined(RTCLOCK)
@@ -1992,6 +2017,25 @@ const luaR_value_entry opentxConstants[] = {
 
 #if defined(KEYS_GPIO_REG_DOWN) && defined(NAVIGATION_HORUS)
   { "EVT_RTN_FIRST", EVT_KEY_BREAK(KEY_EXIT) },
+//OW
+  { "EVT_RTN_BREAK", EVT_KEY_BREAK(KEY_EXIT) },
+  { "EVT_RTN_LONG", EVT_KEY_LONG(KEY_EXIT) },
+  { "EVT_RTN_REPT", EVT_KEY_REPT(KEY_EXIT) },
+  { "KEY_ENTER", (1<<KEY_ENTER) },
+  { "KEY_MODEL", (1<<KEY_MODEL) },
+  { "KEY_TELEM", (1<<KEY_TELEM) },
+  { "KEY_SYS", (1<<KEY_RADIO) },
+  { "KEY_RTN", (1<<KEY_EXIT) },
+  { "EVT_TOUCH_DOWN", TE_DOWN },
+  { "EVT_TOUCH_UP", TE_UP },
+  { "EVT_TOUCH_SLIDE", TE_SLIDE },
+  { "EVT_TOUCH_SLIDE_END", TE_SLIDE_END },
+  { "EVT_TOUCH_TAP", TE_TAP },
+  { "EVT_TOUCH_WIPE_LEFT", TE_WIPE_LEFT },
+  { "EVT_TOUCH_WIPE_RIGHT", TE_WIPE_RIGHT },
+  { "EVT_TOUCH_WIPE_UP", TE_WIPE_UP },
+  { "EVT_TOUCH_WIPE_DOWN", TE_WIPE_DOWN },
+//OWEND
 #else
   KEY_EVENTS(DOWN, KEY_DOWN),
 #endif
