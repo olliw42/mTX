@@ -19,13 +19,14 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v30"
+#define OWVERSIONSTR  "v31-rc01"
 //OWEND
 
 /*
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+v30 2021-07-24
 upgraded to otx2.3.14 as base
 prevent installation of widget on page 1
 basic touch, for tx16s
