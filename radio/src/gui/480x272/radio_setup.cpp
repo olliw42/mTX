@@ -316,7 +316,7 @@ bool menuRadioSetup(event_t event)
         break;
 
       case ITEM_SETUP_SPEAKER_PITCH:
-        lcdDrawText(MENUS_MARGIN_LEFT,  y, STR_SPKRPITCH);
+        lcdDrawText(MENUS_MARGIN_LEFT, y, STR_SPKRPITCH);
         lcdDrawNumber(RADIO_SETUP_2ND_COLUMN, y, g_eeGeneral.speakerPitch*15, attr|LEFT, 0, "+", "Hz");
         if (attr) {
           CHECK_INCDEC_GENVAR(event, g_eeGeneral.speakerPitch, 0, 20);
@@ -407,7 +407,7 @@ bool menuRadioSetup(event_t event)
       }
 
       case ITEM_SETUP_INACTIVITY_ALARM:
-        lcdDrawText(MENUS_MARGIN_LEFT,  y,STR_INACTIVITYALARM);
+        lcdDrawText(MENUS_MARGIN_LEFT, y, STR_INACTIVITYALARM);
         lcdDrawNumber(RADIO_SETUP_2ND_COLUMN, y, g_eeGeneral.inactivityTimer, attr|LEFT, 0, NULL, "m");
         if (attr) g_eeGeneral.inactivityTimer = checkIncDec(event, g_eeGeneral.inactivityTimer, 0, 250, EE_GENERAL); //0..250minutes
         break;
@@ -417,7 +417,7 @@ bool menuRadioSetup(event_t event)
         break;
 
       case ITEM_SETUP_BACKLIGHT_MODE:
-        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH , y, STR_MODE);
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MODE);
         g_eeGeneral.backlightMode = editChoice(RADIO_SETUP_2ND_COLUMN, y, STR_VBLMODE, g_eeGeneral.backlightMode, e_backlight_mode_off, e_backlight_mode_on, attr, event);
         break;
 
@@ -450,7 +450,7 @@ bool menuRadioSetup(event_t event)
 
 #if defined(KEYS_BACKLIGHT_GPIO)
       case ITEM_SETUP_KEYS_BACKLIGHT:
-        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH , y, STR_KEYS_BACKLIGHT);
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_KEYS_BACKLIGHT);
         g_eeGeneral.keysBacklight = editCheckBox(g_eeGeneral.keysBacklight, RADIO_SETUP_2ND_COLUMN, y, attr, event ) ;
         break;
 #endif
