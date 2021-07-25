@@ -107,7 +107,7 @@ def generateLibMessageForPush(msg, m):
             m.append('    lua_pushstring(L, "'+nameshort+'"); // array '+field.name+'['+str(field.array_length)+']' )
             m.append('    lua_newtable(L);')
             m.append('    for (int i = 0; i < '+str(field.array_length)+'; i++) { ')
-            m.append('      lua_pushtableinumber(L, i, payload->'+field.name+'[i]);')
+            m.append('      lua_pushtableinumber(L, i+1, payload->'+field.name+'[i]); // lua is 1 indexed') 
             m.append('    }')
             m.append('    lua_rawset(L, -3);')
     m.append('    return;')
@@ -140,16 +140,20 @@ def generateLibMessageForCheck(msg, m):
             invalid = invalid[1:-1]
             if invalid.find(',') < 0:
                 invalid = cvtInvalidAttr(invalid)
-                m.append('    for (int i = 0; i < '+str(field.array_length)+'; i++) { ')
-                m.append('      lua_checktableinumber(L, payload->'+field.name+'[i], i, '+invalid+');')
+                m.append('    if (lua_istable(L,-1)) {')
+                m.append('      for (int i = 0; i < '+str(field.array_length)+'; i++) { ')
+                m.append('        lua_checktableinumber(L, payload->'+field.name+'[i], i+1, '+invalid+'); // lua is 1 indexed')
+                m.append('      }')
                 m.append('    }')
             else:
                 invalid = cvtInvalidAttr(invalid[:-1])
-                m.append('    lua_checktableinumber(L, payload->'+field.name+'[0], 0, '+invalid+');')
+                m.append('    if (lua_istable(L,-1)) {')
+                m.append('      lua_checktableinumber(L, payload->'+field.name+'[0], 1, '+invalid+'); // lua is 1 indexed')
                 if field.array_length > 0:
-                    m.append('    for (int i = 1; i < '+str(field.array_length)+'; i++) { ')
-                    m.append('      lua_checktableinumber(L, payload->'+field.name+'[i], i, '+'0'+');')
-                    m.append('    }')
+                    m.append('      for (int i = 1; i < '+str(field.array_length)+'; i++) { ')
+                    m.append('        lua_checktableinumber(L, payload->'+field.name+'[i], i+1, '+'0'+'); // lua is 1 indexed')
+                    m.append('      }')
+                m.append('    }')
             m.append('    lua_pop(L, 1);')
             
     for field in msg.fields:
