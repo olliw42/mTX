@@ -650,13 +650,13 @@ bool isInternalModuleAvailable(int moduleType)
 
   if (moduleType == MODULE_TYPE_XJT_PXX1) {
 #if defined(PXX1) && defined(INTERNAL_MODULE_PXX1)
-    return !isModuleUsingSport(EXTERNAL_MODULE, g_model.moduleData[EXTERNAL_MODULE].type);
+    return !isModuleUsingSport(EXTERNAL_MODULE, g_model.moduleData[EXTERNAL_MODULE].getType());
 #endif
   }
 
   if (moduleType == MODULE_TYPE_ISRM_PXX2) {
 #if defined(PXX2) && defined(INTERNAL_MODULE_PXX2)
-    return !areModulesConflicting(moduleType, g_model.moduleData[EXTERNAL_MODULE].type);
+    return !areModulesConflicting(moduleType, g_model.moduleData[EXTERNAL_MODULE].getType());
 #endif
   }
 
