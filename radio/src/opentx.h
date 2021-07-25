@@ -26,6 +26,7 @@
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+mavapi, 1 indexed, subtable check
 v30 2021-07-24 again
 bug with serial2 only
 v30 2021-07-24
@@ -135,6 +136,7 @@ added files
 TODO:
 - TELEMETRY_USART_IRQHandler: optimize, USART_xxx() functions are not very efficient
 - mavlink router: wipeout&reassign when link changes? wipeout after timeout?
+- mavlink api: add helpers str2tab() and tab2str()??
 
 //OW
 #if defined(TELEMETRY_MAVLINK)
