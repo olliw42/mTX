@@ -114,7 +114,7 @@ void MavlinkTelem::generateCmdConditionYaw(uint8_t tsystem, uint8_t tcomponent, 
 void MavlinkTelem::generateRcChannelsOverride(uint8_t sysid, uint8_t tsystem, uint8_t tcomponent, uint16_t* chan_raw)
 {
   fmav_msg_rc_channels_override_pack(
-      &_msg_out, _my_sysid, _my_compid,
+      &_msg_out, sysid, _my_compid,
       tsystem, tcomponent,
       chan_raw[0], chan_raw[1], chan_raw[2], chan_raw[3], chan_raw[4], chan_raw[5], chan_raw[6], chan_raw[7],
       chan_raw[8], chan_raw[9], chan_raw[10], chan_raw[11], chan_raw[12], chan_raw[13], chan_raw[14], chan_raw[15],
