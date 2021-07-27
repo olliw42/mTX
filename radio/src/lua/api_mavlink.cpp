@@ -91,29 +91,29 @@ static int luaMavlinkGetSystemId(lua_State *L)
 static int luaMavlinkGetAutopilotIds(lua_State *L)
 {
   lua_pushinteger(L, mavlinkTelem.systemSysId());
-  lua_pushinteger(L, mavlinkTelem.autopilotCompId());
-  return 1;
+  lua_pushinteger(L, mavlinkTelem.autopilot.compid);
+  return 2;
 }
 
 static int luaMavlinkGetCameraIds(lua_State *L)
 {
   lua_pushinteger(L, mavlinkTelem.systemSysId());
-  lua_pushinteger(L, mavlinkTelem.cameraCompId());
-  return 1;
+  lua_pushinteger(L, mavlinkTelem.camera.compid);
+  return 2;
 }
 
 static int luaMavlinkGetGimbalIds(lua_State *L)
 {
   lua_pushinteger(L, mavlinkTelem.systemSysId());
-  lua_pushinteger(L, mavlinkTelem.gimbalCompId());
-  return 1;
+  lua_pushinteger(L, mavlinkTelem.gimbal.compid);
+  return 2;
 }
 
 static int luaMavlinkGetGimbalManagerIds(lua_State *L)
 {
   lua_pushinteger(L, mavlinkTelem.systemSysId());
-  lua_pushinteger(L, mavlinkTelem.gimbalManagerCompId());
-  return 1;
+  lua_pushinteger(L, mavlinkTelem.gimbalmanager.compid);
+  return 2;
 }
 
 //-- mavlink api, messages --

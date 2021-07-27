@@ -676,10 +676,6 @@ class MavlinkTelem
     const uint8_t mySysId(void) { return _my_sysid; }
     const uint8_t myCompId(void) { return _my_compid; }
     const uint8_t systemSysId(void) { return _sysid; }
-    const uint8_t autopilotCompId(void) { return autopilot.compid; }
-    const uint8_t cameraCompId(void) { return camera.compid; }
-    const uint8_t gimbalCompId(void) { return gimbal.compid; }
-    const uint8_t gimbalManagerCompId(void) { return gimbalmanager.compid; }
 
     const fmav_status_t* getChannelStatusOut(void)
     {
