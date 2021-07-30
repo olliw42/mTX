@@ -188,6 +188,24 @@ static int luaMavlinkSendMessage(lua_State *L)
   return 1;
 }
 
+static int luaMavlinkMemcpyToInteger(lua_State *L)
+{
+  float f = luaL_checknumber(L, 1);
+  uint32_t i;
+  memcpy(&i, &f, 4);
+  lua_pushinteger(L, i);
+  return 1;
+}
+
+static int luaMavlinkMemcpyToNumber(lua_State *L)
+{
+  uint32_t i = luaL_checkinteger(L, 1);
+  float f;
+  memcpy(&f, &i, 4);
+  lua_pushnumber(L, f);
+  return 1;
+}
+
 
 //------------------------------------------------------------
 // mavlink luaL and luaR arrays
@@ -213,6 +231,8 @@ const luaL_Reg mavlinkLib[] = {
   { "enableOut", luaMavlinkOutEnable },
   { "isFree", luaMavlinkIsFree },
   { "sendMessage", luaMavlinkSendMessage },
+  { "memcpyToInteger", luaMavlinkMemcpyToInteger },
+  { "memcpyToNumber", luaMavlinkMemcpyToNumber },
 
   { nullptr, nullptr }  /* sentinel */
 };
