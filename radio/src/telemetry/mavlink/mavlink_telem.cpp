@@ -377,6 +377,8 @@ void MavlinkTelem::doTask(void)
     }
   }
 
+  if (!mavapiMsgOutEmpty()) SETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_API);
+
   // handle pending tasks
   // do only one task and hence one msg_out per loop
   if (!_msg_out_available && TASK_IS_PENDING()) {

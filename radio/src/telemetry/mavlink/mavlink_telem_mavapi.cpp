@@ -120,7 +120,7 @@ void MavlinkTelem::mavapiMsgOutSet(void)
   if (!_mavapi_tx_enabled) return;
 
   _wi = (_wi + 1) & (MAVOUTFIFO_MAX - 1);
-  SETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_API);
+  //SETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_API);
 }
 
 // generate from msg at read index, and advance read index, pop()-like
@@ -129,11 +129,17 @@ void MavlinkTelem::mavapiGenerateMessage(void)
   if (!_mavapi_tx_enabled) return;
 
   if (_wi == _ri) return; // empty
+
   fmav_message_t* msgptr = &(_mavapiMsgOutFifo[_ri]);
   _ri = (_ri + 1) & (MAVOUTFIFO_MAX - 1);
   memcpy(&_msg_out, msgptr, sizeof(fmav_message_t));
   fmav_finalize_msg(&_msg_out, &_status_out);
   _msg_out_available = true;
+}
+
+bool MavlinkTelem::mavapiMsgOutEmpty(void)
+{
+  return (_wi == _ri);
 }
 
 

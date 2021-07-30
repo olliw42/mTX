@@ -228,6 +228,7 @@ class MavlinkTelem
     fmav_message_t* mavapiMsgOutPtr(void);
     void mavapiMsgOutSet(void);
     void mavapiGenerateMessage(void);
+    bool mavapiMsgOutEmpty(void);
 
     void mavapiInit(void){};
 
