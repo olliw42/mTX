@@ -443,7 +443,7 @@ class MavlinkTelem
     }
 
     // some tasks need some additional data
-    char _prr_param_id[16+1];
+    //not used char _prr_param_id[16+1];
 
     uint8_t _tcsm_base_mode;
     uint32_t _tcsm_custom_mode;
@@ -472,11 +472,11 @@ class MavlinkTelem
     {
       SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_PARAM_REQUEST_LIST);
     }
-    void setTaskParamRequestRead(const char* pname)
+    /* not used void setTaskParamRequestRead(const char* pname)
     {
       strncpy(_prr_param_id, pname, 16);
       SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_PARAM_REQUEST_READ);
-    }
+    }*/
     void requestMissionRequestInt(uint16_t seq)
     {
       _tmri_seq = seq; _tmri_missiontype = MAV_MISSION_TYPE_MISSION;
@@ -656,6 +656,7 @@ class MavlinkTelem
     }
 
     // MAVSDK QSHOT
+
     struct QShot {
       uint8_t mode;
       uint8_t shot_state;
@@ -746,7 +747,7 @@ class MavlinkTelem
       TASK_SENDCMD_REQUEST_ATTITUDE               = 0x00000100,
       TASK_SENDCMD_REQUEST_GLOBAL_POSITION_INT    = 0x00000200,
       TASK_SENDMSG_PARAM_REQUEST_LIST             = 0x00001000,
-      TASK_SENDMSG_PARAM_REQUEST_READ             = 0x00002000,
+      //NOT used TASK_SENDMSG_PARAM_REQUEST_READ             = 0x00002000,
       TASK_SENDMSG_MISSION_REQUEST_LIST           = 0x00004000,
       TASK_SENDMSG_MISSION_REQUEST_INT            = 0x00008000,
 
