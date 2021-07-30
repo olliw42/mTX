@@ -143,6 +143,19 @@ char param_id[16];
   _msg_out_available = true;
 }
 
+void MavlinkTelem::generateParamSet(uint8_t tsystem, uint8_t tcomponent, const char* param_name, float param_value, uint8_t param_type)
+{
+char param_id[16];
+
+  strncpy(param_id, param_name, 16);
+  fmav_msg_param_set_pack(
+      &_msg_out, _my_sysid, _my_compid,
+      tsystem, tcomponent, param_id, param_value, param_type,
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
 void MavlinkTelem::generateRequestDataStream(
     uint8_t tsystem, uint8_t tcomponent, uint8_t data_stream, uint16_t rate_hz, uint8_t startstop)
 {
@@ -255,6 +268,9 @@ void MavlinkTelem::handleMessage(void)
 
   //we handle all qshot wherever they come from
   handleMessageQShot();
+
+  //handle parameter
+  paramHandleMessage(&_msg);
 
   if (_msg.sysid != _sysid) return; //this is not from our system
 
@@ -378,6 +394,7 @@ void MavlinkTelem::doTask(void)
   }
 
   if (!mavapiMsgOutEmpty()) SETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_API);
+  if (!_paramOutFifo.isEmpty()) SETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_PARAM);
 
   // handle pending tasks
   // do only one task and hence one msg_out per loop
@@ -396,9 +413,16 @@ void MavlinkTelem::doTask(void)
       generateHeartbeat(base_mode, custom_mode, system_status);
       return; // do only one per loop
     }
+
     if (_task[TASK_ME] & TASK_SENDMSG_MAVLINK_API) {
       RESETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_API);
       mavapiGenerateMessage();
+      return; // do only one per loop
+    }
+
+    if (_task[TASK_ME] & TASK_SENDMSG_MAVLINK_PARAM) {
+      RESETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_PARAM);
+      paramGenerateMessage();
       return; // do only one per loop
     }
 

@@ -5,6 +5,8 @@
 
 #include "opentx.h"
 
+// -- MAVLINK API --
+
 // -- Receive stuff --
 
 // we probably need to differentiate not only by msgid, but also by sysid-compid
@@ -141,6 +143,129 @@ bool MavlinkTelem::mavapiMsgOutEmpty(void)
 {
   return (_wi == _ri);
 }
+
+// -- MAVLINK API PARAMETERS --
+
+//returns an index into the _paramInList
+uint8_t MavlinkTelem::_param_find(uint8_t sysid, uint8_t compid, const char* param_id)
+{
+  for(uint8_t i = 0; i < _paramInList_count; i++) {
+    if ((_paramInList[i].sysid == sysid) &&
+        (_paramInList[i].compid == compid) &&
+        !strncmp(_paramInList[i].id, param_id, 16)) { return i; }
+  }
+  return UINT8_MAX;
+}
+
+void MavlinkTelem::paramHandleMessage(fmav_message_t* msg)
+{
+  if (!_paramInList_count) return;
+
+  if (msg->msgid != FASTMAVLINK_MSG_ID_PARAM_VALUE) return;
+
+  fmav_param_value_t payload;
+  fmav_msg_param_value_decode(&payload, msg);
+
+  uint8_t i = _param_find(msg->sysid, msg->compid, payload.param_id);
+  if (i == UINT8_MAX) return;
+
+  _paramInList[i].value = payload.param_value;
+  //_paramInList[i].type = payload.param_type;
+  _paramInList[i].updated = true;
+}
+
+void MavlinkTelem::paramGenerateMessage(void)
+{
+  struct ParamItem p;
+
+  if (!_paramOutFifo.pop(p)) return;
+
+  if (p.request_or_set) {
+    generateParamSet(p.sysid, p.compid, p.id, p.value, p.type);
+  }
+  else {
+    generateParamRequestRead(p.sysid, p.compid, p.id);
+  }
+}
+
+//-- for lua interface
+
+uint8_t MavlinkTelem::registerParam(uint8_t sysid, uint8_t compid, const char* param_id, uint8_t param_type)
+{
+  if (_paramInList_count >= MAVPARAMLIST_MAX) return UINT8_MAX;
+
+  //we could check if it is already in list
+  uint8_t i = _param_find(sysid, compid, param_id);
+  if (i != UINT8_MAX) return UINT8_MAX;
+
+  i = _paramInList_count;
+
+  _paramInList[i].sysid = sysid;
+  _paramInList[i].compid = compid;
+  memset(_paramInList[i].id, 0, 17);
+  strncpy(_paramInList[i].id, param_id, 16);
+
+  _paramInList[i].value = 0.0f;
+  _paramInList[i].type = param_type;
+  _paramInList[i].updated = false;
+  _paramInList[i].request_or_set = false;
+
+  _paramInList_count++;
+
+  return i;
+}
+
+MavlinkTelem::ParamItem* MavlinkTelem::getParamValue(uint8_t i)
+{
+  if (i >= _paramInList_count) return NULL;
+  return &(_paramInList[i]);
+}
+
+bool MavlinkTelem::sendParamRequest(uint8_t i)
+{
+  if (i >= _paramInList_count) return false;
+
+  if (_paramOutFifo.isFull()) return false;
+
+  struct ParamItem p;
+  p.sysid = _paramInList[i].sysid;
+  p.compid = _paramInList[i].compid;
+  strcpy(p.id, _paramInList[i].id);
+  p.request_or_set = false;
+  _paramOutFifo.push(p);
+  //SETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_PARAM);
+
+  return true;
+}
+
+bool MavlinkTelem::sendParamSet(uint8_t i, float param_value)
+{
+  if (i >= _paramInList_count) return false;
+
+  if (_paramOutFifo.isFull()) return false;
+
+  struct ParamItem p;
+  p.sysid = _paramInList[i].sysid;
+  p.compid = _paramInList[i].compid;
+  strcpy(p.id, _paramInList[i].id);
+  p.value = param_value;
+  p.type = _paramInList[i].type;
+  p.request_or_set = true;
+  _paramOutFifo.push(p);
+  //SETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_PARAM);
+
+  return true;
+}
+
+bool MavlinkTelem::paramIsArdupilot(uint8_t i)
+{
+  if (i >= _paramInList_count) return false;
+
+  return (_paramInList[i].compid == autopilot.compid) &&
+         (_paramInList[i].sysid == systemSysId()) &&
+         (autopilottype == MAV_AUTOPILOT_ARDUPILOTMEGA);
+}
+
 
 
 

@@ -206,6 +206,77 @@ static int luaMavlinkMemcpyToNumber(lua_State *L)
   return 1;
 }
 
+static int luaMavlinkRegisterParam(lua_State *L)
+{
+  int sysid = luaL_checkinteger(L, 1);
+  int compid = luaL_checkinteger(L, 2);
+  const char* param_id = luaL_checkstring(L, 3);
+  int param_type = luaL_checkinteger(L, 4);
+
+  uint8_t handle = mavlinkTelem.registerParam(sysid, compid, param_id, param_type);
+
+  if (handle < UINT8_MAX) {
+    lua_pushinteger(L, handle);
+  }
+  else{
+    lua_pushnil(L);
+  }
+  return 1;
+}
+
+static int luaMavlinkClearParamRegister(lua_State *L)
+{
+  mavlinkTelem._paramInList_count = 0;
+  mavlinkTelem._paramOutFifo.clear();
+  return 0;
+}
+
+static int luaMavlinkGetParamValue(lua_State *L)
+{
+  int handle = luaL_checkinteger(L, 1);
+  int type = luaL_optunsigned(L, 3, -1); //<0: convert automatically, 0: follow standard, >0: ardupilot
+
+  MavlinkTelem::ParamItem* p = mavlinkTelem.getParamValue(handle);
+  if (p) {
+
+    if ((type == 0) || ((type < 0) && !mavlinkTelem.paramIsArdupilot(handle))) {
+        //convert it
+    }
+
+    lua_newtable(L);
+    lua_pushtablenumber(L, "param_value", p->value);
+    lua_pushtablestring(L, "param_id", p->id);
+    lua_pushtableboolean(L, "updated", p->updated);
+    p->updated = false;
+  }
+  else {
+    lua_pushnil(L);
+  }
+  return 1;
+}
+
+static int luaMavlinkSendParamRequest(lua_State *L)
+{
+  int handle = luaL_checkinteger(L, 1);
+
+  lua_pushboolean(L, mavlinkTelem.sendParamRequest(handle));
+  return 1;
+}
+
+static int luaMavlinkSendParamSet(lua_State *L)
+{
+  int handle = luaL_checknumber(L, 1);
+  float param_value = luaL_checknumber(L, 2);
+  int type = luaL_optunsigned(L, 3, -1); //<0: convert automatically, 0: follow standard, >0: ardupilot
+
+  if ((type == 0) || ((type < 0) && !mavlinkTelem.paramIsArdupilot(handle))) {
+    //convert it
+  }
+
+  lua_pushboolean(L, mavlinkTelem.sendParamSet(handle, param_value));
+  return 1;
+}
+
 
 //------------------------------------------------------------
 // mavlink luaL and luaR arrays
@@ -233,6 +304,11 @@ const luaL_Reg mavlinkLib[] = {
   { "sendMessage", luaMavlinkSendMessage },
   { "memcpyToInteger", luaMavlinkMemcpyToInteger },
   { "memcpyToNumber", luaMavlinkMemcpyToNumber },
+  { "registerParam", luaMavlinkRegisterParam },
+  { "clearParamRegister", luaMavlinkClearParamRegister },
+  { "getParamValue", luaMavlinkGetParamValue },
+  { "sendParamRequest", luaMavlinkSendParamRequest },
+  { "sendParamSet", luaMavlinkSendParamSet },
 
   { nullptr, nullptr }  /* sentinel */
 };

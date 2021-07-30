@@ -99,6 +99,7 @@ class MavlinkTelem
     void generateHeartbeat(uint8_t base_mode, uint32_t custom_mode, uint8_t system_status);
     void generateParamRequestList(uint8_t tsystem, uint8_t tcomponent);
     void generateParamRequestRead(uint8_t tsystem, uint8_t tcomponent, const char* param_name);
+    void generateParamSet(uint8_t tsystem, uint8_t tcomponent, const char* param_name, float param_value, uint8_t param_type);
     // autopilot
     void generateRequestDataStream(uint8_t tsystem, uint8_t tcomponent, uint8_t data_stream, uint16_t rate_hz, uint8_t startstop);
     void generateCmdSetMessageInterval(uint8_t tsystem, uint8_t tcomponent, uint8_t msgid, int32_t period_us, uint8_t startstop);
@@ -229,6 +230,34 @@ class MavlinkTelem
     void mavapiMsgOutSet(void);
     void mavapiGenerateMessage(void);
     bool mavapiMsgOutEmpty(void);
+
+    // MAVLINK API PARAMETERS
+
+    struct ParamItem {
+      float value;
+      char id[17];
+      uint8_t sysid;
+      uint8_t compid;
+      uint8_t type:6;
+      uint8_t updated:1;
+      uint8_t request_or_set:1;
+    };
+
+    #define MAVPARAMLIST_MAX   32
+
+    ParamItem _paramInList[MAVPARAMLIST_MAX];
+    uint8_t _paramInList_count = 0;
+
+    Fifo<struct ParamItem, 32> _paramOutFifo;
+
+    uint8_t _param_find(uint8_t sysid, uint8_t compid, const char* param_id); // returns an index into the _paramInList
+    void paramHandleMessage(fmav_message_t* msg);
+    void paramGenerateMessage(void);
+    uint8_t registerParam(uint8_t sysid, uint8_t compid, const char* param_id, uint8_t param_type);
+    ParamItem* getParamValue(uint8_t i);
+    bool sendParamRequest(uint8_t i);
+    bool sendParamSet(uint8_t i, float param_value);
+    bool paramIsArdupilot(uint8_t i);
 
     void mavapiInit(void){};
 
@@ -734,6 +763,7 @@ class MavlinkTelem
       TASK_SENDMSG_QSHOT_BUTTON_STATE             = 0x00000008,
 
       TASK_SENDMSG_MAVLINK_API                    = 0x00000010,
+      TASK_SENDMSG_MAVLINK_PARAM                  = 0x00000020,
 
       // autopilot
       TASK_SENDREQUESTDATASTREAM_RAW_SENSORS      = 0x00000001, // group 1
