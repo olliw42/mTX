@@ -173,6 +173,9 @@ static int luaMavlinkIsFree(lua_State *L)
 
 static int luaMavlinkSendMessage(lua_State *L)
 {
+  // we enable it the moment we use sendMessage() the first time, more user convenient
+  if (!mavlinkTelem._mavapi_tx_enabled) mavlinkTelem.mavapiMsgOutEnable(true);
+
   fmav_message_t* msg_out = mavlinkTelem.mavapiMsgOutPtr();
 
   if (!lua_istable(L, -1) || !msg_out) {
