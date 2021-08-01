@@ -545,7 +545,7 @@ void touchPanelRead()
 
 //OW
 #define TE_WIPE_LOCK_X   40
-#define TE_WIPE_RANGE_X  100
+#define TE_WIPE_RANGE_X  90
 #define TE_WIPE_LOCK_Y   ((TE_WIPE_LOCK_X * LCD_H)/LCD_W)
 #define TE_WIPE_RANGE_Y  ((TE_WIPE_RANGE_X * LCD_H)/LCD_W)
 
