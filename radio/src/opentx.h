@@ -26,9 +26,10 @@
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+mavapi, params, other small improvements
 mavapi, 1 indexed, subtable check
 v30 2021-07-24 again
-bug with serial2 only
+bug with serial2 only   M_MAG_CAL_REPORT
 v30 2021-07-24
 upgraded to otx2.3.14 as base
 prevent installation of widget on page 1
