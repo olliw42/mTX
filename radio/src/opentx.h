@@ -26,6 +26,7 @@
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+mavapi: get lib_constants generator correct
 mavapi, params, other small improvements
 mavapi, 1 indexed, subtable check
 v30 2021-07-24 again

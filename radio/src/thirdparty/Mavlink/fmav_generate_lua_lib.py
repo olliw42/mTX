@@ -55,7 +55,7 @@ def shortenName(name, width):
     nameshort = name[:]
     if len(nameshort) > width:
         printWarning('WARNING: msg id '+name+' too long')
-        nn = str.split(name, '_')
+        nn = str.split(nameshort, '_')
         nameshort = nn[0]+'_'
         for i in range(1,len(nn)-1):
             nameshort += nn[i][:3] + '_'
@@ -68,16 +68,18 @@ def shortenName(name, width):
 def shortenNameEnum(name, width):
     nameshort = name[:]
     if nameshort[:4] == 'MAV_': nameshort = nameshort[4:]
+    
     if len(nameshort) > width:
-        printWarning('WARNING: msg id '+name+' too long')
-        nn = str.split(name, '_')
+        printWarning('WARNING: enum field '+name+' too long')
+        nn = str.split(nameshort, '_')
         nameshort = nn[0]+'_'
         for i in range(1,len(nn)-1):
-            nameshort += nn[i][:3]
-        nameshort += '_' + nn[-1]
+            nameshort += nn[i][:3] + '_'
+        nameshort += nn[-1]
         if len(nameshort) > width:
             printWarning(' ! ! !   enum field too long even after shortening')
             nameshort = nameshort[:width]
+    
     return nameshort 
 
 def msgFieldCount(msg, excludetargets):
@@ -180,15 +182,20 @@ def generateLuaLibHeaders(dialectname):
     print("Found %u messages and %u enums in %u XML files" %
         (mavparse.totalNumberOfMessages(xml_list), mavparse.totalNumberOfEnums(xml_list), len(xml_list)))
 
-    # find dialectxml, and generate complete enum dictionary
+    # find dialectxml, it should be actually the last/highest in the list, so could get it easier
     dialectxml = None
-    enums_all_by_name = {}
     for xml in xml_list:
         if xml.basename == dialectnamewoext:
             dialectxml = xml
+        
+    # generate complete enum dictionary     
+    # dialects may not have enums and hence empty enums_merged
+    # so go through the xml list, and take them all
+    # if an enum.name already exist, overwrite it with the new one, i.e., always take the last/highest
+    enums_all_by_name = {}
+    for xml in xml_list:
         for enum in xml.enums_merged:
-            if not enum.name in enums_all_by_name.keys():
-                enums_all_by_name[enum.name] = enum
+            enums_all_by_name[enum.name] = enum
 
     printVerbose("Messages")
     printVerbose('-> '+dialectxml.basename)
@@ -274,10 +281,11 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
         name = dialectxml.messages_all_by_id[msgid].name
         nameshort = shortenName(name, 30)
         s.append('  { "M_'+nameshort+'", FASTMAVLINK_MSG_ID_'+name+' }, \\')
+
     for enumname in enums_all_by_name:
         s.append( '  \\')
-        for entry in enums_all_by_name[enumname].entry:
-            nameshort = shortenNameEnum(entry.name, 32)
+        for entry in enums_all_by_name[enumname].entry[:-1]:
+            nameshort = shortenNameEnum(entry.name, 30)
             s.append('  { "'+nameshort+'", '+str(entry.value)+' }, \\')
 
     F = open(constantsoutname, mode='w')
