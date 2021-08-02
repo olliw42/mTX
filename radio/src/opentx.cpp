@@ -221,9 +221,6 @@ void per10ms()
   mavlinkTelem.tick10ms();
 #endif
   checkEventLockTmo();
-#if defined(HARDWARE_TOUCH)
-  checkTouchTmo();
-#endif
 //OWEND
 
   heartbeat |= HEART_TIMER_10MS;

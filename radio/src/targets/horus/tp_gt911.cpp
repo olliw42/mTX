@@ -595,9 +595,3 @@ bool touchPanelEventOccured()
 {
   return touchEventOccured;
 }
-
-//OW
-void checkTouchTmo(void)
-{
-}
-//OWEND
