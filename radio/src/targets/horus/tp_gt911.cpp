@@ -578,7 +578,7 @@ void touchPanelRead()
 //OW
 #define TE_WIPE_RANGE_X       90
 #define TE_WIPE_RANGE_Y       ((TE_WIPE_RANGE_X * LCD_H)/LCD_W)
-#define TE_WIPE_LOCK_PERCENT  50 // = ca +-27 deg
+#define TE_WIPE_LOCK_PERCENT  60 // = ca +-31 deg
 
   touchState._deltaX = touchState.x - touchState.startX;
   touchState._deltaY = touchState.y - touchState.startY;
