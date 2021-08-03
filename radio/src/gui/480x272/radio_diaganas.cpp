@@ -79,16 +79,16 @@ bool menuRadioDiagAnalogs(event_t event)
 //  if (touchPanelEventOccured()) {
 //    touchPanelRead();
     lcdDrawNumber(lcdNextPos + 1, MENU_CONTENT_TOP + 7 * FH, touchState.x);
-    lcdDrawText(lcdNextPos, MENU_CONTENT_TOP + 7 * FH, ", ");
-    lcdDrawNumber(lcdNextPos + 1, MENU_CONTENT_TOP + 7 * FH, touchState.y);
+    lcdDrawText(lcdNextPos, MENU_CONTENT_TOP + 7 * FH, ",");
+    lcdDrawNumber(lcdNextPos + 4, MENU_CONTENT_TOP + 7 * FH, touchState.y);
     lcdDrawLine(touchState.x - 10, touchState.y - 8, touchState.x + 10, touchState.y + 8, SOLID);
     lcdDrawLine(touchState.x - 10, touchState.y + 8, touchState.x + 10, touchState.y - 8, SOLID);
 //  }
 #if !defined(SIMU)
-    lcdDrawText(LCD_W/2, MENU_CONTENT_TOP + 7 * FH, "Touch GT911 FW ver: ");
-    lcdDrawNumber(lcdNextPos + 1, MENU_CONTENT_TOP + 7 * FH, touchGT911fwver) ;
-    lcdDrawText(LCD_W/2, MENU_CONTENT_TOP + 8 * FH, "TSI2CEvents: ");
-    lcdDrawNumber(lcdNextPos + 1, MENU_CONTENT_TOP + 8 * FH, touchGT911hiccups);
+    lcdDrawText(LCD_W/2, MENU_CONTENT_TOP + 7 * FH, "Touch GT911 FW ver:");
+    lcdDrawNumber(lcdNextPos + 4, MENU_CONTENT_TOP + 7 * FH, touchGT911fwver) ;
+    lcdDrawText(LCD_W/2, MENU_CONTENT_TOP + 8 * FH, "TSI2CEvents:");
+    lcdDrawNumber(lcdNextPos + 4, MENU_CONTENT_TOP + 8 * FH, touchGT911hiccups);
 #endif
 //OWEND
 #endif
