@@ -544,10 +544,9 @@ void touchPanelRead()
   I2C_GT911_WriteRegister(GT911_READ_XY_REG, &zero, 1);
 
 //OW
-#define TE_WIPE_LOCK_X   40
-#define TE_WIPE_RANGE_X  90
-#define TE_WIPE_LOCK_Y   ((TE_WIPE_LOCK_X * LCD_H)/LCD_W)
-#define TE_WIPE_RANGE_Y  ((TE_WIPE_RANGE_X * LCD_H)/LCD_W)
+#define TE_WIPE_RANGE_X       90
+#define TE_WIPE_RANGE_Y       ((TE_WIPE_RANGE_X * LCD_H)/LCD_W)
+#define TE_WIPE_LOCK_PERCENT  50 // = ca +-27 deg
 
   touchState._deltaX = touchState.x - touchState.startX;
   touchState._deltaY = touchState.y - touchState.startY;
@@ -558,21 +557,17 @@ void touchPanelRead()
     touchState.extEvent = TE_TAP;
   }
   else if (touchState.event == TE_SLIDE_END) {
-    if (touchState._deltaY > -TE_WIPE_LOCK_X && touchState._deltaY < TE_WIPE_LOCK_X) {
-      if (touchState._deltaX > TE_WIPE_RANGE_X) {
-        touchState.extEvent = TE_WIPE_RIGHT;
-      }
-      if (touchState._deltaX < -TE_WIPE_RANGE_X) {
-        touchState.extEvent = TE_WIPE_LEFT;
-      }
+    int abs_deltaX = (touchState._deltaX >= 0) ? touchState._deltaX : -touchState._deltaX;
+    int abs_deltaY = (touchState._deltaY >= 0) ? touchState._deltaY : -touchState._deltaY;
+
+    int wipe_lock_x = (abs_deltaX * (TE_WIPE_LOCK_PERCENT * LCD_H))/(100 * LCD_W);
+    int wipe_lock_y = (abs_deltaY * (TE_WIPE_LOCK_PERCENT * LCD_W))/(100 * LCD_H);
+
+    if (abs_deltaX > TE_WIPE_RANGE_X && abs_deltaY < wipe_lock_x) {
+      touchState.extEvent = (touchState._deltaX >= 0) ? TE_WIPE_RIGHT : TE_WIPE_LEFT;
     }
-    if (touchState._deltaX > -TE_WIPE_LOCK_Y && touchState._deltaX < TE_WIPE_LOCK_Y) {
-      if (touchState._deltaY > TE_WIPE_RANGE_Y) {
-        touchState.extEvent = TE_WIPE_DOWN;
-      }
-      if (touchState._deltaY < -TE_WIPE_RANGE_Y) {
-        touchState.extEvent = TE_WIPE_UP;
-      }
+    if (abs_deltaY > TE_WIPE_RANGE_Y && abs_deltaX < wipe_lock_y) {
+      touchState.extEvent = (touchState._deltaY >= 0) ? TE_WIPE_DOWN : TE_WIPE_UP;
     }
     touchState.event = TE_NONE;
   }
