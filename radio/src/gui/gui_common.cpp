@@ -388,15 +388,27 @@ bool isAux1ModeAvailable(int mode)
   else
   if (mode == UART_MODE_MAVLINK)
 #if defined(TELEMETRY_MAVLINK)
-    return true;
+    return isModuleMavlink(EXTERNAL_MODULE) ? g_eeGeneral.aux2SerialMode != UART_MODE_MAVLINK : true; // only one serial can be MAVLink if external is MAVLink
 #else
-  return false;
+    return false;
+#endif
+  else
+  if (mode == UART_MODE_GPS)
+#if defined(SERIAL_GPS)
+    return g_eeGeneral.aux2SerialMode != UART_MODE_GPS; // only one serial can be GPS
+#else
+    return false;
 #endif
 //OWEND
 #if defined(RADIO_TX16S)
   else
     return (g_model.trainerData.mode != TRAINER_MODE_MASTER_BATTERY_COMPARTMENT || g_eeGeneral.aux2SerialMode == UART_MODE_SBUS_TRAINER);
 #endif
+//OW
+#elif !defined(SERIAL_GPS)
+  if (mode == UART_MODE_GPS)
+    return false;
+//OWEND
 #endif
   return true;
 }
@@ -410,9 +422,16 @@ bool isAux2ModeAvailable(int mode)
   else
   if (mode == UART_MODE_MAVLINK)
 #if defined(TELEMETRY_MAVLINK)
-    return true;
+    return isModuleMavlink(EXTERNAL_MODULE) ? g_eeGeneral.auxSerialMode != UART_MODE_MAVLINK : true; // only one serial can be MAVLink if external is MAVLink
 #else
-  return false;
+    return false;
+#endif
+  else
+  if (mode == UART_MODE_GPS)
+#if defined(SERIAL_GPS)
+    return g_eeGeneral.auxSerialMode != UART_MODE_GPS; // only one serial can be GPS
+#else
+    return false;
 #endif
 //OWEND
 #if defined(RADIO_TX16S)

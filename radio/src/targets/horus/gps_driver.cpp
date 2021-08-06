@@ -20,6 +20,59 @@
 
 #include "opentx.h"
 
+//OW
+#if defined(SERIAL_GPS)
+  // we do not use the gps driver, and replace it with the aux/aux2 serial driver used also by mavlink
+  // we thus should make it more general, but for the moment just reuse it
+
+void gpsInit(uint32_t baudrate){} // empty dummy
+
+#if defined(DEBUG)
+uint8_t gpsTraceEnabled = false;
+#endif
+
+void gpsSendByte(uint8_t byte)
+{
+#if defined(AUX_SERIAL)
+  if (auxSerialMode == UART_MODE_GPS) {
+    //??? while (auxSerialTxFifo.isFull());
+    auxSerialTxFifo.push(byte);
+    USART_ITConfig(AUX_SERIAL_USART, USART_IT_TXE, ENABLE);
+  }
+#endif
+#if defined(AUX2_SERIAL)
+  if (aux2SerialMode == UART_MODE_GPS) {
+    //??? while (auxSerialTxFifo.isFull());
+    aux2SerialTxFifo.push(byte);
+    USART_ITConfig(AUX2_SERIAL_USART, USART_IT_TXE, ENABLE);
+  }
+#endif
+}
+
+uint8_t gpsGetByte(uint8_t * byte)
+{
+  uint8_t result = 0;
+#if defined(AUX_SERIAL)
+  if (auxSerialMode == UART_MODE_GPS) {
+    result = mavlinkTelemAuxSerialRxFifo.pop(*byte);
+  }
+#endif
+#if defined(AUX2_SERIAL)
+  if (aux2SerialMode == UART_MODE_GPS) {
+    result = mavlinkTelemAux2SerialRxFifo.pop(*byte);
+  }
+#endif
+#if defined(DEBUG) && (defined(AUX_SERIAL) || defined(AUX2_SERIAL))
+  if (gpsTraceEnabled) { // TODO: this probably requires something more
+    serialPutc(*byte);
+  }
+#endif
+  return result;
+}
+
+#else
+//OWEND
+
 #if GPS_USART_BAUDRATE > 9600
   Fifo<uint8_t, 256> gpsRxFifo;
 #else
@@ -116,3 +169,7 @@ uint8_t gpsGetByte(uint8_t * byte)
 #endif
   return result;
 }
+
+//OW
+#endif // #if defined(SERIAL_GPS)
+//OWEND

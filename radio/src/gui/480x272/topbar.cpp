@@ -24,8 +24,8 @@
 unsigned int Topbar::getZonesCount() const
 {
 //OW
-#if defined(TELEMETRY_MAVLINK) && defined(INTERNAL_GPS)
-  return MAX_TOPBAR_ZONES-1;
+#if defined (SERIAL_GPS)
+  return (auxSerialMode == UART_MODE_GPS || aux2SerialMode == UART_MODE_GPS) ? MAX_TOPBAR_ZONES-1 : MAX_TOPBAR_ZONES;
 #endif
 //OWEND
   return MAX_TOPBAR_ZONES;
@@ -62,13 +62,15 @@ void drawTopBar()
   theme->drawTopbarBackground(0);
 
 //OW
-#if defined(TELEMETRY_MAVLINK) && defined(INTERNAL_GPS)
-  if (gpsData.fix) {
-    char s[10];
-    sprintf(s, "%d", gpsData.numSat);
-    lcdDrawText(LCD_W-148, 4, s, SMLSIZE|TEXT_INVERTED_COLOR|CENTERED); //TINSIZE
+#if defined (SERIAL_GPS)
+  if (auxSerialMode == UART_MODE_GPS || aux2SerialMode == UART_MODE_GPS) {
+    if (gpsData.fix) {
+      char s[10];
+      sprintf(s, "%d", gpsData.numSat);
+      lcdDrawText(LCD_W-148, 4, s, SMLSIZE|TEXT_INVERTED_COLOR|CENTERED); //TINSIZE
+    }
+    lcdDrawBitmapPattern(LCD_W-158, 22, LBM_TOPMENU_GPS, (gpsData.fix) ? MENU_TITLE_COLOR : MENU_TITLE_DISABLE_COLOR);
   }
-  lcdDrawBitmapPattern(LCD_W-158, 22, LBM_TOPMENU_GPS, (gpsData.fix) ? MENU_TITLE_COLOR : MENU_TITLE_DISABLE_COLOR);
 #endif
 //OWEND
 

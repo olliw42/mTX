@@ -260,6 +260,9 @@ bool gpsNewFrameNMEA(char c)
           switch (gps_frame) {
             case FRAME_GGA:
               frameOK = 1;
+//OW
+              gpsData.tlast = get_tmr10ms();
+//OWEND
               gpsData.fix = gps_Msg.fix;
               gpsData.numSat = gps_Msg.numSat;
               gpsData.hdop = gps_Msg.hdop;
@@ -325,6 +328,12 @@ void gpsWakeup()
   while (gpsGetByte(&byte)) {
     gpsNewData(byte);
   }
+//OW
+#if defined(SERIAL_GPS)
+  tmr10ms_t tnow = get_tmr10ms();
+  if ((tnow - gpsData.tlast) > 500) gpsClear();
+#endif
+//OWEND
 }
 
 char hex(uint8_t b) {
@@ -348,3 +357,10 @@ void gpsSendFrame(const char * frame)
   gpsSendByte('\n');
   TRACE("*%02x", parity);
 }
+
+//OW
+void gpsClear()
+{
+  memset(&gpsData, 0, sizeof(gpsdata_t));
+}
+//OWEND

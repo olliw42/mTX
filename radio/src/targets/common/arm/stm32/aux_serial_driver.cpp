@@ -141,7 +141,8 @@ void auxSerialInit(unsigned int mode, unsigned int protocol)
 
 #if defined(TELEMETRY_MAVLINK)
     case UART_MODE_MAVLINK:
-      auxSerialSetup(mavlinkTelemAuxBaudrate(), false);
+    case UART_MODE_GPS: // we can reuse this here, should become general however
+      auxSerialSetup((mode == UART_MODE_GPS) ? GPS_USART_BAUDRATE : mavlinkTelemAuxBaudrate(), false);
       AUX_SERIAL_POWER_ON();
       auxSerialTxFifo.clear();
       mavlinkTelemAuxSerialRxFifo.clear();
@@ -175,7 +176,8 @@ void auxSerialStop()
   USART_DeInit(AUX_SERIAL_USART);
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (auxSerialMode == UART_MODE_MAVLINK) {
+  if ((auxSerialMode == UART_MODE_MAVLINK) ||
+      (auxSerialMode == UART_MODE_GPS)) { // we can reuse this here, should become general however
     auxSerialTxFifo.clear();
     mavlinkTelemAuxSerialRxFifo.clear();
   }
@@ -209,7 +211,8 @@ extern "C" void AUX_SERIAL_USART_IRQHandler(void)
   }
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (auxSerialMode == UART_MODE_MAVLINK) {
+  if ((auxSerialMode == UART_MODE_MAVLINK) ||
+      (auxSerialMode == UART_MODE_GPS)) { // we can reuse this here, should become general however
     // Receive
     if (USART_GetITStatus(AUX_SERIAL_USART, USART_IT_RXNE) != RESET) {
       USART_ClearITPendingBit(AUX_SERIAL_USART, USART_IT_RXNE);
@@ -375,10 +378,12 @@ void aux2SerialInit(unsigned int mode, unsigned int protocol)
 
 #if defined(TELEMETRY_MAVLINK)
       case UART_MODE_MAVLINK:
-        aux2SerialSetup(mavlinkTelemAux2Baudrate(), false);
+      case UART_MODE_GPS: // we can reuse this here, should become general however
+        aux2SerialSetup((mode == UART_MODE_GPS) ? GPS_USART_BAUDRATE : mavlinkTelemAux2Baudrate(), false);
         AUX2_SERIAL_POWER_ON();
         aux2SerialTxFifo.clear();
         mavlinkTelemAux2SerialRxFifo.clear();
+        if (auxSerialMode == UART_MODE_GPS) gpsClear();
         break;
 #endif
 //OWEND
@@ -409,9 +414,11 @@ void aux2SerialStop()
   USART_DeInit(AUX2_SERIAL_USART);
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (aux2SerialMode == UART_MODE_MAVLINK) {
+  if ((aux2SerialMode == UART_MODE_MAVLINK) ||
+      (aux2SerialMode == UART_MODE_GPS)) { // we can reuse this here, should become general however
     aux2SerialTxFifo.clear();
     mavlinkTelemAux2SerialRxFifo.clear();
+    if (aux2SerialMode == UART_MODE_GPS) gpsClear();
   }
 #endif
 //OWEND
@@ -443,7 +450,8 @@ extern "C" void AUX2_SERIAL_USART_IRQHandler(void)
   }
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (aux2SerialMode == UART_MODE_MAVLINK) {
+  if ((aux2SerialMode == UART_MODE_MAVLINK) ||
+      (aux2SerialMode == UART_MODE_GPS)) { // we can reuse this here, should become general however
     // Receive
     if (USART_GetITStatus(AUX2_SERIAL_USART, USART_IT_RXNE) != RESET) {
       USART_ClearITPendingBit(AUX2_SERIAL_USART, USART_IT_RXNE);

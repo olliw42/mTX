@@ -62,7 +62,10 @@ static const char * const options[] = {
 #if defined(HORUS_STICKS)
   "horussticks",
 #endif
-#if defined(INTERNAL_GPS)
+//OW
+//#if defined(INTERNAL_GPS)
+#if defined(INTERNAL_GPS) && !defined(SERIAL_GPS)
+//OWEND
   "internalgps",
 #endif
 #if defined(INTERNAL_MODULE_PPM)
@@ -104,6 +107,9 @@ static const char * const options[] = {
 //OW
 #if defined(HARDWARE_TOUCH)
   "touch",
+#endif
+#if defined(SERIAL_GPS)
+  "serialgps",
 #endif
 #if defined(TELEMETRY_MAVLINK)
   "mavlink",

@@ -168,9 +168,9 @@
 #define TR_USBMODES_OW                 "Ask\0    ""Joystick""Storage\0""Serial\0 ""Mavlink\0"
 #define LEN_AUX_SERIAL_MODES_OW        "\015"
 #if defined(CLI) || defined(DEBUG)
-#define TR_AUX_SERIAL_MODES_OW         "Debug\0       ""Telem Mirror\0""Telemetry In\0""SBUS Trainer\0""LUA\0         ""Mavlink\0     "
+#define TR_AUX_SERIAL_MODES_OW         "Debug\0       ""Telem Mirror\0""Telemetry In\0""SBUS Trainer\0""LUA\0         ""Mavlink\0     ""GPS\0         "
 #else
-#define TR_AUX_SERIAL_MODES_OW         "OFF\0         ""Telem Mirror\0""Telemetry In\0""SBUS Trainer\0""LUA\0         ""Mavlink\0     "
+#define TR_AUX_SERIAL_MODES_OW         "OFF\0         ""Telem Mirror\0""Telemetry In\0""SBUS Trainer\0""LUA\0         ""Mavlink\0     ""GPS\0         "
 #endif
 #define TR_USB_SERIAL_OW               "USB Serial (VCP)"
 //OWEND

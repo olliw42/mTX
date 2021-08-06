@@ -36,11 +36,18 @@ struct gpsdata_t
   uint16_t speed;                 // speed in 0.1m/s
   uint16_t groundCourse;          // degrees * 10
   uint16_t hdop;
+//OW
+  tmr10ms_t tlast;
+//OWEND
 };
 
 extern gpsdata_t gpsData;
 void gpsWakeup();
 
 void gpsSendFrame(const char * frame);
+
+//OW
+void gpsClear();
+//OWEND
 
 #endif // _GPS_H_
