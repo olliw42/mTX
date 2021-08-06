@@ -19,13 +19,16 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v31-rc03"
+#define OWVERSIONSTR  "v31-rc04"
 //OWEND
 
 /*
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+aux serial cleanify
+gps hot enable
+x12s
 mavapi: get lib_constants generator correct
 mavapi, params, other small improvements
 mavapi, 1 indexed, subtable check
