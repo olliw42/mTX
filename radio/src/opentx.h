@@ -26,6 +26,7 @@
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+send position
 aux serial cleanify
 gps hot enable
 x12s

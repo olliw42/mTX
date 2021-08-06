@@ -146,6 +146,18 @@ void MavlinkTelem::generateMissionRequestInt(uint8_t tsystem, uint8_t tcomponent
   _msg_out_available = true;
 }
 
+void MavlinkTelem::generateGlobalPositionInt(int32_t lat, int32_t lon, int32_t alt_mm, int32_t relative_alt_mm, int16_t vx, int16_t vy, int16_t vz, uint16_t hdg_cdeg)
+{
+  fmav_msg_global_position_int_pack(
+      &_msg_out, _my_sysid, _my_compid,
+      time_boot_ms(),
+      lat, lon,
+      alt_mm, relative_alt_mm, vx, vy, vz, hdg_cdeg, // alt in mm, v in cm/s, heading in cdeg
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
 // -- Mavsdk Convenience Task Wrapper --
 // to make it easy for api_mavsdk to call functions
 
@@ -289,6 +301,11 @@ bool MavlinkTelem::doTaskAutopilot(void)
   if (_task[TASK_AUTOPILOT] & TASK_SENDCMD_CONDITION_YAW) {
     RESETTASK(TASK_AUTOPILOT,TASK_SENDCMD_CONDITION_YAW);
     generateCmdConditionYaw(_sysid, autopilot.compid, _tccy_yaw_deg, 0.0f, _tccy_dir, _tccy_relative);
+    return true; //do only one per loop
+  }
+  if (_task[TASK_AUTOPILOT] & TASK_SENDMSG_GLOBAL_POSITION_INT) {
+    RESETTASK(TASK_AUTOPILOT,TASK_SENDMSG_GLOBAL_POSITION_INT);
+    generateGlobalPositionInt(_gpi_lat, _gpi_lon, _gpi_alt, _gpi_relative_alt, _gpi_vx, _gpi_vy, _gpi_vz, _gpi_hdg);
     return true; //do only one per loop
   }
 

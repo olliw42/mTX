@@ -393,6 +393,30 @@ void MavlinkTelem::doTask(void)
     }
   }
 
+  // do send global position int
+  if (g_model.mavlinkSendPosition && param.SYSID_MYGCS >= 0) {
+    if ((auxSerialMode == UART_MODE_GPS || aux2SerialMode == UART_MODE_GPS) &&
+        (gpsData.fix) && (gpsData.numSat >= 7) && (gpsData.hdop < 500) &&
+        (gpsData.tlast > _gps_tlast)) {
+      _gps_tlast = gpsData.tlast;
+      _gpi_lat = gpsData.latitude * 10;
+      _gpi_lon = gpsData.longitude * 10;
+      _gpi_alt = (int32_t)gpsData.altitude * 100;
+      _gpi_relative_alt = 0; // home altitude ???
+      _gpi_vx = _gpi_vy = _gpi_vz = 0;
+      if (gpsData.speed > 10) {
+        constexpr float FPI = 3.141592653589793f;
+        constexpr float FDEGTORAD = FPI/180.0f;
+        float v = gpsData.speed * 0.1f;
+        float course = gpsData.groundCourse * 0.1f * FDEGTORAD;
+        _gpi_vx = cosf(course) * v;
+        _gpi_vy = sinf(course) * v;
+      }
+      _gpi_hdg = gpsData.groundCourse * 10;
+      SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_GLOBAL_POSITION_INT);
+    }
+  }
+
   if (!mavapiMsgOutEmpty()) SETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_API);
   if (!_paramOutFifo.isEmpty()) SETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_PARAM);
 

@@ -140,6 +140,7 @@ enum MenuModelSetupItems {
   ITEM_MODEL_SETUP_MAVLINK_RSSISCALE,
   ITEM_MODEL_SETUP_MAVLINK_MIMICSENSORS,
   ITEM_MODEL_SETUP_MAVLINK_RCOVERRIDE,
+  ITEM_MODEL_SETUP_MAVLINK_SENDPOSITION,
 #endif
 //OWEND
   ITEM_MODEL_SETUP_MAX
@@ -665,7 +666,7 @@ bool menuModelSetup(event_t event)
 
 //OW
 #if defined(TELEMETRY_MAVLINK)
-         ,LABEL(Mavlink), 0, 0, 0, 0
+         ,LABEL(Mavlink), 0, 0, 0, 0, 0
 #endif
 //OWEND
        });
@@ -1409,6 +1410,12 @@ bool menuModelSetup(event_t event)
         lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MAVLINK_RC_OVERRIDE);
         if (g_model.mavlinkRcOverride > 14) g_model.mavlinkRcOverride = 7; // sanitize
         g_model.mavlinkRcOverride = editChoice(MODEL_SETUP_2ND_COLUMN, y, STR_MAVLINK_RC_OVERRIDE_FREQUENCIES, g_model.mavlinkRcOverride, 0, 14, attr, event);
+        break;
+      }
+
+      case ITEM_MODEL_SETUP_MAVLINK_SENDPOSITION: {
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, "Send Position");
+        g_model.mavlinkSendPosition = editCheckBox(g_model.mavlinkSendPosition, MODEL_SETUP_2ND_COLUMN, y, attr, event);
         break;
       }
 #endif

@@ -102,6 +102,7 @@ class MavlinkTelem
     void generateRcChannelsOverride(uint8_t sysid, uint8_t tsystem, uint8_t tcomponent, uint16_t* chan_raw);
     void generateMissionRequestList(uint8_t tsystem, uint8_t tcomponent, uint8_t mission_type);
     void generateMissionRequestInt(uint8_t tsystem, uint8_t tcomponent, uint16_t seq, uint8_t mission_type);
+    void generateGlobalPositionInt(int32_t lat, int32_t lon, int32_t alt_mm, int32_t relative_alt_mm, int16_t vx, int16_t vy, int16_t vz, uint16_t hdg_cdeg);
     // camera
     void generateCmdRequestCameraInformation(uint8_t tsystem, uint8_t tcomponent);
     void generateCmdRequestCameraSettings(uint8_t tsystem, uint8_t tcomponent);
@@ -483,8 +484,11 @@ class MavlinkTelem
     bool _tccy_relative;
     float _tact_takeoff_alt_m;
     float _tacf_takeoff_alt_m;
-    uint16_t _tovr_chan_raw[18];
     uint16_t _tmri_seq, _tmri_missiontype;
+    uint16_t _tovr_chan_raw[18];
+    int32_t _gpi_lat, _gpi_lon, _gpi_alt, _gpi_relative_alt;
+    int16_t _gpi_vx, _gpi_vy, _gpi_vz;
+    uint16_t _gpi_hdg;
 
     // convenience task wrapper
     void setTaskParamRequestList(void)
@@ -727,8 +731,9 @@ class MavlinkTelem
 
     uint8_t _my_sysid = MAVLINK_TELEM_MY_SYSID;
     uint8_t _my_compid = MAVLINK_TELEM_MY_COMPID;
-    tmr10ms_t _my_heartbeat_tlast;
-    tmr10ms_t _rcoverride_tlast;
+    tmr10ms_t _my_heartbeat_tlast = 0;
+    tmr10ms_t _rcoverride_tlast = 0;
+    tmr10ms_t _gps_tlast = 0;
 
     uint8_t _sysid = 0; // is autodetected by inspecting the autopilot heartbeat
 
@@ -754,7 +759,6 @@ class MavlinkTelem
 
       TASK_SENDMSG_MAVLINK_API                    = 0x00000010,
       TASK_SENDMSG_MAVLINK_PARAM                  = 0x00000020,
-
       // autopilot
       TASK_SENDREQUESTDATASTREAM_RAW_SENSORS      = 0x00000001, // group 1
       TASK_SENDREQUESTDATASTREAM_EXTENDED_STATUS  = 0x00000002, // group 2
@@ -778,6 +782,7 @@ class MavlinkTelem
       TASK_SENDMSG_SET_POSITION_TARGET_GLOBAL_INT = 0x01000000,
       TASK_SENDCMD_CONDITION_YAW                  = 0x02000000,
       TASK_SENDMSG_RC_CHANNELS_OVERRIDE           = 0x04000000,
+      TASK_SENDMSG_GLOBAL_POSITION_INT            = 0x08000000,
       // ap
       TASK_AP_REQUESTBANNER                       = 0x00000001,
       TASK_AP_ARM                                 = 0x00000002,
