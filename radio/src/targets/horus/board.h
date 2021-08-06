@@ -725,7 +725,18 @@ void bluetoothDisable();
 #include "fifo.h"
 #include "dmafifo.h"
 extern DMAFifo<512> telemetryFifo;
-typedef DMAFifo<32> AuxSerialRxFifo;
+//OW
+//typedef DMAFifo<32> AuxSerialRxFifo;
+#if defined(TELEMETRY_MAVLINK)
+  typedef Fifo<uint8_t, 1024> AuxSerialTxFifo;
+  typedef DMAFifo<1024> AuxSerialRxFifo;
+#else
+  typedef Fifo<uint8_t, 512> AuxSerialTxFifo;
+  typedef DMAFifo<32> AuxSerialRxFifo;
+#endif
+extern AuxSerialTxFifo auxSerialTxFifo;
+extern AuxSerialTxFifo aux2SerialTxFifo;
+//OWEND
 extern AuxSerialRxFifo auxSerialRxFifo;
 extern AuxSerialRxFifo aux2SerialRxFifo;
 extern volatile uint32_t externalModulePort;

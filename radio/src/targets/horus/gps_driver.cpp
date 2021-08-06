@@ -54,12 +54,12 @@ uint8_t gpsGetByte(uint8_t * byte)
   uint8_t result = 0;
 #if defined(AUX_SERIAL)
   if (auxSerialMode == UART_MODE_GPS) {
-    result = mavlinkTelemAuxSerialRxFifo.pop(*byte);
+    result = auxSerialRxFifo.pop(*byte);
   }
 #endif
 #if defined(AUX2_SERIAL)
   if (aux2SerialMode == UART_MODE_GPS) {
-    result = mavlinkTelemAux2SerialRxFifo.pop(*byte);
+    result = aux2SerialRxFifo.pop(*byte);
   }
 #endif
 #if defined(DEBUG) && (defined(AUX_SERIAL) || defined(AUX2_SERIAL))

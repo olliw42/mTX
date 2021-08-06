@@ -25,8 +25,10 @@
 uint8_t auxSerialMode = UART_MODE_COUNT;  // Prevent debug output before port is setup
 //OW
 //Fifo<uint8_t, 512> auxSerialTxFifo;
-#if !defined(TELEMETRY_MAVLINK)
-Fifo<uint8_t, 1024> auxSerialTxFifo;
+#if defined(TELEMETRY_MAVLINK)
+  MAVLINK_RAM_SECTION AuxSerialTxFifo auxSerialTxFifo;
+#else
+  AuxSerialTxFifo auxSerialTxFifo;
 #endif
 //OWEND
 AuxSerialRxFifo auxSerialRxFifo __DMA (AUX_SERIAL_DMA_Stream_RX);
@@ -85,6 +87,10 @@ void auxSerialSetup(unsigned int baudrate, bool dma, uint16_t length, uint16_t p
     USART_DMACmd(AUX_SERIAL_USART, USART_DMAReq_Rx, ENABLE);
     USART_Cmd(AUX_SERIAL_USART, ENABLE);
     DMA_Cmd(AUX_SERIAL_DMA_Stream_RX, ENABLE);
+//OW
+    NVIC_SetPriority(AUX_SERIAL_USART_IRQn, 7);
+    NVIC_EnableIRQ(AUX_SERIAL_USART_IRQn);
+//OWEND
   }
   else {
     USART_Cmd(AUX_SERIAL_USART, ENABLE);
@@ -141,11 +147,12 @@ void auxSerialInit(unsigned int mode, unsigned int protocol)
 
 #if defined(TELEMETRY_MAVLINK)
     case UART_MODE_MAVLINK:
-    case UART_MODE_GPS: // we can reuse this here, should become general however
-      auxSerialSetup((mode == UART_MODE_GPS) ? GPS_USART_BAUDRATE : mavlinkTelemAuxBaudrate(), false);
+    case UART_MODE_GPS:
+      auxSerialSetup((mode == UART_MODE_GPS) ? GPS_USART_BAUDRATE : mavlinkTelemAuxBaudrate(), true);
       AUX_SERIAL_POWER_ON();
       auxSerialTxFifo.clear();
-      mavlinkTelemAuxSerialRxFifo.clear();
+      auxSerialRxFifo.clear();
+      if (auxSerialMode == UART_MODE_GPS) gpsClear();
       break;
 #endif
 //OWEND
@@ -177,9 +184,10 @@ void auxSerialStop()
 //OW
 #if defined(TELEMETRY_MAVLINK)
   if ((auxSerialMode == UART_MODE_MAVLINK) ||
-      (auxSerialMode == UART_MODE_GPS)) { // we can reuse this here, should become general however
+      (auxSerialMode == UART_MODE_GPS)) {
     auxSerialTxFifo.clear();
-    mavlinkTelemAuxSerialRxFifo.clear();
+    auxSerialRxFifo.clear();
+    if (auxSerialMode == UART_MODE_GPS) gpsClear();
   }
 #endif
 //OWEND
@@ -209,20 +217,6 @@ extern "C" void AUX_SERIAL_USART_IRQHandler(void)
       USART_ITConfig(AUX_SERIAL_USART, USART_IT_TXE, DISABLE);
     }
   }
-//OW
-#if defined(TELEMETRY_MAVLINK)
-  if ((auxSerialMode == UART_MODE_MAVLINK) ||
-      (auxSerialMode == UART_MODE_GPS)) { // we can reuse this here, should become general however
-    // Receive
-    if (USART_GetITStatus(AUX_SERIAL_USART, USART_IT_RXNE) != RESET) {
-      USART_ClearITPendingBit(AUX_SERIAL_USART, USART_IT_RXNE);
-      uint8_t c = USART_ReceiveData(AUX_SERIAL_USART);
-      mavlinkTelemAuxSerialRxFifo.push(c);
-    }
-    return;
-  }
-#endif
-//OWEND
 
 #if defined(CLI)
   if (getSelectedUsbMode() != USB_SERIAL_MODE) {
@@ -262,8 +256,10 @@ extern "C" void AUX_SERIAL_USART_IRQHandler(void)
 uint8_t aux2SerialMode = UART_MODE_COUNT;  // Prevent debug output before port is setup
 //OW
 //Fifo<uint8_t, 512> aux2SerialTxFifo;
-#if !defined(TELEMETRY_MAVLINK)
-Fifo<uint8_t, 1024> aux2SerialTxFifo;
+#if defined(TELEMETRY_MAVLINK)
+  MAVLINK_RAM_SECTION AuxSerialTxFifo aux2SerialTxFifo;
+#else
+  AuxSerialTxFifo aux2SerialTxFifo;
 #endif
 //OWEND
 AuxSerialRxFifo aux2SerialRxFifo __DMA (AUX2_SERIAL_DMA_Stream_RX);
@@ -322,6 +318,10 @@ void aux2SerialSetup(unsigned int baudrate, bool dma, uint16_t length, uint16_t 
     USART_DMACmd(AUX2_SERIAL_USART, USART_DMAReq_Rx, ENABLE);
     USART_Cmd(AUX2_SERIAL_USART, ENABLE);
     DMA_Cmd(AUX2_SERIAL_DMA_Stream_RX, ENABLE);
+//OW
+    NVIC_SetPriority(AUX2_SERIAL_USART_IRQn, 7);
+    NVIC_EnableIRQ(AUX2_SERIAL_USART_IRQn);
+//OWEND
   }
   else {
     USART_Cmd(AUX2_SERIAL_USART, ENABLE);
@@ -378,12 +378,12 @@ void aux2SerialInit(unsigned int mode, unsigned int protocol)
 
 #if defined(TELEMETRY_MAVLINK)
       case UART_MODE_MAVLINK:
-      case UART_MODE_GPS: // we can reuse this here, should become general however
-        aux2SerialSetup((mode == UART_MODE_GPS) ? GPS_USART_BAUDRATE : mavlinkTelemAux2Baudrate(), false);
+      case UART_MODE_GPS:
+        aux2SerialSetup((mode == UART_MODE_GPS) ? GPS_USART_BAUDRATE : mavlinkTelemAux2Baudrate(), true);
         AUX2_SERIAL_POWER_ON();
         aux2SerialTxFifo.clear();
-        mavlinkTelemAux2SerialRxFifo.clear();
-        if (auxSerialMode == UART_MODE_GPS) gpsClear();
+        aux2SerialRxFifo.clear();
+        if (aux2SerialMode == UART_MODE_GPS) gpsClear();
         break;
 #endif
 //OWEND
@@ -414,10 +414,9 @@ void aux2SerialStop()
   USART_DeInit(AUX2_SERIAL_USART);
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if ((aux2SerialMode == UART_MODE_MAVLINK) ||
-      (aux2SerialMode == UART_MODE_GPS)) { // we can reuse this here, should become general however
+  if ((aux2SerialMode == UART_MODE_MAVLINK) || (aux2SerialMode == UART_MODE_GPS)) {
     aux2SerialTxFifo.clear();
-    mavlinkTelemAux2SerialRxFifo.clear();
+    aux2SerialRxFifo.clear();
     if (aux2SerialMode == UART_MODE_GPS) gpsClear();
   }
 #endif
@@ -448,20 +447,6 @@ extern "C" void AUX2_SERIAL_USART_IRQHandler(void)
       USART_ITConfig(AUX2_SERIAL_USART, USART_IT_TXE, DISABLE);
     }
   }
-//OW
-#if defined(TELEMETRY_MAVLINK)
-  if ((aux2SerialMode == UART_MODE_MAVLINK) ||
-      (aux2SerialMode == UART_MODE_GPS)) { // we can reuse this here, should become general however
-    // Receive
-    if (USART_GetITStatus(AUX2_SERIAL_USART, USART_IT_RXNE) != RESET) {
-      USART_ClearITPendingBit(AUX2_SERIAL_USART, USART_IT_RXNE);
-      uint8_t c = USART_ReceiveData(AUX2_SERIAL_USART);
-      mavlinkTelemAux2SerialRxFifo.push(c);
-    }
-    return;
-  }
-#endif
-//OWEND
 
 #if defined(CLI)
   if (getSelectedUsbMode() != USB_SERIAL_MODE) {

@@ -47,7 +47,9 @@ void debugPrintf(const char * format, ...)
 #if defined(DEBUG_TRACE_BUFFER)
 static struct TraceElement traceBuffer[TRACE_BUFFER_LEN];
 static uint8_t traceBufferPos;
-extern Fifo<uint8_t, 512> auxSerialTxFifo;
+//OW
+//extern Fifo<uint8_t, 512> auxSerialTxFifo;
+//OWEND
 gtime_t filltm(const gtime_t *t, struct gtm *tp);
 
 void trace_event(enum TraceEvent event, uint32_t data)

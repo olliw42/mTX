@@ -19,16 +19,6 @@ uint16_t mavlinkTaskLoop(void);
 uint32_t mavlinkTelemAuxBaudrate(void);
 uint32_t mavlinkTelemAux2Baudrate(void);
 
-#if defined(AUX_SERIAL)
-extern Fifo<uint8_t, 1024> auxSerialTxFifo;
-extern Fifo<uint8_t, 1024> mavlinkTelemAuxSerialRxFifo;
-#endif
-
-#if defined(AUX2_SERIAL)
-extern Fifo<uint8_t, 1024> aux2SerialTxFifo;
-extern Fifo<uint8_t, 1024> mavlinkTelemAux2SerialRxFifo;
-#endif
-
 #if defined(TELEMETRY_MAVLINK_USB_SERIAL)
 extern Fifo<uint8_t, 1024> mavlinkTelemUsbRxFifo;
 #endif

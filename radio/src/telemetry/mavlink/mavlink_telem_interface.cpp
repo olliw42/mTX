@@ -215,16 +215,6 @@ uint32_t mavlinkTelemAux2Baudrate(void)
   return _cvtBaudrate(g_eeGeneral.mavlinkBaudrate2);
 }
 
-#if defined(AUX_SERIAL)
-MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> auxSerialTxFifo;
-MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemAuxSerialRxFifo;
-#endif
-
-#if defined(AUX2_SERIAL)
-MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> aux2SerialTxFifo;
-MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemAux2SerialRxFifo;
-#endif
-
 #if defined(TELEMETRY_MAVLINK_USB_SERIAL)
 MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemUsbRxFifo;
 #endif
@@ -237,7 +227,7 @@ uint32_t mavlinkTelem1Available(void)
   if (mavlinkTelem.serial1_isexternal) return mavlinkTelemExternalRxFifo.size();
 
 //  if (auxSerialMode != UART_MODE_MAVLINK) return 0;
-  return mavlinkTelemAuxSerialRxFifo.size();
+  return auxSerialRxFifo.size();
 }
 
 // call only after check with mavlinkTelem2Available()
@@ -246,7 +236,7 @@ uint8_t mavlinkTelem1Getc(uint8_t* c)
   if (!mavlinkTelem.serial1_enabled) return 0;
   if (mavlinkTelem.serial1_isexternal) return mavlinkTelemExternalRxFifo.pop(*c);
 
-  return mavlinkTelemAuxSerialRxFifo.pop(*c);
+  return auxSerialRxFifo.pop(*c);
 }
 
 bool mavlinkTelem1HasSpace(uint16_t count)
@@ -287,7 +277,7 @@ uint32_t mavlinkTelem2Available(void)
   if (mavlinkTelem.serial2_isexternal) return mavlinkTelemExternalRxFifo.size();
 
 //  if (aux2SerialMode != UART_MODE_MAVLINK) return 0;
-  return mavlinkTelemAux2SerialRxFifo.size();
+  return aux2SerialRxFifo.size();
 }
 
 // call only after check with mavlinkTelem2Available()
@@ -296,7 +286,7 @@ uint8_t mavlinkTelem2Getc(uint8_t* c)
   if (!mavlinkTelem.serial2_enabled) return 0;
   if (mavlinkTelem.serial2_isexternal) return mavlinkTelemExternalRxFifo.pop(*c);
 
-  return mavlinkTelemAux2SerialRxFifo.pop(*c);
+  return aux2SerialRxFifo.pop(*c);
 }
 
 bool mavlinkTelem2HasSpace(uint16_t count)
