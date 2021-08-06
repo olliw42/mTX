@@ -316,6 +316,13 @@ class MavlinkTelem
     };
     struct SysStatus sysstatus;
 
+    struct ExtendedSysState {
+      uint8_t vtol_state; // MAV_VTOL_STATE
+      uint8_t landed_state; // MAV_LANDED_STATE
+      uint8_t updated;
+    };
+    struct ExtendedSysState extsysstate;
+
     struct Att {
       float roll_rad; // rad
       float pitch_rad; // rad
@@ -770,6 +777,8 @@ class MavlinkTelem
       TASK_SENDREQUESTDATASTREAM_EXTRA3           = 0x00000080, // group 12
       TASK_SENDCMD_REQUEST_ATTITUDE               = 0x00000100,
       TASK_SENDCMD_REQUEST_GLOBAL_POSITION_INT    = 0x00000200,
+      TASK_SENDCMD_REQUEST_EXTENDED_SYS_STATE     = 0x00000400,
+
       TASK_SENDMSG_PARAM_REQUEST_LIST             = 0x00001000,
       //NOT used TASK_SENDMSG_PARAM_REQUEST_READ             = 0x00002000,
       TASK_SENDMSG_MISSION_REQUEST_LIST           = 0x00004000,
@@ -844,6 +853,7 @@ class MavlinkTelem
       AUTOPILOT_REQUESTWAITING_ATTITUDE            = 0x04,
       AUTOPILOT_REQUESTWAITING_VFR_HUD             = 0x08,
       AUTOPILOT_REQUESTWAITING_EKF_STATUS_REPORT   = 0x10,
+      AUTOPILOT_REQUESTWAITING_EXTENDED_SYS_STATE  = 0x20,
       AUTOPILOT_REQUESTWAITING_ALL                 = 0x0F,
     };
 

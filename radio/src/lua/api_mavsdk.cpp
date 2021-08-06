@@ -578,6 +578,19 @@ static int luaMavsdkGetSystemStatusSensors(lua_State *L)
   return 1;
 }
 
+// -- MAVSDK EXTENDED SYSTEM STATE --
+
+static int luaMavsdkGetLandedState(lua_State *L)
+{
+  if (mavlinkTelem.extsysstate.landed_state != MAV_LANDED_STATE_UNDEFINED) {
+    lua_pushnumber(L, mavlinkTelem.extsysstate.landed_state);
+  }
+  else {
+    lua_pushnil(L);
+  }
+  return 1;
+}
+
 // -- MAVSDK ATTITUDE --
 
 static int luaMavsdkGetAttRollDeg(lua_State *L)
@@ -1110,9 +1123,31 @@ static int luaMavsdkGetBat2Capacity(lua_State *L)
 
 // -- MAVSDK ARDUPILOT --
 
-static int luaMavsdkApIsFlying(lua_State *L)
+static int luaMavsdkApIsActive(lua_State *L)
 {
   lua_pushboolean(L, !mavlinkTelem.autopilot.is_standby);
+  return 1;
+}
+
+static int luaMavsdkApIsInAir(lua_State *L)
+{
+  if (mavlinkTelem.extsysstate.landed_state != MAV_LANDED_STATE_UNDEFINED) {
+      lua_pushboolean(L, mavlinkTelem.extsysstate.landed_state == MAV_LANDED_STATE_IN_AIR);
+  }
+  else {
+    lua_pushnil(L);
+  }
+  return 1;
+}
+
+static int luaMavsdkApIsOnGround(lua_State *L)
+{
+  if (mavlinkTelem.extsysstate.landed_state != MAV_LANDED_STATE_UNDEFINED) {
+      lua_pushboolean(L, mavlinkTelem.extsysstate.landed_state == MAV_LANDED_STATE_ON_GROUND);
+  }
+  else {
+    lua_pushnil(L);
+  }
   return 1;
 }
 
@@ -1385,6 +1420,7 @@ const luaL_Reg mavsdkLib[] = {
   { "getFlightMode", luaMavsdkGetFlightMode },
   { "getVehicleClass", luaMavsdkGetVehicleClass },
   { "getSystemStatus", luaMavsdkGetSystemStatus },
+  { "getLandedState", luaMavsdkGetLandedState },
   { "isArmed", luaMavsdkIsArmed },
 
   { "gimbalIsReceiving", luaMavsdkGimbalIsReceiving },
@@ -1517,7 +1553,9 @@ const luaL_Reg mavsdkLib[] = {
   { "getMission", luaMavsdkGetMission },
   { "getMissionItem", luaMavsdkGetMissionItem },
 
-  { "apIsFlying", luaMavsdkApIsFlying },
+  { "apIsActive", luaMavsdkApIsActive },
+  { "apIsInAir", luaMavsdkApIsInAir },
+  { "apIsOnGround", luaMavsdkApIsOnGround },
   { "apIsFailsafe", luaMavsdkApIsFailsafe },
   { "apPositionOk", luaMavsdkApPositionOk },
   { "apSetFlightMode", luaMavsdkApSetFlightMode },

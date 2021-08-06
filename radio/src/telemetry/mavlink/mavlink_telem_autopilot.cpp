@@ -49,6 +49,9 @@ constexpr float FRADTODEG = 180.0f/FPI;
 // MAVLINK_MSG_ID_GLOBAL_POSITION_INT
 #define MSG_ID_GLOBAL_POSITION_INT_RATE   200000 // 200 ms = 5 Hz
 
+// MAVLINK_MSG_ID_EXTENDED_SYS_STATE
+#define MSG_ID_EXTENDED_SYS_STATE_RATE    1000000 // 1000 ms = 1 Hz
+
 // -- Generate MAVLink messages --
 // these should never be called directly, should only by called by the task handler
 
@@ -388,6 +391,11 @@ bool MavlinkTelem::doTaskAutopilotLowPriority(void)
     generateCmdSetMessageInterval(_sysid, autopilot.compid, FASTMAVLINK_MSG_ID_GLOBAL_POSITION_INT, MSG_ID_GLOBAL_POSITION_INT_RATE, 1); // 200 ms = 5 Hz
     return true; //do only one per loop
   }
+  if (_task[TASK_AUTOPILOT] & TASK_SENDCMD_REQUEST_EXTENDED_SYS_STATE) {
+    RESETTASK(TASK_AUTOPILOT,TASK_SENDCMD_REQUEST_EXTENDED_SYS_STATE);
+    generateCmdSetMessageInterval(_sysid, autopilot.compid, FASTMAVLINK_MSG_ID_EXTENDED_SYS_STATE, MSG_ID_EXTENDED_SYS_STATE_RATE, 1); // 1000 ms = 1 Hz
+    return true; //do only one per loop
+  }
 
   if (_task[TASK_AP] & TASK_AP_ARM) { //MAV_CMD_COMPONENT_ARM_DISARM
     RESETTASK(TASK_AP, TASK_AP_ARM);
@@ -497,6 +505,17 @@ void MavlinkTelem::handleMessageAutopilot(void)
       sysstatus.sensors_health = payload.onboard_control_sensors_health;
       sysstatus.received = true;
       INCU8(sysstatus.updated);
+      break;
+    }
+
+    case FASTMAVLINK_MSG_ID_EXTENDED_SYS_STATE: {
+      fmav_extended_sys_state_t payload;
+      fmav_msg_extended_sys_state_decode(&payload, &_msg);
+      extsysstate.vtol_state = payload.vtol_state;
+      extsysstate.landed_state = payload.landed_state;
+      INCU8(extsysstate.updated);
+      clear_request(TASK_AUTOPILOT, TASK_SENDCMD_REQUEST_EXTENDED_SYS_STATE);
+      autopilot.requests_waiting_mask &=~ AUTOPILOT_REQUESTWAITING_EXTENDED_SYS_STATE;
       break;
     }
 
@@ -814,6 +833,10 @@ void MavlinkTelem::_resetAutopilot(void)
   sysstatus.received = false;
   sysstatus.updated = 0;
 
+  extsysstate.vtol_state = MAV_VTOL_STATE_UNDEFINED;
+  extsysstate.landed_state = MAV_LANDED_STATE_UNDEFINED;
+  extsysstate.updated = 0;
+
   att.roll_rad = 0.0f;
   att.pitch_rad = 0.0f;
   att.yaw_rad = 0.0f;
@@ -979,6 +1002,11 @@ void MavlinkTelem::setAutopilotStartupRequests(void)
     set_request(TASK_AUTOPILOT, TASK_SENDCMD_REQUEST_GLOBAL_POSITION_INT, 100, 200+7);
 
     set_request(TASK_AUTOPILOT, TASK_SENDMSG_MISSION_REQUEST_LIST, 10, 341);
+
+    // 1 Hz sufficient
+    // MAVLINK_MSG_ID_EXTENDED_SYS_STATE
+    // cleared by MAVLINK_MSG_ID_EXTENDED_SYS_STATE
+    set_request(TASK_AUTOPILOT, TASK_SENDCMD_REQUEST_EXTENDED_SYS_STATE, 100, 200-81);
 
     set_request(TASK_AP, TASK_AP_REQUESTPARAM_BATT_CAPACITY, 10, 200+25);
     set_request(TASK_AP, TASK_AP_REQUESTPARAM_BATT2_CAPACITY, 10, 200+28);
