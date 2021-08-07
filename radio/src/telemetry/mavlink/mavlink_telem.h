@@ -23,8 +23,9 @@ uint32_t mavlinkTelemAux2Baudrate(void);
 extern Fifo<uint8_t, 1024> mavlinkTelemUsbRxFifo;
 #endif
 
-//TODO: since we want to allow only 2 channels max, this is memory waste,
-//i.e., we should just have 2 instead of three Fifos.
+//even though we only allow 2 serial uart channels max, we need this
+// since the two aux buffers cannot be reused, as they may be used by something else
+// so, no way out
 extern Fifo<uint8_t, 32> mavlinkTelemExternalTxFifo_frame;
 extern Fifo<uint8_t, 1024> mavlinkTelemExternalRxFifo;
 
@@ -95,14 +96,14 @@ class MavlinkTelem
     void generateCmdSetMessageInterval(uint8_t tsystem, uint8_t tcomponent, uint8_t msgid, int32_t period_us, uint8_t startstop);
     void generateCmdDoSetMode(uint8_t tsystem, uint8_t tcomponent, MAV_MODE base_mode, uint32_t custom_mode);
     void generateCmdNavTakeoff(uint8_t tsystem, uint8_t tcomponent, float alt_m, bool hor_nav_by_pilot);
-    void generateCmdDoChangeSpeed(uint8_t tsystem, uint8_t tcomponent, float speed_mps, uint16_t speed_type, bool relative);
-    void generateMissionItemInt(uint8_t tsystem, uint8_t tcomponent, uint8_t frame, uint16_t cmd, uint8_t current, int32_t lat, int32_t lon, float alt_m);
-    void generateSetPositionTargetGlobalInt(uint8_t tsystem, uint8_t tcomponent, uint8_t frame, uint16_t type_mask, int32_t lat, int32_t lon, float alt, float vx, float vy, float vz, float yaw_rad, float yaw_rad_rate);
-    void generateCmdConditionYaw(uint8_t tsystem, uint8_t tcomponent, float yaw_deg, float yaw_deg_rate, int8_t dir, bool rel);
-    void generateRcChannelsOverride(uint8_t sysid, uint8_t tsystem, uint8_t tcomponent, uint16_t* chan_raw);
     void generateMissionRequestList(uint8_t tsystem, uint8_t tcomponent, uint8_t mission_type);
     void generateMissionRequestInt(uint8_t tsystem, uint8_t tcomponent, uint16_t seq, uint8_t mission_type);
+    void generateMissionItemInt(uint8_t tsystem, uint8_t tcomponent, uint8_t frame, uint16_t cmd, uint8_t current, int32_t lat, int32_t lon, float alt_m);
+    void generateRcChannelsOverride(uint8_t sysid, uint8_t tsystem, uint8_t tcomponent, uint16_t* chan_raw);
     void generateGlobalPositionInt(int32_t lat, int32_t lon, int32_t alt_mm, int32_t relative_alt_mm, int16_t vx, int16_t vy, int16_t vz, uint16_t hdg_cdeg);
+    void generateCmdDoChangeSpeed(uint8_t tsystem, uint8_t tcomponent, float speed_mps, uint16_t speed_type, bool relative);
+    void generateSetPositionTargetGlobalInt(uint8_t tsystem, uint8_t tcomponent, uint8_t frame, uint16_t type_mask, int32_t lat, int32_t lon, float alt, float vx, float vy, float vz, float yaw_rad, float yaw_rad_rate);
+    void generateCmdConditionYaw(uint8_t tsystem, uint8_t tcomponent, float yaw_deg, float yaw_deg_rate, int8_t dir, bool rel);
     // camera
     void generateCmdRequestCameraInformation(uint8_t tsystem, uint8_t tcomponent);
     void generateCmdRequestCameraSettings(uint8_t tsystem, uint8_t tcomponent);

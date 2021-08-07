@@ -504,6 +504,28 @@ static int luaMavsdkIsArmed(lua_State *L)
   return 1;
 }
 
+static int luaMavsdkIsInAir(lua_State *L)
+{
+  if (mavlinkTelem.extsysstate.landed_state != MAV_LANDED_STATE_UNDEFINED) {
+      lua_pushboolean(L, mavlinkTelem.extsysstate.landed_state == MAV_LANDED_STATE_IN_AIR);
+  }
+  else {
+    lua_pushnil(L);
+  }
+  return 1;
+}
+
+static int luaMavsdkIsOnGround(lua_State *L)
+{
+  if (mavlinkTelem.extsysstate.landed_state != MAV_LANDED_STATE_UNDEFINED) {
+      lua_pushboolean(L, mavlinkTelem.extsysstate.landed_state == MAV_LANDED_STATE_ON_GROUND);
+  }
+  else {
+    lua_pushnil(L);
+  }
+  return 1;
+}
+
 // -- MAVSDK RADIO  --
 
 static int luaMavsdkGetRadioRssiRaw(lua_State *L)
@@ -1129,28 +1151,6 @@ static int luaMavsdkApIsActive(lua_State *L)
   return 1;
 }
 
-static int luaMavsdkApIsInAir(lua_State *L)
-{
-  if (mavlinkTelem.extsysstate.landed_state != MAV_LANDED_STATE_UNDEFINED) {
-      lua_pushboolean(L, mavlinkTelem.extsysstate.landed_state == MAV_LANDED_STATE_IN_AIR);
-  }
-  else {
-    lua_pushnil(L);
-  }
-  return 1;
-}
-
-static int luaMavsdkApIsOnGround(lua_State *L)
-{
-  if (mavlinkTelem.extsysstate.landed_state != MAV_LANDED_STATE_UNDEFINED) {
-      lua_pushboolean(L, mavlinkTelem.extsysstate.landed_state == MAV_LANDED_STATE_ON_GROUND);
-  }
-  else {
-    lua_pushnil(L);
-  }
-  return 1;
-}
-
 static int luaMavsdkApIsFailsafe(lua_State *L)
 {
   lua_pushboolean(L, mavlinkTelem.autopilot.is_critical);
@@ -1422,6 +1422,8 @@ const luaL_Reg mavsdkLib[] = {
   { "getSystemStatus", luaMavsdkGetSystemStatus },
   { "getLandedState", luaMavsdkGetLandedState },
   { "isArmed", luaMavsdkIsArmed },
+  { "isInAir", luaMavsdkIsInAir },
+  { "isOnGround", luaMavsdkIsOnGround },
 
   { "gimbalIsReceiving", luaMavsdkGimbalIsReceiving },
   { "gimbalIsInitialized", luaMavsdkGimbalIsInitialized },
@@ -1554,8 +1556,6 @@ const luaL_Reg mavsdkLib[] = {
   { "getMissionItem", luaMavsdkGetMissionItem },
 
   { "apIsActive", luaMavsdkApIsActive },
-  { "apIsInAir", luaMavsdkApIsInAir },
-  { "apIsOnGround", luaMavsdkApIsOnGround },
   { "apIsFailsafe", luaMavsdkApIsFailsafe },
   { "apPositionOk", luaMavsdkApPositionOk },
   { "apSetFlightMode", luaMavsdkApSetFlightMode },

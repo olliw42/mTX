@@ -55,6 +55,23 @@ constexpr float FRADTODEG = 180.0f/FPI;
 // -- Generate MAVLink messages --
 // these should never be called directly, should only by called by the task handler
 
+void MavlinkTelem::generateRequestDataStream(
+    uint8_t tsystem, uint8_t tcomponent, uint8_t data_stream, uint16_t rate_hz, uint8_t startstop)
+{
+  fmav_msg_request_data_stream_pack(
+      &_msg_out, _my_sysid, _my_compid,
+      tsystem, tcomponent, data_stream, rate_hz, startstop,
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
+// ArduPilot: ignores param7
+void MavlinkTelem::generateCmdSetMessageInterval(uint8_t tsystem, uint8_t tcomponent, uint8_t msgid, int32_t period_us, uint8_t startstop)
+{
+  _generateCmdLong(tsystem, tcomponent, MAV_CMD_SET_MESSAGE_INTERVAL, msgid, (startstop) ? period_us : -1.0f);
+}
+
 //ArduPilot:
 //  base_mode must have MAV_MODE_FLAG_CUSTOM_MODE_ENABLED bit set,
 //  custom_mode then determines the mode it will switch to
@@ -69,62 +86,6 @@ void MavlinkTelem::generateCmdDoSetMode(uint8_t tsystem, uint8_t tcomponent, MAV
 void MavlinkTelem::generateCmdNavTakeoff(uint8_t tsystem, uint8_t tcomponent, float alt_m, bool hor_nav_by_pilot)
 {
   _generateCmdLong(tsystem, tcomponent, MAV_CMD_NAV_TAKEOFF, 0,0, (hor_nav_by_pilot) ? 1.0f : 0.0f, 0,0,0, alt_m);
-}
-
-// speed type 0=Airspeed, 1=Ground Speed, 2=Climb Speed, 3=Descent Speed
-//ArduPilot: ignores param3 =  Throttle and param4 = Relative
-void MavlinkTelem::generateCmdDoChangeSpeed(uint8_t tsystem, uint8_t tcomponent, float speed_mps, uint16_t speed_type, bool relative)
-{
-  _generateCmdLong(tsystem, tcomponent, MAV_CMD_DO_CHANGE_SPEED, speed_type, speed_mps, -1, (relative) ? 1.0f : 0.0f);
-}
-
-//ArduPilot: current = 2 or 3
-// current = 2 is a flag to tell this is a "guided mode" waypoint and not for the mission
-// current = 3 is a flag to tell this is a alt change
-void MavlinkTelem::generateMissionItemInt(uint8_t tsystem, uint8_t tcomponent,
-    uint8_t frame, uint16_t cmd, uint8_t current, int32_t lat, int32_t lon, float alt_m)
-{
-  fmav_msg_mission_item_int_pack(
-      &_msg_out, _my_sysid, _my_compid,
-      tsystem, tcomponent,
-      0, frame, cmd, current, 0, 0.0f, 0.0f, 0.0f, 0.0f, lat, lon, alt_m, MAV_MISSION_TYPE_MISSION,
-      &_status_out
-      );
-  _msg_out_available = true;
-}
-
-void MavlinkTelem::generateSetPositionTargetGlobalInt(uint8_t tsystem, uint8_t tcomponent,
-    uint8_t frame, uint16_t type_mask,
-    int32_t lat, int32_t lon, float alt, float vx, float vy, float vz, float yaw_rad, float yaw_rad_rate)
-{
-  fmav_msg_set_position_target_global_int_pack(
-      &_msg_out, _my_sysid, _my_compid,
-      time_boot_ms(),
-      tsystem, tcomponent,
-      frame, type_mask,
-      lat, lon, alt, vx, vy, vz, 0.0f, 0.0f, 0.0f, yaw_rad, yaw_rad_rate, // alt in m, v in m/s, yaw in rad
-      &_status_out
-      );
-  _msg_out_available = true;
-}
-
-// yaw must be in range 0..360
-void MavlinkTelem::generateCmdConditionYaw(uint8_t tsystem, uint8_t tcomponent, float yaw_deg, float yaw_deg_rate, int8_t dir, bool rel)
-{
-  _generateCmdLong(tsystem, tcomponent, MAV_CMD_CONDITION_YAW, yaw_deg, yaw_deg_rate, (dir>0)?1.0f:-1.0f, (rel)?1.0f:0.0f);
-}
-
-void MavlinkTelem::generateRcChannelsOverride(uint8_t sysid, uint8_t tsystem, uint8_t tcomponent, uint16_t* chan_raw)
-{
-  fmav_msg_rc_channels_override_pack(
-      &_msg_out, sysid, _my_compid,
-      tsystem, tcomponent,
-      chan_raw[0], chan_raw[1], chan_raw[2], chan_raw[3], chan_raw[4], chan_raw[5], chan_raw[6], chan_raw[7],
-      chan_raw[8], chan_raw[9], chan_raw[10], chan_raw[11], chan_raw[12], chan_raw[13], chan_raw[14], chan_raw[15],
-      chan_raw[16], chan_raw[17],
-      &_status_out
-      );
-  _msg_out_available = true;
 }
 
 void MavlinkTelem::generateMissionRequestList(uint8_t tsystem, uint8_t tcomponent, uint8_t mission_type)
@@ -149,6 +110,34 @@ void MavlinkTelem::generateMissionRequestInt(uint8_t tsystem, uint8_t tcomponent
   _msg_out_available = true;
 }
 
+//ArduPilot: current = 2 or 3
+// current = 2 is a flag to tell this is a "guided mode" waypoint and not for the mission
+// current = 3 is a flag to tell this is a alt change
+void MavlinkTelem::generateMissionItemInt(uint8_t tsystem, uint8_t tcomponent,
+    uint8_t frame, uint16_t cmd, uint8_t current, int32_t lat, int32_t lon, float alt_m)
+{
+  fmav_msg_mission_item_int_pack(
+      &_msg_out, _my_sysid, _my_compid,
+      tsystem, tcomponent,
+      0, frame, cmd, current, 0, 0.0f, 0.0f, 0.0f, 0.0f, lat, lon, alt_m, MAV_MISSION_TYPE_MISSION,
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
+void MavlinkTelem::generateRcChannelsOverride(uint8_t sysid, uint8_t tsystem, uint8_t tcomponent, uint16_t* chan_raw)
+{
+  fmav_msg_rc_channels_override_pack(
+      &_msg_out, sysid, _my_compid,
+      tsystem, tcomponent,
+      chan_raw[0], chan_raw[1], chan_raw[2], chan_raw[3], chan_raw[4], chan_raw[5], chan_raw[6], chan_raw[7],
+      chan_raw[8], chan_raw[9], chan_raw[10], chan_raw[11], chan_raw[12], chan_raw[13], chan_raw[14], chan_raw[15],
+      chan_raw[16], chan_raw[17],
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
 void MavlinkTelem::generateGlobalPositionInt(int32_t lat, int32_t lon, int32_t alt_mm, int32_t relative_alt_mm, int16_t vx, int16_t vy, int16_t vz, uint16_t hdg_cdeg)
 {
   fmav_msg_global_position_int_pack(
@@ -159,6 +148,34 @@ void MavlinkTelem::generateGlobalPositionInt(int32_t lat, int32_t lon, int32_t a
       &_status_out
       );
   _msg_out_available = true;
+}
+
+// speed type 0=Airspeed, 1=Ground Speed, 2=Climb Speed, 3=Descent Speed
+//ArduPilot: ignores param3 =  Throttle and param4 = Relative
+void MavlinkTelem::generateCmdDoChangeSpeed(uint8_t tsystem, uint8_t tcomponent, float speed_mps, uint16_t speed_type, bool relative)
+{
+  _generateCmdLong(tsystem, tcomponent, MAV_CMD_DO_CHANGE_SPEED, speed_type, speed_mps, -1, (relative) ? 1.0f : 0.0f);
+}
+
+void MavlinkTelem::generateSetPositionTargetGlobalInt(uint8_t tsystem, uint8_t tcomponent,
+    uint8_t frame, uint16_t type_mask,
+    int32_t lat, int32_t lon, float alt, float vx, float vy, float vz, float yaw_rad, float yaw_rad_rate)
+{
+  fmav_msg_set_position_target_global_int_pack(
+      &_msg_out, _my_sysid, _my_compid,
+      time_boot_ms(),
+      tsystem, tcomponent,
+      frame, type_mask,
+      lat, lon, alt, vx, vy, vz, 0.0f, 0.0f, 0.0f, yaw_rad, yaw_rad_rate, // alt in m, v in m/s, yaw in rad
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
+// yaw must be in range 0..360
+void MavlinkTelem::generateCmdConditionYaw(uint8_t tsystem, uint8_t tcomponent, float yaw_deg, float yaw_deg_rate, int8_t dir, bool rel)
+{
+  _generateCmdLong(tsystem, tcomponent, MAV_CMD_CONDITION_YAW, yaw_deg, yaw_deg_rate, (dir>0)?1.0f:-1.0f, (rel)?1.0f:0.0f);
 }
 
 // -- Mavsdk Convenience Task Wrapper --
@@ -238,17 +255,10 @@ void MavlinkTelem::apSetYawDeg(float yaw, bool relative)
 {
   if (relative) {
     _tccy_relative = 1.0f;
-    if (yaw < 0.0f) { 
-      _tccy_dir = -1.0f; 
-      yaw = -yaw; 
-    } 
-    else { 
-      _tccy_dir = 1.0f; 
-    }
+    if (yaw < 0.0f) { _tccy_dir = -1.0f; yaw = -yaw; } else { _tccy_dir = 1.0f; }
   } 
   else {
-    _tccy_relative = 0.0f;
-    _tccy_dir = 0.0f;
+    _tccy_relative = 0.0f;  _tccy_dir = 0.0f;
   }
   float res = fmodf(yaw, 360.0f);
   if (res < 0.0f) res += 360.0f;

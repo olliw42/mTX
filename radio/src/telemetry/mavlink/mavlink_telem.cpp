@@ -156,23 +156,6 @@ char param_id[16];
   _msg_out_available = true;
 }
 
-void MavlinkTelem::generateRequestDataStream(
-    uint8_t tsystem, uint8_t tcomponent, uint8_t data_stream, uint16_t rate_hz, uint8_t startstop)
-{
-  fmav_msg_request_data_stream_pack(
-      &_msg_out, _my_sysid, _my_compid,
-      tsystem, tcomponent, data_stream, rate_hz, startstop,
-      &_status_out
-      );
-  _msg_out_available = true;
-}
-
-// ArduPilot: ignores param7
-void MavlinkTelem::generateCmdSetMessageInterval(uint8_t tsystem, uint8_t tcomponent, uint8_t msgid, int32_t period_us, uint8_t startstop)
-{
-  _generateCmdLong(tsystem, tcomponent, MAV_CMD_SET_MESSAGE_INTERVAL, msgid, (startstop) ? period_us : -1.0f);
-}
-
 // -- Main message handler for incoming MAVLink messages --
 
 void MavlinkTelem::handleMessage(void)
