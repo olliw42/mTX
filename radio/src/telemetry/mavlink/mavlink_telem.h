@@ -223,8 +223,6 @@ class MavlinkTelem
     void mavapiGenerateMessage(void);
     bool mavapiMsgOutEmpty(void);
 
-    // MAVLINK API PARAMETERS
-
     struct ParamItem {
       float value;
       char id[17];
@@ -239,7 +237,6 @@ class MavlinkTelem
 
     ParamItem _paramInList[MAVPARAMLIST_MAX];
     uint8_t _paramInList_count = 0;
-
     Fifo<struct ParamItem, 32> _paramOutFifo;
 
     uint8_t _param_find(uint8_t sysid, uint8_t compid, const char* param_id); // returns an index into the _paramInList
@@ -301,6 +298,13 @@ class MavlinkTelem
     struct Comp gimbal;
     struct Comp camera;
     struct Comp gimbalmanager; // it's not exactly a component, can be the autopilot or the companion or the gimbal
+
+    // convenience task wrapper
+    int32_t _gpi_lat, _gpi_lon, _gpi_alt, _gpi_relative_alt;
+    int16_t _gpi_vx, _gpi_vy, _gpi_vz;
+    uint16_t _gpi_hdg;
+
+    void sendGolbalPositionInt(int32_t lat, int32_t lon, float alt, float relative_alt, float vx, float vy, float vz, float hdg_deg);
 
     // MAVSDK AUTOPILOT
 
@@ -494,9 +498,6 @@ class MavlinkTelem
     float _tacf_takeoff_alt_m;
     uint16_t _tmri_seq, _tmri_missiontype;
     uint16_t _tovr_chan_raw[18];
-    int32_t _gpi_lat, _gpi_lon, _gpi_alt, _gpi_relative_alt;
-    int16_t _gpi_vx, _gpi_vy, _gpi_vz;
-    uint16_t _gpi_hdg;
 
     // convenience task wrapper
     void setTaskParamRequestList(void)

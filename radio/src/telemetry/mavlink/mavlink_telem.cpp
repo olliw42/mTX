@@ -156,6 +156,22 @@ char param_id[16];
   _msg_out_available = true;
 }
 
+// -- Mavsdk Convenience Task Wrapper --
+// to make it easy for api_mavsdk to call functions
+
+void MavlinkTelem::sendGolbalPositionInt(int32_t lat, int32_t lon, float alt, float relative_alt, float vx, float vy, float vz, float hdg_deg)
+{
+  _gpi_lat = lat;
+  _gpi_lon = lon;
+  _gpi_alt = alt * 1000.0f;
+  _gpi_relative_alt = relative_alt * 1000.0f;
+  _gpi_vx = vx * 100.0f;
+  _gpi_vy = vy * 100.0f;
+  _gpi_vz = vz * 100.0f;
+  _gpi_hdg = (hdg_deg > 360.0f) ? UINT16_MAX : hdg_deg;
+  SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_GLOBAL_POSITION_INT);
+}
+
 // -- Main message handler for incoming MAVLink messages --
 
 void MavlinkTelem::handleMessage(void)

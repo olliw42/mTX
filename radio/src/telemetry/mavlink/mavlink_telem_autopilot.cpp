@@ -280,8 +280,8 @@ bool MavlinkTelem::doTaskAutopilot(void)
   // we give RC_CHANNELS_OVERRIDE highest priority
   if (_task[TASK_AUTOPILOT] & TASK_SENDMSG_RC_CHANNELS_OVERRIDE) {
     RESETTASK(TASK_AUTOPILOT,TASK_SENDMSG_RC_CHANNELS_OVERRIDE);
+    // RC_CHHANELS_OVERRIDE requires the "correct" sysid, so try to work it out
     if (autopilottype == MAV_AUTOPILOT_ARDUPILOTMEGA) {
-      // RC_CHHANELS_OVERRIDE requires the "correct" sysid, so try to work it out
       // somewhat dirty, but that's how ArduPilot works, it only allows one GCS, and its sys id needs to be set by hand
       // RC_CHHANELS_OVERRIDE is also considered as kind of a heartbeat, e.g. with respect to gcs failsafe
       if (param.SYSID_MYGCS >= 0)
@@ -289,6 +289,7 @@ bool MavlinkTelem::doTaskAutopilot(void)
     } 
     else {
       //TODO: check what other flight stacks expect
+      // technically this should be the correct approach, since it's the otx-gcs which sends
       generateRcChannelsOverride(_my_sysid, _sysid, autopilot.compid, _tovr_chan_raw);
     }
     return true; //do only one per loop

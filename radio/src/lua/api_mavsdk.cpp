@@ -526,6 +526,22 @@ static int luaMavsdkIsOnGround(lua_State *L)
   return 1;
 }
 
+// -- MAVSDK SEND GLOBAL_POSITION_INT  --
+
+static int luaMavsdkSendGlobalPositionInt(lua_State *L)
+{
+  int32_t lat = luaL_checkinteger(L, 1);
+  int32_t lon = luaL_checkinteger(L, 2);
+  float alt = luaL_checknumber(L, 3);
+  float relative_alt = luaL_checknumber(L, 4);
+  float vx = luaL_checknumber(L, 5);
+  float vy = luaL_checknumber(L, 6);
+  float vz = luaL_checknumber(L, 7);
+  float hdg_deg = luaL_checknumber(L, 8);
+  mavlinkTelem.sendGolbalPositionInt(lat, lon, alt, relative_alt, vx, vy, vz, hdg_deg);
+  return 0;
+}
+
 // -- MAVSDK RADIO  --
 
 static int luaMavsdkGetRadioRssiRaw(lua_State *L)
@@ -1403,6 +1419,36 @@ static int luaMavsdkRadioDisableRssiVoice(lua_State *L)
   return 0;
 }
 
+// -- other options
+
+static int luaMavsdkOptionGetRcOverride(lua_State *L)
+{
+  lua_pushinteger(L, g_model.mavlinkRcOverride);
+  return 1;
+}
+
+static int luaMavsdkOptionSetRcOverride(lua_State *L)
+{
+  int32_t i = luaL_checkinteger(L, 1);
+  if (i < 0) i = 0;
+  if (i > 14) i = 7; // sanitize
+  g_model.mavlinkRcOverride = i;
+  return 0;
+}
+
+static int luaMavsdkOptionGetSendPosition(lua_State *L)
+{
+  lua_pushboolean(L, g_model.mavlinkSendPosition);
+  return 1;
+}
+
+static int luaMavsdkOptionSetSendPosition(lua_State *L)
+{
+  bool flag = (luaL_checkinteger(L, 1) > 0);
+  g_model.mavlinkSendPosition = flag;
+  return 0;
+}
+
 
 //------------------------------------------------------------
 // mavsdk luaL and luaR arrays
@@ -1424,6 +1470,8 @@ const luaL_Reg mavsdkLib[] = {
   { "isArmed", luaMavsdkIsArmed },
   { "isInAir", luaMavsdkIsInAir },
   { "isOnGround", luaMavsdkIsOnGround },
+
+  { "sendGlobalPositionInt", luaMavsdkSendGlobalPositionInt },
 
   { "gimbalIsReceiving", luaMavsdkGimbalIsReceiving },
   { "gimbalIsInitialized", luaMavsdkGimbalIsInitialized },
@@ -1580,6 +1628,10 @@ const luaL_Reg mavsdkLib[] = {
   { "optionGetRssiScale", luaMavsdkOptionGetRssiScale },
   { "optionSetRssiScale", luaMavsdkOptionSetRssiScale },
   { "radioDisableRssiVoice", luaMavsdkRadioDisableRssiVoice },
+  { "optionGetRcOverride", luaMavsdkOptionGetRcOverride },
+  { "optionSetRcOverride", luaMavsdkOptionSetRcOverride },
+  { "optionGetSendPosition", luaMavsdkOptionGetSendPosition },
+  { "optionSetSendPosition", luaMavsdkOptionSetSendPosition },
 
   { NULL, NULL }  /* sentinel */
 };
