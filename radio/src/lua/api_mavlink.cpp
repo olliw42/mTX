@@ -84,35 +84,75 @@ static int luaMavlinkGetTaskStats(lua_State *L)
 
 static int luaMavlinkGetSystemId(lua_State *L)
 {
-  lua_pushinteger(L, mavlinkTelem.systemSysId());
+  if (mavlinkTelem.isSystemIdValid())
+    lua_pushinteger(L, mavlinkTelem.systemSysId());
+  else
+    lua_pushnil(L);
   return 1;
 }
 
 static int luaMavlinkGetAutopilotIds(lua_State *L)
 {
-  lua_pushinteger(L, mavlinkTelem.systemSysId());
-  lua_pushinteger(L, mavlinkTelem.autopilot.compid);
+  if (mavlinkTelem.isSystemIdValid()) {
+    lua_pushinteger(L, mavlinkTelem.systemSysId());
+    if (mavlinkTelem.autopilot.compid > 0) {
+      lua_pushinteger(L, mavlinkTelem.autopilot.compid);
+    }
+    else
+      lua_pushnil(L);
+  }
+  else {
+    lua_pushnil(L);
+    lua_pushnil(L);
+  }
   return 2;
 }
 
 static int luaMavlinkGetCameraIds(lua_State *L)
 {
-  lua_pushinteger(L, mavlinkTelem.systemSysId());
-  lua_pushinteger(L, mavlinkTelem.camera.compid);
+  if (mavlinkTelem.isSystemIdValid()) {
+    lua_pushinteger(L, mavlinkTelem.systemSysId());
+    if (mavlinkTelem.camera.compid > 0)
+      lua_pushinteger(L, mavlinkTelem.camera.compid);
+    else
+      lua_pushnil(L);
+  }
+  else {
+    lua_pushnil(L);
+    lua_pushnil(L);
+  }
   return 2;
 }
 
 static int luaMavlinkGetGimbalIds(lua_State *L)
 {
-  lua_pushinteger(L, mavlinkTelem.systemSysId());
-  lua_pushinteger(L, mavlinkTelem.gimbal.compid);
+  if (mavlinkTelem.isSystemIdValid()) {
+    lua_pushinteger(L, mavlinkTelem.systemSysId());
+    if (mavlinkTelem.gimbal.compid > 0)
+      lua_pushinteger(L, mavlinkTelem.gimbal.compid);
+    else
+      lua_pushnil(L);
+  }
+  else {
+    lua_pushnil(L);
+    lua_pushnil(L);
+  }
   return 2;
 }
 
 static int luaMavlinkGetGimbalManagerIds(lua_State *L)
 {
-  lua_pushinteger(L, mavlinkTelem.systemSysId());
-  lua_pushinteger(L, mavlinkTelem.gimbalmanager.compid);
+  if (mavlinkTelem.isSystemIdValid()) {
+    lua_pushinteger(L, mavlinkTelem.systemSysId());
+    if (mavlinkTelem.gimbalmanager.compid > 0)
+      lua_pushinteger(L, mavlinkTelem.gimbalmanager.compid);
+    else
+      lua_pushnil(L);
+  }
+  else {
+    lua_pushnil(L);
+    lua_pushnil(L);
+  }
   return 2;
 }
 
@@ -190,6 +230,8 @@ static int luaMavlinkSendMessage(lua_State *L)
   }
   return 1;
 }
+
+//-- mavlink api, parameters --
 
 static int luaMavlinkMemcpyToInteger(lua_State *L)
 {
