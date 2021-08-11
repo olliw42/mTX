@@ -134,6 +134,7 @@ void MavlinkTelem::generateParamRequestRead(uint8_t tsystem, uint8_t tcomponent,
 {
 char param_id[16];
 
+  memset(param_id, 0, 16);
   strncpy(param_id, param_name, 16);
   fmav_msg_param_request_read_pack(
       &_msg_out, _my_sysid, _my_compid,
@@ -147,6 +148,7 @@ void MavlinkTelem::generateParamSet(uint8_t tsystem, uint8_t tcomponent, const c
 {
 char param_id[16];
 
+  memset(param_id, 0, 16);
   strncpy(param_id, param_name, 16);
   fmav_msg_param_set_pack(
       &_msg_out, _my_sysid, _my_compid,
