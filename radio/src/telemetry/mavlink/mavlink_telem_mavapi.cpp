@@ -194,7 +194,7 @@ uint8_t MavlinkTelem::registerParam(uint8_t sysid, uint8_t compid, const char* p
 {
   if (_paramInList_count >= MAVPARAMLIST_MAX) return UINT8_MAX;
 
-  //we could check if it is already in list
+  //we check if it is already in list, to avoid multiple registration
   uint8_t i = _param_find(sysid, compid, param_id);
   if (i != UINT8_MAX) return UINT8_MAX;
 

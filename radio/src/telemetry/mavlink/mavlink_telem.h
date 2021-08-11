@@ -223,7 +223,7 @@ class MavlinkTelem
     void mavapiGenerateMessage(void);
     bool mavapiMsgOutEmpty(void);
 
-    struct ParamItem {
+    struct ParamItem { // 24 bytes, not terribly large
       float value;
       char id[17];
       uint8_t sysid;
@@ -233,11 +233,12 @@ class MavlinkTelem
       uint8_t request_or_set:1;
     };
 
-    #define MAVPARAMLIST_MAX   32
+    #define MAVPARAMLIST_MAX        32
+    #define MAVPARAMOUTFIFO_SIZE    32
 
     ParamItem _paramInList[MAVPARAMLIST_MAX];
     uint8_t _paramInList_count = 0;
-    Fifo<struct ParamItem, 32> _paramOutFifo;
+    Fifo<struct ParamItem, MAVPARAMOUTFIFO_SIZE> _paramOutFifo;
 
     uint8_t _param_find(uint8_t sysid, uint8_t compid, const char* param_id); // returns an index into the _paramInList
     void paramHandleMessage(fmav_message_t* msg);
@@ -746,7 +747,7 @@ class MavlinkTelem
 
     uint8_t _sysid = 0; // is autodetected by inspecting the autopilot heartbeat
 
-    uint16_t _is_receiving = 0; // is set by any arbitrary incoming MAVLink message
+    uint16_t _is_receiving = 0; // is set by any arbitrary incoming MAVLink message, but only if _sysid > 0
 
     // TASKS
 
@@ -760,14 +761,14 @@ class MavlinkTelem
 
     enum TaskMaskEnum {
       // me
-      TASK_SENDMYHEARTBEAT                        = 0x00000001,
+      TASK_ME_SENDMYHEARTBEAT                     = 0x00000001,
 
-      TASK_SENDCMD_DO_QSHOT_CONFIGFURE            = 0x00000002,
-      TASK_SENDMSG_QSHOT_STATUS                   = 0x00000004,
-      TASK_SENDMSG_QSHOT_BUTTON_STATE             = 0x00000008,
+      TASK_SENDCMD_DO_QSHOT_CONFIGFURE            = 0x00000010,
+      TASK_SENDMSG_QSHOT_STATUS                   = 0x00000020,
+      TASK_SENDMSG_QSHOT_BUTTON_STATE             = 0x00000040,
 
-      TASK_SENDMSG_MAVLINK_API                    = 0x00000010,
-      TASK_SENDMSG_MAVLINK_PARAM                  = 0x00000020,
+      TASK_SENDMSG_MAVLINK_API                    = 0x00000100,
+      TASK_SENDMSG_MAVLINK_PARAM                  = 0x00000200,
       // autopilot
       TASK_SENDREQUESTDATASTREAM_RAW_SENSORS      = 0x00000001, // group 1
       TASK_SENDREQUESTDATASTREAM_EXTENDED_STATUS  = 0x00000002, // group 2

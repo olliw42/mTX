@@ -298,7 +298,7 @@ void MavlinkTelem::doTask(void)
 
   if ((tnow - _my_heartbeat_tlast) > 100) { //1 sec
     _my_heartbeat_tlast = tnow;
-    SETTASK(TASK_ME, TASK_SENDMYHEARTBEAT);
+    SETTASK(TASK_ME, TASK_ME_SENDMYHEARTBEAT);
 
     msg_rx_persec = _msg_rx_persec_cnt;
     bytes_rx_persec = _bytes_rx_persec_cnt;
@@ -428,8 +428,8 @@ void MavlinkTelem::doTask(void)
     if (doTaskCamera()) return;
 
     //TASK_ME
-    if (_task[TASK_ME] & TASK_SENDMYHEARTBEAT) {
-      RESETTASK(TASK_ME, TASK_SENDMYHEARTBEAT);
+    if (_task[TASK_ME] & TASK_ME_SENDMYHEARTBEAT) {
+      RESETTASK(TASK_ME, TASK_ME_SENDMYHEARTBEAT);
       uint8_t base_mode = MAV_MODE_PREFLIGHT | MAV_MODE_FLAG_CUSTOM_MODE_ENABLED | MAV_MODE_FLAG_SAFETY_ARMED;
       uint8_t system_status = MAV_STATE_UNINIT | MAV_STATE_ACTIVE;
       uint32_t custom_mode = 0;
