@@ -4,6 +4,7 @@
  */
 
 #include "opentx.h"
+#include "stamp.h"
 
 MAVLINK_RAM_SECTION MavlinkTelem mavlinkTelem;
 
@@ -115,6 +116,60 @@ void MavlinkTelem::generateHeartbeat(uint8_t base_mode, uint32_t custom_mode, ui
   fmav_msg_heartbeat_pack(
       &_msg_out, _my_sysid, _my_compid,
       MAV_TYPE_GCS, MAV_AUTOPILOT_INVALID, base_mode, custom_mode, system_status,
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
+void MavlinkTelem::generateAutopilotVersion(void)
+{
+uint64_t capabilities = 0;
+uint32_t flight_sw_version = OWVERSION;
+uint32_t middleware_sw_version = 0;
+uint32_t os_sw_version = 2314;
+uint32_t board_version = 0;
+uint16_t vendor_id = 0x1209; // USBD_VID_PID_CODES // https://pid.codes
+uint16_t product_id = 0x4F54; // USBD_HID_PID // OpenTX assigned PID
+uint64_t uid = 0;
+uint8_t dummy[20] = {0};
+
+  capabilities = MAV_PROTOCOL_CAPABILITY_MAVLINK2;
+
+  // the STM32's factory-programmed UUID memory = three values of 32 bits starting at this address
+  // we generate it from the STM32 unique id, which has 12 bytes = 96 bits
+  #define STM32F4_UUID_ADR  0x1FFF7A10
+  memcpy(&uid, (uint32_t*)STM32F4_UUID_ADR, sizeof(uid));
+
+  fmav_msg_autopilot_version_pack(
+      &_msg_out, _my_sysid, _my_compid,
+      capabilities,
+      flight_sw_version, middleware_sw_version, os_sw_version, board_version,
+      dummy, dummy, dummy,
+      vendor_id, product_id, uid, dummy,
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
+void MavlinkTelem::generateStatustext(uint8_t severity, const char* text, uint16_t id, uint8_t chunk_seq)
+{
+  fmav_msg_statustext_pack(
+      &_msg_out, _my_sysid, _my_compid,
+      severity, text, id, chunk_seq,
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
+void MavlinkTelem::generateParamValue(const char* param_name, float param_value, uint8_t param_type, uint16_t param_count, uint16_t param_index)
+{
+char param_id[16];
+
+  memset(param_id, 0, 16);
+  strncpy(param_id, param_name, 16);
+  fmav_msg_param_value_pack(
+      &_msg_out, _my_sysid, _my_compid,
+      param_id, param_value, param_type, param_count, param_index,
       &_status_out
       );
   _msg_out_available = true;
@@ -265,6 +320,28 @@ void MavlinkTelem::handleMessage(void)
     radio.is_receiving = MAVLINK_TELEM_RADIO_RECEIVING_TIMEOUT;
     telemetrySetRssiValue(radio.remrssi); //let's report the rssi of the air side
     return;
+  }
+
+  // handle messages coming from a GCS or alike
+  if (_msg.sysid != _sysid && _msg.compid >= MAV_COMP_ID_MISSIONPLANNER && _msg.compid <= MAV_COMP_ID_PATHPLANNER) {
+    switch (_msg.msgid) {
+      // AUTOPILOT_VERSION_REQUEST is kind of required to make MissionPlanner happy
+      case FASTMAVLINK_MSG_ID_AUTOPILOT_VERSION_REQUEST: {
+        SETTASK(TASK_ME, TASK_ME_SENDMYAUTOPILOTVERSION);
+        break;
+      }
+      // MissonPlanner wants us to have at least one parameter, so we fake one
+      case FASTMAVLINK_MSG_ID_PARAM_REQUEST_LIST: {
+        SETTASK(TASK_ME, TASK_ME_SENDMYPARAMETERS);
+        break;
+      }
+      case FASTMAVLINK_MSG_ID_COMMAND_LONG: {
+        fmav_command_long_t payload;
+        fmav_msg_command_long_decode(&payload, &_msg);
+        if (payload.command == MAV_CMD_DO_SEND_BANNER) SETTASK(TASK_ME, TASK_ME_SENDMYBANNER);
+        break;
+      }
+    }
   }
 
   //we handle all qshot wherever they come from
@@ -438,16 +515,37 @@ void MavlinkTelem::doTask(void)
       generateHeartbeat(base_mode, custom_mode, system_status);
       return; // do only one per loop
     }
-
     if (_task[TASK_ME] & TASK_SENDMSG_MAVLINK_API) {
       RESETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_API);
       mavapiGenerateMessage();
       return; // do only one per loop
     }
-
     if (_task[TASK_ME] & TASK_SENDMSG_MAVLINK_PARAM) {
       RESETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_PARAM);
       paramGenerateMessage();
+      return; // do only one per loop
+    }
+    if (_task[TASK_ME] & TASK_ME_SENDMYAUTOPILOTVERSION) {
+      RESETTASK(TASK_ME, TASK_ME_SENDMYAUTOPILOTVERSION);
+      generateAutopilotVersion();
+      return; // do only one per loop
+    }
+    if (_task[TASK_ME] & TASK_ME_SENDMYBANNER) {
+      RESETTASK(TASK_ME, TASK_ME_SENDMYBANNER);
+      const char banner[] = "OpenTx with MAVLink " VERSION " " OWVERSIONSTR;
+      char text[FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN];
+      memset(text, 0, FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN);
+      strncpy(text, banner, FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN);
+      generateStatustext(MAV_SEVERITY_INFO, text, 0, 0);
+      return; // do only one per loop
+    }
+    if (_task[TASK_ME] & TASK_ME_SENDMYPARAMETERS) {
+      RESETTASK(TASK_ME, TASK_ME_SENDMYPARAMETERS);
+      const char param_name[] = "MY_SYSID";
+      fmav_param_union_t param_entry;
+      param_entry.p_uint32 = 0; // this fills them all with 0
+      param_entry.p_uint8 = MAVLINK_TELEM_MY_SYSID;
+      generateParamValue(param_name, param_entry.p_float, MAV_PARAM_TYPE_UINT8, 1, 0);
       return; // do only one per loop
     }
 

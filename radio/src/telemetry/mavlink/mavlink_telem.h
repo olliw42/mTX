@@ -88,6 +88,9 @@ class MavlinkTelem
 
     void _generateCmdLong(uint8_t tsystem, uint8_t tcomponent, uint16_t cmd, float p1=0.0f, float p2=0.0f, float p3=0.0f, float p4=0.0f, float p5=0.0f, float p6=0.0f, float p7=0.0f);
     void generateHeartbeat(uint8_t base_mode, uint32_t custom_mode, uint8_t system_status);
+    void generateAutopilotVersion(void); //sadly, kind of required by MissionPlanner
+    void generateStatustext(uint8_t severity, const char* text, uint16_t id, uint8_t chunk_seq);
+    void generateParamValue(const char* param_name, float param_value, uint8_t param_type, uint16_t param_count, uint16_t param_index);
     void generateParamRequestList(uint8_t tsystem, uint8_t tcomponent);
     void generateParamRequestRead(uint8_t tsystem, uint8_t tcomponent, const char* param_name);
     void generateParamSet(uint8_t tsystem, uint8_t tcomponent, const char* param_name, float param_value, uint8_t param_type);
@@ -762,6 +765,9 @@ class MavlinkTelem
     enum TaskMaskEnum {
       // me
       TASK_ME_SENDMYHEARTBEAT                     = 0x00000001,
+      TASK_ME_SENDMYAUTOPILOTVERSION              = 0x00000002,
+      TASK_ME_SENDMYBANNER                        = 0x00000004,
+      TASK_ME_SENDMYPARAMETERS                    = 0x00000008,
 
       TASK_SENDCMD_DO_QSHOT_CONFIGFURE            = 0x00000010,
       TASK_SENDMSG_QSHOT_STATUS                   = 0x00000020,
