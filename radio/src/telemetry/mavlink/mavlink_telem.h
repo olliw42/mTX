@@ -768,13 +768,14 @@ class MavlinkTelem
       TASK_ME_SENDMYAUTOPILOTVERSION              = 0x00000002,
       TASK_ME_SENDMYBANNER                        = 0x00000004,
       TASK_ME_SENDMYPARAMETERS                    = 0x00000008,
+      TASK_ME_SENDMSG_GLOBAL_POSITION_INT         = 0x08000010,
 
-      TASK_SENDCMD_DO_QSHOT_CONFIGFURE            = 0x00000010,
-      TASK_SENDMSG_QSHOT_STATUS                   = 0x00000020,
-      TASK_SENDMSG_QSHOT_BUTTON_STATE             = 0x00000040,
+      TASK_SENDCMD_DO_QSHOT_CONFIGFURE            = 0x00000100,
+      TASK_SENDMSG_QSHOT_STATUS                   = 0x00000200,
+      TASK_SENDMSG_QSHOT_BUTTON_STATE             = 0x00000400,
 
-      TASK_SENDMSG_MAVLINK_API                    = 0x00000100,
-      TASK_SENDMSG_MAVLINK_PARAM                  = 0x00000200,
+      TASK_SENDMSG_MAVLINK_API                    = 0x00001000,
+      TASK_SENDMSG_MAVLINK_PARAM                  = 0x00002000,
       // autopilot
       TASK_SENDREQUESTDATASTREAM_RAW_SENSORS      = 0x00000001, // group 1
       TASK_SENDREQUESTDATASTREAM_EXTENDED_STATUS  = 0x00000002, // group 2
@@ -800,7 +801,6 @@ class MavlinkTelem
       TASK_SENDMSG_SET_POSITION_TARGET_GLOBAL_INT = 0x01000000,
       TASK_SENDCMD_CONDITION_YAW                  = 0x02000000,
       TASK_SENDMSG_RC_CHANNELS_OVERRIDE           = 0x04000000,
-      TASK_SENDMSG_GLOBAL_POSITION_INT            = 0x08000000,
       // ap
       TASK_AP_REQUESTBANNER                       = 0x00000001,
       TASK_AP_ARM                                 = 0x00000002,

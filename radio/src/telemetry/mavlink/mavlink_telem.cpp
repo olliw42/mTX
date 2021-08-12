@@ -226,7 +226,7 @@ void MavlinkTelem::sendGolbalPositionInt(int32_t lat, int32_t lon, float alt, fl
   _gpi_vy = vy * 100.0f;
   _gpi_vz = vz * 100.0f;
   _gpi_hdg = (hdg_deg > 360.0f) ? UINT16_MAX : hdg_deg;
-  SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_GLOBAL_POSITION_INT);
+  SETTASK(TASK_ME, TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
 }
 
 // -- Main message handler for incoming MAVLink messages --
@@ -490,8 +490,8 @@ void MavlinkTelem::doTask(void)
         _gpi_vx = cosf(course) * v;
         _gpi_vy = sinf(course) * v;
       }
-      _gpi_hdg = gpsData.groundCourse * 10;
-      SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_GLOBAL_POSITION_INT);
+      _gpi_hdg = UINT16_MAX; //gpsData.groundCourse * 10;
+      SETTASK(TASK_ME, TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
     }
   }
 
@@ -524,6 +524,11 @@ void MavlinkTelem::doTask(void)
       RESETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_PARAM);
       paramGenerateMessage();
       return; // do only one per loop
+    }
+    if (_task[TASK_ME] & TASK_ME_SENDMSG_GLOBAL_POSITION_INT) {
+      RESETTASK(TASK_ME,TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
+      generateGlobalPositionInt(_gpi_lat, _gpi_lon, _gpi_alt, _gpi_relative_alt, _gpi_vx, _gpi_vy, _gpi_vz, _gpi_hdg);
+      return; //do only one per loop
     }
     if (_task[TASK_ME] & TASK_ME_SENDMYAUTOPILOTVERSION) {
       RESETTASK(TASK_ME, TASK_ME_SENDMYAUTOPILOTVERSION);
