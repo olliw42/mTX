@@ -19,7 +19,8 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v31-rc04"
+#define OWVERSIONSTR  "v31-rc05"
+#define OWVERSION     3105
 //OWEND
 
 /*
