@@ -310,6 +310,10 @@ class MavlinkTelem
 
     void sendGolbalPositionInt(int32_t lat, int32_t lon, float alt, float relative_alt, float vx, float vy, float vz, float hdg_deg);
 
+    uint16_t _prl_index = 0;
+    tmr10ms_t _prl_tlast = 0;
+    uint16_t _pv_index = 0;
+
     // MAVSDK AUTOPILOT
 
     uint8_t autopilottype = MAV_AUTOPILOT_GENERIC;
@@ -767,8 +771,9 @@ class MavlinkTelem
       TASK_ME_SENDMYHEARTBEAT                     = 0x00000001,
       TASK_ME_SENDMYAUTOPILOTVERSION              = 0x00000002,
       TASK_ME_SENDMYBANNER                        = 0x00000004,
-      TASK_ME_SENDMYPARAMETERS                    = 0x00000008,
-      TASK_ME_SENDMSG_GLOBAL_POSITION_INT         = 0x08000010,
+      TASK_ME_SENDMYPARAMLIST                     = 0x00000008,
+      TASK_ME_SENDMYPARAMVALUE                    = 0x00000010,
+      TASK_ME_SENDMSG_GLOBAL_POSITION_INT         = 0x08000020,
 
       TASK_SENDCMD_DO_QSHOT_CONFIGFURE            = 0x00000100,
       TASK_SENDMSG_QSHOT_STATUS                   = 0x00000200,
@@ -934,6 +939,15 @@ class MavlinkTelem
     bool serial2_enabled = false;
     bool serial1_isexternal = false;
     bool serial2_isexternal = false;
+
+    // Parameters
+    uint8_t p_my_sysid;
+    uint8_t p_my_compid;
+    uint8_t p_mavlinkRssi;
+    uint8_t p_mavlinkRssiScale;
+    uint8_t p_mavlinkMimicSensors;
+    uint8_t p_mavlinkRcOverride;
+    uint8_t p_mavlinkSendPosition;
 };
 
 extern MavlinkTelem mavlinkTelem;

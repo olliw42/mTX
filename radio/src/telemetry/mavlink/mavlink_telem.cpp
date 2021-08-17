@@ -96,6 +96,44 @@ void MavlinkTelem::do_requests(void)
   }
 }
 
+// -- My Parameters
+
+#define FASTMAVLINK_PARAM_NUM  7
+
+const fmav_param_entry_t fmav_param_list[FASTMAVLINK_PARAM_NUM] = {
+  {(uint8_t*)&(mavlinkTelem.p_my_sysid), MAV_PARAM_TYPE_UINT8, "MY_SYSID" },
+  {(uint8_t*)&(mavlinkTelem.p_my_compid), MAV_PARAM_TYPE_UINT8, "MY_COMPID" },
+  {(uint8_t*)&(mavlinkTelem.p_mavlinkRssi), MAV_PARAM_TYPE_UINT8, "RSSI_ENABLE" },
+  {(uint8_t*)&(mavlinkTelem.p_mavlinkRssiScale), MAV_PARAM_TYPE_UINT8, "RSSI_SCALE" },
+  {(uint8_t*)&(mavlinkTelem.p_mavlinkMimicSensors), MAV_PARAM_TYPE_UINT8, "MIMIC_SENSORS" },
+  {(uint8_t*)&(mavlinkTelem.p_mavlinkRcOverride), MAV_PARAM_TYPE_UINT8, "RC_OVERRIDE" },
+  {(uint8_t*)&(mavlinkTelem.p_mavlinkSendPosition), MAV_PARAM_TYPE_UINT8, "SEND_POSITION" },
+};
+
+#include "thirdparty/Mavlink/out/lib/fastmavlink_parameters.h"
+
+void _mavlink_copy_g2p(void)
+{
+  mavlinkTelem.p_my_sysid = MAVLINK_TELEM_MY_SYSID; // cannot be written, only read
+  mavlinkTelem.p_my_compid = MAVLINK_TELEM_MY_COMPID; // cannot be written, only read
+
+  mavlinkTelem.p_mavlinkRssi = g_model.mavlinkRssi;
+  mavlinkTelem.p_mavlinkRssiScale = g_model.mavlinkRssiScale;
+  mavlinkTelem.p_mavlinkMimicSensors = g_model.mavlinkMimicSensors;
+  mavlinkTelem.p_mavlinkRcOverride = g_model.mavlinkRcOverride;
+  mavlinkTelem.p_mavlinkSendPosition = g_model.mavlinkSendPosition;
+}
+
+void _mavlink_copy_p2g(void)
+{
+  g_model.mavlinkRssi = (mavlinkTelem.p_mavlinkRssi > 0) ? 1 : 0;
+  g_model.mavlinkRssiScale = mavlinkTelem.p_mavlinkRssiScale;
+  g_model.mavlinkMimicSensors = (mavlinkTelem.p_mavlinkMimicSensors > 0) ? 1 : 0;
+  if (mavlinkTelem.p_mavlinkRcOverride > 14) mavlinkTelem.p_mavlinkRcOverride = 0;
+  g_model.mavlinkRcOverride = mavlinkTelem.p_mavlinkRcOverride;
+  g_model.mavlinkSendPosition = (mavlinkTelem.p_mavlinkSendPosition > 0) ? 1 : 0;
+}
+
 // -- Generate MAVLink messages --
 // these should never be called directly, should only by called by the task handler
 
@@ -330,9 +368,36 @@ void MavlinkTelem::handleMessage(void)
         SETTASK(TASK_ME, TASK_ME_SENDMYAUTOPILOTVERSION);
         break;
       }
-      // MissonPlanner wants us to have at least one parameter, so we fake one
+      // MissonPlanner wants us to have at least one parameter
+      case FASTMAVLINK_MSG_ID_PARAM_REQUEST_READ: {
+        fmav_param_request_read_t payload;
+        fmav_msg_param_request_read_decode(&payload, &_msg);
+        uint16_t index;
+        if (fmav_param_do_param_request_read(&index, &payload)) {
+          _mavlink_copy_g2p(); // sync parameter copies
+          _pv_index = index;
+          SETTASK(TASK_ME, TASK_ME_SENDMYPARAMVALUE);
+        }
+        break;
+      }
       case FASTMAVLINK_MSG_ID_PARAM_REQUEST_LIST: {
-        SETTASK(TASK_ME, TASK_ME_SENDMYPARAMETERS);
+        _mavlink_copy_g2p(); // sync parameter copies
+        _prl_index = 0; // start with first parameter
+        _prl_tlast = 0; // makes it to send first parameter ASAP
+        SETTASK(TASK_ME, TASK_ME_SENDMYPARAMLIST);
+        break;
+      }
+      case FASTMAVLINK_MSG_ID_PARAM_SET: {
+        fmav_param_set_t payload;
+        fmav_msg_param_set_decode(&payload, &_msg);
+        uint16_t index;
+        if (fmav_param_do_param_set(&index, &payload)) {
+          fmav_param_set_value(index, payload.param_value);
+          _mavlink_copy_p2g(); // sync global parameters & store
+          storageDirty(EE_MODEL);
+          _pv_index = index;
+          SETTASK(TASK_ME, TASK_ME_SENDMYPARAMVALUE);
+        }
         break;
       }
       case FASTMAVLINK_MSG_ID_COMMAND_LONG: {
@@ -544,13 +609,26 @@ void MavlinkTelem::doTask(void)
       generateStatustext(MAV_SEVERITY_INFO, text, 0, 0);
       return; // do only one per loop
     }
-    if (_task[TASK_ME] & TASK_ME_SENDMYPARAMETERS) {
-      RESETTASK(TASK_ME, TASK_ME_SENDMYPARAMETERS);
-      const char param_name[] = "MY_SYSID";
-      fmav_param_union_t param_entry;
-      param_entry.p_uint32 = 0; // this fills them all with 0
-      param_entry.p_uint8 = MAVLINK_TELEM_MY_SYSID;
-      generateParamValue(param_name, param_entry.p_float, MAV_PARAM_TYPE_UINT8, 1, 0);
+    if (_task[TASK_ME] & TASK_ME_SENDMYPARAMLIST) {
+      //RESETTASK(TASK_ME, TASK_ME_SENDMYPARAMLIST);
+      if (tnow - _prl_tlast >= 10) {
+        fmav_param_union_t param_union;
+        if (fmav_param_get_param_union(&param_union, _prl_index)) {
+          generateParamValue(fmav_param_list[_prl_index].name, param_union.p_float, param_union.type, FASTMAVLINK_PARAM_NUM, _prl_index);
+        }
+        _prl_index++;
+        _prl_tlast = tnow;
+        if (_prl_index >= FASTMAVLINK_PARAM_NUM) RESETTASK(TASK_ME, TASK_ME_SENDMYPARAMLIST);
+        return; // do only one per loop
+      }
+      // do not return here, so other tasks can go on
+    }
+    if (_task[TASK_ME] & TASK_ME_SENDMYPARAMVALUE) {
+      RESETTASK(TASK_ME, TASK_ME_SENDMYPARAMVALUE);
+      fmav_param_union_t param_union;
+      if (fmav_param_get_param_union(&param_union, _pv_index)) {
+        generateParamValue(fmav_param_list[_pv_index].name, param_union.p_float, param_union.type, FASTMAVLINK_PARAM_NUM, _pv_index);
+      }
       return; // do only one per loop
     }
 
@@ -820,4 +898,5 @@ void MavlinkTelem::_init(void)
       FASTMAVLINK_ROUTER_LINK_PROPERTY_FLAG_DISCOVER_BY_HEARTBEAT
       );
   _reset();
+  _mavlink_copy_g2p();
 }
