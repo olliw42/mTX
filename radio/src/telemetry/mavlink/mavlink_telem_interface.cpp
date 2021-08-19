@@ -454,7 +454,7 @@ void MavlinkTelem::telemetrySetRssiValue(uint8_t rssi)
     telemetryStreaming = MAVLINK_TELEM_RADIO_RECEIVING_TIMEOUT;
   }
 
-  if (g_model.mavlinkRssi || g_model.mavlinkMimicSensors) {
+  if (g_model.mavlinkMimicSensors) {
     setTelemetryValue(PROTOCOL_TELEMETRY_FRSKY_SPORT, RSSI_ID, 0, 1, (int32_t)rssi, UNIT_DB, 0);
     telemetryStreaming = MAVLINK_TELEM_RADIO_RECEIVING_TIMEOUT;
   }
@@ -474,17 +474,30 @@ void MavlinkTelem::telemetryResetRssiValue(void)
     telemetryData.rssi.reset();
   }
 
-  if (g_model.mavlinkRssi || g_model.mavlinkMimicSensors) {
+  if (g_model.mavlinkMimicSensors) {
     setTelemetryValue(PROTOCOL_TELEMETRY_FRSKY_SPORT, RSSI_ID, 0, 1, 0, UNIT_DB, 0);
   }
 }
 
-bool MavlinkTelem::telemetryVoiceEnabled(void)
+/* legacy, keep to remember what we did bool MavlinkTelem::telemetryVoiceEnabled(void)
 {
   if (!g_model.mavlinkRssi && !g_model.mavlinkMimicSensors) return true;
 
   if (g_model.mavlinkRssi && !radio.rssi_voice_disabled) return true;
 
   return false;
+} */
+
+bool MavlinkTelem::telemetryVoiceCriticalDisabled(void)
+{
+  if (radio.rssi_voice_critical_disabled) return true;
+  return false;
 }
+
+bool MavlinkTelem::telemetryVoiceTelemetryOkDisabled(void)
+{
+  if (radio.rssi_voice_telemetryok_disabled) return true;
+  return false;
+}
+
 

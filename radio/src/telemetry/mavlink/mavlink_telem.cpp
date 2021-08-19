@@ -859,7 +859,8 @@ void MavlinkTelem::_reset(void)
   _resetRadio65();
   _resetRadio35();
   radio.rssi_scaled = 0;
-  radio.rssi_voice_disabled = false;
+  radio.rssi_voice_critical_disabled = false;
+  radio.rssi_voice_telemetryok_disabled = false;
 
   _resetAutopilot();
   _resetGimbalAndGimbalClient();

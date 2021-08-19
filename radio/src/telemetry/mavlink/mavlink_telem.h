@@ -274,14 +274,16 @@ class MavlinkTelem
       uint16_t is_receiving35; // msg 35 is last resort
       uint8_t rssi35;
       uint8_t rssi_scaled;
-      bool rssi_voice_disabled;
+      bool rssi_voice_critical_disabled;
+      bool rssi_voice_telemetryok_disabled;
     };
     struct Radio radio;
 
     void telemetrySetValue(uint16_t id, uint8_t subId, uint8_t instance, int32_t value, uint32_t unit, uint32_t prec);
     void telemetrySetRssiValue(uint8_t rssi);
     void telemetryResetRssiValue(void);
-    bool telemetryVoiceEnabled(void);
+    bool telemetryVoiceCriticalDisabled(void);
+    bool telemetryVoiceTelemetryOkDisabled(void);
 
     struct Comp { // not all fields are relevant for/used by all components
       uint8_t compid;

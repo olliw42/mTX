@@ -205,15 +205,15 @@ void telemetryWakeup()
     }
 #endif
 
-//OW
-//    if (!g_model.rssiAlarms.disabled) {
-#if defined(TELEMETRY_MAVLINK)
-    if (!g_model.rssiAlarms.disabled && mavlinkTelem.telemetryVoiceEnabled()) {
-#else
     if (!g_model.rssiAlarms.disabled) {
+//OW
+//      if (TELEMETRY_STREAMING()) {
+#if defined(TELEMETRY_MAVLINK)
+      if (TELEMETRY_STREAMING() && !mavlinkTelem.telemetryVoiceCriticalDisabled()) {
+#else
+      if (TELEMETRY_STREAMING()) {
 #endif
 //OWEND
-      if (TELEMETRY_STREAMING()) {
         if (TELEMETRY_RSSI() < g_model.rssiAlarms.getCriticalRssi() ) {
           AUDIO_RSSI_RED();
           SCHEDULE_NEXT_ALARMS_CHECK(10/*seconds*/);
@@ -226,7 +226,14 @@ void telemetryWakeup()
 
       if (TELEMETRY_STREAMING()) {
         if (telemetryState == TELEMETRY_KO) {
+//OW
+//          AUDIO_TELEMETRY_BACK();
+#if defined(TELEMETRY_MAVLINK)
+          if (!mavlinkTelem.telemetryVoiceTelemetryOkDisabled()) { AUDIO_TELEMETRY_BACK(); }
+#else
           AUDIO_TELEMETRY_BACK();
+#endif
+//OWEND
 #if defined(CROSSFIRE)
           if (isModuleCrossfire(EXTERNAL_MODULE)) {
             moduleState[EXTERNAL_MODULE].counter = CRSF_FRAME_MODELID;
@@ -238,7 +245,14 @@ void telemetryWakeup()
       else if (telemetryState == TELEMETRY_OK) {
         telemetryState = TELEMETRY_KO;
         if (!isModuleInBeepMode()) {
+//OW
+//          AUDIO_TELEMETRY_LOST();
+#if defined(TELEMETRY_MAVLINK)
+          if (!mavlinkTelem.telemetryVoiceTelemetryOkDisabled()) { AUDIO_TELEMETRY_LOST(); }
+#else
           AUDIO_TELEMETRY_LOST();
+#endif
+//OWEND
         }
       }
     }

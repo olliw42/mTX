@@ -1414,8 +1414,8 @@ static int luaMavsdkOptionSetRssiScale(lua_State *L)
 
 static int luaMavsdkRadioDisableRssiVoice(lua_State *L)
 {
-  bool disable = (luaL_checkinteger(L, 1) > 0);
-  mavlinkTelem.radio.rssi_voice_disabled = disable;
+  bool flag = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checkinteger(L, 1) > 0);
+  mavlinkTelem.radio.rssi_voice_telemetryok_disabled = flag;
   return 0;
 }
 
