@@ -26,10 +26,10 @@ unsigned int Topbar::getZonesCount() const
 //OW
 #if defined (SERIAL_GPS)
 #if defined (AUX_SERIAL)
-  if (auxSerialMode == UART_MODE_GPS) return MAX_TOPBAR_ZONES-1;
+  if (auxSerialMode == UART_MODE_GPS) return MAX_TOPBAR_ZONES - 1;
 #endif
 #if defined (AUX2_SERIAL)
-  if (aux2SerialMode == UART_MODE_GPS) return MAX_TOPBAR_ZONES-1;
+  if (aux2SerialMode == UART_MODE_GPS) return MAX_TOPBAR_ZONES - 1;
 #endif
   return MAX_TOPBAR_ZONES;
 #endif
