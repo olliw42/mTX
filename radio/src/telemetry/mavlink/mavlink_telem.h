@@ -51,6 +51,8 @@ bool mavlinkTelem3PutBuf(const uint8_t *buf, const uint16_t count);
 // -- more Interface --
 tmr10ms_t mavlinkRcOverrideRate(void);
 
+#define LUAL_CHECKBOOLEAN(L,i) (lua_isboolean(L,i) ? lua_toboolean(L,i) : (luaL_checkinteger(L,i) > 0))
+
 // -- fastMavlink --
 
 #define FASTMAVLINK_RAM_SECTION  static MAVLINK_RAM_SECTION

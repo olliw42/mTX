@@ -160,7 +160,7 @@ static int luaMavlinkGetGimbalManagerIds(lua_State *L)
 
 static int luaMavlinkInEnable(lua_State *L)
 {
-  bool flag = (luaL_checkinteger(L, 1) > 0);
+  bool flag = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checkinteger(L, 1) > 0);
   mavlinkTelem.mavapiMsgInEnable(flag);
   return 0;
 }
@@ -200,7 +200,7 @@ static int luaMavlinkGetMessageLast(lua_State *L)
 
 static int luaMavlinkOutEnable(lua_State *L)
 {
-  bool flag = (luaL_checkinteger(L, 1) > 0);
+  bool flag = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checkinteger(L, 1) > 0);
   mavlinkTelem.mavapiMsgOutEnable(flag);
   return 0;
 }
