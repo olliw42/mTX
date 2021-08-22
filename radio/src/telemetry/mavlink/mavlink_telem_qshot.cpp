@@ -45,7 +45,8 @@ void MavlinkTelem::generateButtonChange(uint8_t button_state)
 
 void MavlinkTelem::sendQShotCmdConfigure(uint8_t mode, uint8_t shot_state)
 {
-  _t_qshot_cmd_mode = mode;
+  _t_qshot_cmd.mode = mode;
+  _t_qshot_cmd.shot_state = shot_state;
   qshot.mode = mode;
   qshot.shot_state = shot_state;
   SETTASK(TASK_ME, TASK_SENDCMD_DO_QSHOT_CONFIGFURE);
@@ -53,7 +54,8 @@ void MavlinkTelem::sendQShotCmdConfigure(uint8_t mode, uint8_t shot_state)
 
 void MavlinkTelem::sendQShotStatus(uint8_t mode, uint8_t shot_state)
 {
-  _t_qshot_mode = mode;
+  _t_qshot.mode = mode;
+  _t_qshot.shot_state = shot_state;
   qshot.mode = mode;
   qshot.shot_state = shot_state;
   SETTASK(TASK_ME, TASK_SENDMSG_QSHOT_STATUS);
@@ -73,12 +75,12 @@ bool MavlinkTelem::doTaskQShot(void)
 
   if (_task[TASK_ME] & TASK_SENDCMD_DO_QSHOT_CONFIGFURE) {
     RESETTASK(TASK_ME, TASK_SENDCMD_DO_QSHOT_CONFIGFURE);
-    generateCmdDoQShotConfigure(0, 0, _t_qshot_cmd_mode, _t_qshot_cmd_shot_state); //broadcast
+    generateCmdDoQShotConfigure(0, 0, _t_qshot_cmd.mode, _t_qshot_cmd.shot_state); //broadcast
     return true; //do only one per loop
   }
   if (_task[TASK_ME] & TASK_SENDMSG_QSHOT_STATUS) {
     RESETTASK(TASK_ME, TASK_SENDMSG_QSHOT_STATUS);
-    generateQShotStatus(_t_qshot_mode, _t_qshot_shot_state);
+    generateQShotStatus(_t_qshot.mode, _t_qshot.shot_state);
     return true; //do only one per loop
   }
   if (_task[TASK_ME] & TASK_SENDMSG_QSHOT_BUTTON_STATE) {

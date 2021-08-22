@@ -708,8 +708,7 @@ class MavlinkTelem
     struct QShot qshot;
 
     // some tasks need some additional data
-    uint8_t _t_qshot_mode, _t_qshot_shot_state;
-    uint8_t _t_qshot_cmd_mode, _t_qshot_cmd_shot_state;
+    struct QShot _t_qshot, _t_qshot_cmd;
     uint8_t _t_qshot_button_state;
 
     // convenience task wrapper
