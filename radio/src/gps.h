@@ -38,6 +38,9 @@ struct gpsdata_t
   uint16_t hdop;
 //OW
   tmr10ms_t tlast;
+  int32_t lat_1e7; // degrees * 1E7
+  int32_t lon_1e7; // degrees * 1E7
+  int32_t alt_cm; // altitude in cm
 //OWEND
 };
 

@@ -542,12 +542,15 @@ void MavlinkTelem::doTask(void)
         (gpsData.fix) && (gpsData.numSat >= 7) && (gpsData.hdop < 500) &&
         (gpsData.tlast > _gps_tlast)) {
       _gps_tlast = gpsData.tlast;
-      _gpi_lat = gpsData.latitude * 10;
-      _gpi_lon = gpsData.longitude * 10;
-      _gpi_alt = (int32_t)gpsData.altitude * 100;
-      _gpi_relative_alt = 0; // home altitude ???
+      //_gpi_lat = gpsData.latitude * 10; // arg, we lose an order of magnitude
+      //_gpi_lon = gpsData.longitude * 10;
+      //_gpi_alt = (int32_t)gpsData.altitude * 1000; // a comment in gps.h says it would be in 0.1m, but that's not correct, it is in m, as the code in gps.cpp shows
+      _gpi_lat = gpsData.lat_1e7;
+      _gpi_lon = gpsData.lon_1e7;
+      _gpi_alt = gpsData.alt_cm * 10; // the gps height is extremely inaccurate
+      _gpi_relative_alt = 1250; // home altitude ??? just set it to 1.25m
       _gpi_vx = _gpi_vy = _gpi_vz = 0;
-      if (gpsData.speed > 10) {
+      if (0) { //gpsData.speed > 10) { //don't do it ever currently
         constexpr float FPI = 3.141592653589793f;
         constexpr float FDEGTORAD = FPI/180.0f;
         float v = gpsData.speed * 0.1f;
