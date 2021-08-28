@@ -82,6 +82,13 @@ static int luaMavlinkGetTaskStats(lua_State *L)
 
 //-- mavlink api --
 
+static int luaMavlinkGetMyIds(lua_State *L)
+{
+  lua_pushinteger(L, mavlinkTelem.mySysId());
+  lua_pushinteger(L, mavlinkTelem.myCompId());
+  return 2;
+}
+
 static int luaMavlinkGetSystemId(lua_State *L)
 {
   if (mavlinkTelem.isSystemIdValid())
@@ -334,6 +341,7 @@ const luaL_Reg mavlinkLib[] = {
   { "getStackUsed", luaMavlinkGetStackUsed },
   { "getTaskStats", luaMavlinkGetTaskStats },
 
+  { "getMyIds", luaMavlinkGetMyIds },
   { "getSystemId", luaMavlinkGetSystemId },
   { "getAutopilotIds", luaMavlinkGetAutopilotIds },
   { "getCameraIds", luaMavlinkGetCameraIds },
