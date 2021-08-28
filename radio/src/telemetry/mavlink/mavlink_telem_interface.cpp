@@ -146,14 +146,15 @@ void extmoduleMavlinkTelemStart(void)
 // so design for lower data rate, we send at most 16 bytes per slot
 // 16 bytes per slot = 8000 bytes/s = effectively 80000 bps, should be way enough
 // 3+16 bytes @ 400000 bps = 0.475 ms, 16 bytes @ 400000 bps = 0.4 ms, => 0.875 ms
-void mavlinkTelemExternal_wakeup(void)
-{
-  // we do it at the beginning, so it gives few cycles before TX is enabled
-  TELEMETRY_DIR_GPIO->BSRRL = TELEMETRY_DIR_GPIO_PIN; // enable output
-  TELEMETRY_USART->CR1 &= ~USART_CR1_RE; // turn off receiver
 
+#define MAVLINKPACKET_SIZE 17
+#define CHANNELPACKET_SIZE 22
+#define CHANNELPACKET_STX  0xFF
+
+inline void mavlinkTelemExternal_send_mavlinkpacket(void)
+{
   uint32_t count = mavlinkTelemExternalTxFifo.size();
-  if (count > 16) count = 16;
+  if (count > MAVLINKPACKET_SIZE) count = MAVLINKPACKET_SIZE;
 
   // always send header, this synchronizes slave
   mavlinkTelemExternalTxFifo_frame.push('O');
@@ -166,8 +167,81 @@ void mavlinkTelemExternal_wakeup(void)
     mavlinkTelemExternalTxFifo.pop(c);
     mavlinkTelemExternalTxFifo_frame.push(c);
   }
+}
+
+typedef union {
+  uint8_t c[CHANNELPACKET_SIZE];
+  struct {
+    uint16_t channel0  : 11; // 11 bits per channel * 16 channels = 22 bytes
+    uint16_t channel1  : 11;
+    uint16_t channel2  : 11;
+    uint16_t channel3  : 11;
+    uint16_t channel4  : 11;
+    uint16_t channel5  : 11;
+    uint16_t channel6  : 11;
+    uint16_t channel7  : 11;
+    uint16_t channel8  : 11;
+    uint16_t channel9  : 11;
+    uint16_t channel10 : 11;
+    uint16_t channel11 : 11;
+    uint16_t channel12 : 11;
+    uint16_t channel13 : 11;
+    uint16_t channel14 : 11;
+    uint16_t channel15 : 11;
+  } __attribute__ ((__packed__));
+} tChannelBuffer;
+
+inline void mavlinkTelemExternal_send_channelpacket(void)
+{
+  // always send header, this synchronizes slave
+  mavlinkTelemExternalTxFifo_frame.push('O');
+  mavlinkTelemExternalTxFifo_frame.push('W');
+  mavlinkTelemExternalTxFifo_frame.push((uint8_t)CHANNELPACKET_STX); // marker for channel packet
+
+  // prepare payload
+  tChannelBuffer payload;
+  #define CH(i) (uint16_t)(channelOutputs[i]/2 + (int16_t)PPM_CH_CENTER(i))
+  payload.channel0 = CH(0);
+  payload.channel1 = CH(1);
+  payload.channel2 = CH(2);
+  payload.channel3 = CH(3);
+  payload.channel4 = CH(4);
+  payload.channel5 = CH(5);
+  payload.channel6 = CH(6);
+  payload.channel7 = CH(7);
+  payload.channel8 = CH(8);
+  payload.channel9 = CH(9);
+  payload.channel10 = CH(10);
+  payload.channel11 = CH(11);
+  payload.channel12 = CH(12);
+  payload.channel13 = CH(13);
+  payload.channel14 = CH(14);
+  payload.channel15 = CH(15);
+
+  // send payload
+  for (uint16_t i = 0; i < CHANNELPACKET_SIZE; i++) {
+    mavlinkTelemExternalTxFifo_frame.push(payload.c[i]);
+  }
+}
+
+void mavlinkTelemExternal_wakeup(void)
+{
+  static uint8_t slot_counter = 0;
+
+  // we do it at the beginning, so it gives few cycles before TX is enabled
+  TELEMETRY_DIR_GPIO->BSRRL = TELEMETRY_DIR_GPIO_PIN; // enable output
+  TELEMETRY_USART->CR1 &= ~USART_CR1_RE; // turn off receiver
+
+  // every 10th slot we send a channel packet
+  if (slot_counter == 0)
+    mavlinkTelemExternal_send_channelpacket();
+  else
+    mavlinkTelemExternal_send_mavlinkpacket();
 
   USART_ITConfig(TELEMETRY_USART, USART_IT_TXE, ENABLE); // enable TX interrupt, starts sending
+
+  slot_counter++;
+  if (slot_counter >= 10) slot_counter = 0;
 }
 
 uint32_t mavlinkTelemExternalAvailable(void)
