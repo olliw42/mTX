@@ -19,14 +19,22 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v31-rc05"
-#define OWVERSION     3105
+#define OWVERSIONSTR  "v31-rc06"
+#define OWVERSION     3106
 //OWEND
 
 /*
+TODO:
+- is velocity for send GLOBAL_POSITION_INT correct ? is velocity needed for follow to work
+- is_receiving handling should be improved such as to distinguish between a momentary connection lost and a reset of a component
+- new gps nmea parser, loss of precision in lat,lon
+
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+tx bay send channels
+rssi voice
+my parameters
 send position
 aux serial cleanify
 gps hot enable
