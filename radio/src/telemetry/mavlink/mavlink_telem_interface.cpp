@@ -199,8 +199,10 @@ inline void mavlinkTelemExternal_send_channelpacket(void)
   mavlinkTelemExternalTxFifo_frame.push((uint8_t)CHANNELPACKET_STX); // marker for channel packet
 
   // prepare payload
+  // do not confuse with sbus, it is sbus packet format, but not sbus values
+  // we center the values, which are in range -2048...2047
   tChannelBuffer payload;
-  #define CH(i) (uint16_t)(channelOutputs[i]/2 + (int16_t)PPM_CH_CENTER(i))
+  #define CH(i) (uint16_t)( (channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER + 2048)/2 )
   payload.channel0 = CH(0);
   payload.channel1 = CH(1);
   payload.channel2 = CH(2);
