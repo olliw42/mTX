@@ -139,8 +139,9 @@ def generateLibMessageForCheck(msg, m):
             invalid = '[0]'
             if field.invalid:
                 invalid = cvtInvalidAttr(field.invalid)
-            invalid = invalid[1:-1]
-            if invalid.find(',') < 0:
+            invalid = invalid[1:-1] #strip off []
+            if invalid.find(',') < 0 and invalid.find(':') < 0:
+                #is [value]
                 invalid = cvtInvalidAttr(invalid)
                 m.append('    if (lua_istable(L,-1)) {')
                 m.append('      for (int i = 0; i < '+str(field.array_length)+'; i++) { ')
@@ -148,6 +149,11 @@ def generateLibMessageForCheck(msg, m):
                 m.append('      }')
                 m.append('    }')
             else:
+                #we do the same for both [value:] and [value,], [value,,,] etc are not supported yet, so let's drop an error
+                print(field.name, invalid) 
+                if invalid.count(',') > 1:
+                    print('ERROR: invalid attributes of format [value,,,] are not supported!')
+                    exit()
                 invalid = cvtInvalidAttr(invalid[:-1])
                 m.append('    if (lua_istable(L,-1)) {')
                 m.append('      lua_checktableinumber(L, payload->'+field.name+'[0], 1, '+invalid+'); // lua is 1 indexed')
