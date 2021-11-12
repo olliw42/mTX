@@ -860,6 +860,9 @@ static int luaLcdSetColor(lua_State *L)
     return 0;
   unsigned int index = luaL_checkunsigned(L, 1) >> 16;
   unsigned int color = luaL_checkunsigned(L, 2);
+//OW
+  if (index >= LCD_COLOR_COUNT) return 0;
+//OWEND
   lcdColorTable[index] = color;
   return 0;
 }
@@ -880,6 +883,9 @@ static int luaLcdGetColor(lua_State *L)
     return 0;
 
   unsigned int index = luaL_checkunsigned(L, 1) >> 16;
+//OW
+  if (index >= LCD_COLOR_COUNT) return 0;
+//OWEND
   lua_pushunsigned(L, lcdColorTable[index]);
   return 1;
 }
@@ -903,8 +909,10 @@ Returns a 5/6/5 rgb color code, that can be used with lcd.setColor
 */
 static int luaRGB(lua_State *L)
 {
-  if (!luaLcdAllowed)
-    return 0;
+//OW
+//  if (!luaLcdAllowed)
+//    return 0;
+//OWEND
   int r = luaL_checkinteger(L, 1);
   int g = luaL_checkinteger(L, 2);
   int b = luaL_checkinteger(L, 3);
