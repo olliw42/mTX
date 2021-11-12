@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "opentx.h"
-#include "lua_api.h"
+#include "../lua/lua_api.h"
 #include "thirdparty/Mavlink/opentx_lua_lib_constants.h"
 #include "thirdparty/Mavlink/opentx_lua_lib_messages.h"
 

@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "opentx.h"
-#include "lua_api.h"
+#include "../lua/lua_api.h"
 
 
 constexpr float FPI = 3.141592653589793f;
@@ -1212,13 +1212,15 @@ static int luaMavsdkApLand(lua_State *L)
   return 0;
 }
 
+/*
 static int luaMavsdkApSetGroundSpeed(lua_State *L)
 {
   float speed = luaL_checknumber(L, 1);
   mavlinkTelem.apSetGroundSpeed(speed);
   return 0;
 }
-
+*/
+/*
 static int luaMavsdkApSimpleGotoPosIntAltRel(lua_State *L)
 {
   int32_t lat = luaL_checkinteger(L, 1);
@@ -1227,7 +1229,8 @@ static int luaMavsdkApSimpleGotoPosIntAltRel(lua_State *L)
   mavlinkTelem.apSimpleGotoPosAlt(lat, lon, alt);
   return 0;
 }
-
+*/
+/*
 static int luaMavsdkApGotoPosIntAltRel(lua_State *L)
 {
   int32_t lat = luaL_checkinteger(L, 1);
@@ -1236,7 +1239,8 @@ static int luaMavsdkApGotoPosIntAltRel(lua_State *L)
   mavlinkTelem.apGotoPosAltYawDeg(lat, lon, alt, NAN);
   return 0;
 }
-
+*/
+/*
 static int luaMavsdkApGotoPosIntAltRelYawDeg(lua_State *L)
 {
   int32_t lat = luaL_checkinteger(L, 1);
@@ -1246,7 +1250,8 @@ static int luaMavsdkApGotoPosIntAltRelYawDeg(lua_State *L)
   mavlinkTelem.apGotoPosAltYawDeg(lat, lon, alt, yaw);
   return 0;
 }
-
+*/
+/*
 static int luaMavsdkApGotoPosIntAltRelVel(lua_State *L)
 {
   int32_t lat = luaL_checkinteger(L, 1);
@@ -1258,7 +1263,8 @@ static int luaMavsdkApGotoPosIntAltRelVel(lua_State *L)
   mavlinkTelem.apGotoPosAltVel(lat, lon, alt, vx, vy, vz);
   return 0;
 }
-
+*/
+/*
 static int luaMavsdkApSetYawDeg(lua_State *L)
 {
   float yaw = luaL_checknumber(L, 1);
@@ -1266,6 +1272,7 @@ static int luaMavsdkApSetYawDeg(lua_State *L)
   mavlinkTelem.apSetYawDeg(yaw, (relative) ? true : false);
   return 0;
 }
+*/
 
 static int luaMavsdkApCopterFlyClick(lua_State *L)
 {
@@ -1611,12 +1618,12 @@ const luaL_Reg mavsdkLib[] = {
   { "apArm", luaMavsdkApArm },
   { "apCopterTakeOff", luaMavsdkApCopterTakeOff },
   { "apLand", luaMavsdkApLand },
-  { "apSetGroundSpeed", luaMavsdkApSetGroundSpeed },
-  { "apSimpleGotoPosIntAltRel", luaMavsdkApSimpleGotoPosIntAltRel },
-  { "apGotoPosIntAltRel", luaMavsdkApGotoPosIntAltRel },
-  { "apGotoPosIntAltRelYawDeg", luaMavsdkApGotoPosIntAltRelYawDeg },
-  { "apGotoPosIntAltRelVel", luaMavsdkApGotoPosIntAltRelVel },
-  { "apSetYawDeg", luaMavsdkApSetYawDeg },
+//  { "apSetGroundSpeed", luaMavsdkApSetGroundSpeed },
+//  { "apSimpleGotoPosIntAltRel", luaMavsdkApSimpleGotoPosIntAltRel },
+//  { "apGotoPosIntAltRel", luaMavsdkApGotoPosIntAltRel },
+//  { "apGotoPosIntAltRelYawDeg", luaMavsdkApGotoPosIntAltRelYawDeg },
+//  { "apGotoPosIntAltRelVel", luaMavsdkApGotoPosIntAltRelVel },
+//  { "apSetYawDeg", luaMavsdkApSetYawDeg },
   { "apCopterFlyClick", luaMavsdkApCopterFlyClick },
   { "apCopterFlyHold", luaMavsdkApCopterFlyHold },
   { "apCopterFlyPause", luaMavsdkApCopterFlyPause },

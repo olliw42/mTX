@@ -100,15 +100,11 @@ class MavlinkTelem
     void generateRequestDataStream(uint8_t tsystem, uint8_t tcomponent, uint8_t data_stream, uint16_t rate_hz, uint8_t startstop);
     void generateCmdSetMessageInterval(uint8_t tsystem, uint8_t tcomponent, uint8_t msgid, int32_t period_us, uint8_t startstop);
     void generateCmdDoSetMode(uint8_t tsystem, uint8_t tcomponent, MAV_MODE base_mode, uint32_t custom_mode);
-    void generateCmdNavTakeoff(uint8_t tsystem, uint8_t tcomponent, float alt_m, bool hor_nav_by_pilot);
     void generateMissionRequestList(uint8_t tsystem, uint8_t tcomponent, uint8_t mission_type);
     void generateMissionRequestInt(uint8_t tsystem, uint8_t tcomponent, uint16_t seq, uint8_t mission_type);
     void generateMissionItemInt(uint8_t tsystem, uint8_t tcomponent, uint8_t frame, uint16_t cmd, uint8_t current, int32_t lat, int32_t lon, float alt_m);
     void generateRcChannelsOverride(uint8_t sysid, uint8_t tsystem, uint8_t tcomponent, uint16_t* chan_raw);
     void generateGlobalPositionInt(int32_t lat, int32_t lon, int32_t alt_mm, int32_t relative_alt_mm, int16_t vx, int16_t vy, int16_t vz, uint16_t hdg_cdeg);
-    void generateCmdDoChangeSpeed(uint8_t tsystem, uint8_t tcomponent, float speed_mps, uint16_t speed_type, bool relative);
-    void generateSetPositionTargetGlobalInt(uint8_t tsystem, uint8_t tcomponent, uint8_t frame, uint16_t type_mask, int32_t lat, int32_t lon, float alt, float vx, float vy, float vz, float yaw_rad, float yaw_rad_rate);
-    void generateCmdConditionYaw(uint8_t tsystem, uint8_t tcomponent, float yaw_deg, float yaw_deg_rate, int8_t dir, bool rel);
     // camera
     void generateCmdRequestCameraInformation(uint8_t tsystem, uint8_t tcomponent);
     void generateCmdRequestCameraSettings(uint8_t tsystem, uint8_t tcomponent);
@@ -168,7 +164,7 @@ class MavlinkTelem
 
     // REQUESTS
 
-    #define REQUESTLIST_MAX   32
+    #define REQUESTLIST_MAX  32
 
     // Times
 
@@ -185,10 +181,10 @@ class MavlinkTelem
     }
 
     // MAVLINK API
-    // in the receive list we need to differentiate not only by msgid, but also by sysis-compid
+    // in the receive list we need to differentiate not only by msgid, but also by sysid-compid
     // if two components send the same message at (too) high rate considering only msgid leads to message loss
 
-    #define MAVMSGLIST_MAX   64
+    #define MAVOUTLIST_MAX  64
 
     struct MavMsg {
       uint32_t msgid;
@@ -201,7 +197,7 @@ class MavlinkTelem
       bool updated;
     };
 
-    MavMsg* _mavapi_rx_list[MAVMSGLIST_MAX] = { NULL }; // list of pointers into MavMsg structs
+    MavMsg* _mavapi_rx_list[MAVOUTLIST_MAX] = { NULL }; // list of pointers into MavMsg structs
     bool _mavapi_rx_enabled = false;
 
     uint8_t _mavapiMsgInFindOrAdd(uint32_t msgid);
@@ -217,6 +213,7 @@ class MavlinkTelem
     // it doesn't really allow us to work on pointers, so we redo what we need
 
     #define MAVOUTFIFO_MAX  4
+
     fmav_message_t* _mavapiMsgOutFifo = NULL; // we allocate it only then it is really needed
     volatile uint32_t _wi = 0;
     volatile uint32_t _ri = 0;
@@ -228,6 +225,8 @@ class MavlinkTelem
     void mavapiGenerateMessage(void);
     bool mavapiMsgOutEmpty(void);
 
+    // parameters are somewhat tricky, so we give them their extra special treatment
+
     struct ParamItem { // 24 bytes, not terribly large
       float value;
       char id[17];
@@ -238,10 +237,10 @@ class MavlinkTelem
       uint8_t request_or_set:1;
     };
 
-    #define MAVPARAMLIST_MAX        32
+    #define MAVPARAMINLIST_MAX      32
     #define MAVPARAMOUTFIFO_SIZE    32
 
-    ParamItem _paramInList[MAVPARAMLIST_MAX];
+    ParamItem _paramInList[MAVPARAMINLIST_MAX];
     uint8_t _paramInList_count = 0;
     Fifo<struct ParamItem, MAVPARAMOUTFIFO_SIZE> _paramOutFifo;
 
@@ -288,7 +287,7 @@ class MavlinkTelem
     struct Comp { // not all fields are relevant for/used by all components
       uint8_t compid;
       uint16_t is_receiving;
-      //heartbeat
+      // heartbeat
       uint8_t system_status;
       uint32_t custom_mode;
       bool is_armed;
@@ -296,8 +295,8 @@ class MavlinkTelem
       bool is_critical;
       bool prearm_ok;
       uint8_t updated;
-      //for initializing, if it expects some required messages to be received
-      //requests_waiting_mask is used to determine if component is initialized
+      // for initializing, if it expects some required messages to be received
+      // requests_waiting_mask is used to determine if component is initialized
       uint8_t requests_triggered;
       uint8_t requests_waiting_mask;
       bool is_initialized;
@@ -327,35 +326,35 @@ class MavlinkTelem
     struct SysStatus {
       uint32_t sensors_present; // MAV_SYS_STATUS_SENSOR
       uint32_t sensors_enabled; // MAV_SYS_STATUS_SENSOR
-      uint32_t sensors_health; // MAV_SYS_STATUS_SENSOR
+      uint32_t sensors_health;  // MAV_SYS_STATUS_SENSOR
       uint8_t updated;
       bool received;
     };
     struct SysStatus sysstatus;
 
     struct ExtendedSysState {
-      uint8_t vtol_state; // MAV_VTOL_STATE
+      uint8_t vtol_state;   // MAV_VTOL_STATE
       uint8_t landed_state; // MAV_LANDED_STATE
       uint8_t updated;
     };
     struct ExtendedSysState extsysstate;
 
     struct Att {
-      float roll_rad; // rad
+      float roll_rad;  // rad
       float pitch_rad; // rad
-      float yaw_rad; // rad
+      float yaw_rad;   // rad
       uint8_t updated;
     };
     struct Att att;
 
     struct Gps {
       uint8_t fix;
-      uint8_t sat; // UINT8_MAX if unknown
-      uint16_t hdop; // UINT16_MAX if unknown
-      uint16_t vdop; // UINT16_MAX if unknown
-      int32_t lat; // (WGS84), in degrees * 1E7
-      int32_t lon; // (WGS84), in degrees * 1E7
-      int32_t alt_mm; // (AMSL, NOT WGS84), in meters * 1000
+      uint8_t sat;       // UINT8_MAX if unknown
+      uint16_t hdop;     // UINT16_MAX if unknown
+      uint16_t vdop;     // UINT16_MAX if unknown
+      int32_t lat;       // (WGS84), in degrees * 1E7
+      int32_t lon;       // (WGS84), in degrees * 1E7
+      int32_t alt_mm;    // (AMSL, NOT WGS84), in meters * 1000
       uint16_t vel_cmps; // m/s * 100, UINT16_MAX if unknown
       uint16_t cog_cdeg; // degrees * 100, 0.0..359.99 degrees, UINT16_MAX if unknown
       uint8_t updated;
@@ -365,40 +364,40 @@ class MavlinkTelem
     uint8_t gps_instancemask;
 
     struct GlobalPositionInt {
-      int32_t lat; // in degrees * 1E7
-      int32_t lon; // in degrees * 1E7
-      int32_t alt_mm; // (MSL), in mm
+      int32_t lat;             // in degrees * 1E7
+      int32_t lon;             // in degrees * 1E7
+      int32_t alt_mm;          // (MSL), in mm
       int32_t relative_alt_mm; // in mm
-      int16_t vx_cmps; // (Latitude, positive north), in cm/s
-      int16_t vy_cmps; // (Longitude, positive east), in cm/s
-      int16_t vz_cmps; // (Altitude, positive down), in cm/s
-      uint16_t hdg_cdeg; // degrees * 100, 0.0..359.99 degrees, UINT16_MAX if unknown
+      int16_t vx_cmps;         // (Latitude, positive north), in cm/s
+      int16_t vy_cmps;         // (Longitude, positive east), in cm/s
+      int16_t vz_cmps;         // (Altitude, positive down), in cm/s
+      uint16_t hdg_cdeg;       // degrees * 100, 0.0..359.99 degrees, UINT16_MAX if unknown
       uint8_t updated;
     };
     struct GlobalPositionInt gposition;
 
     struct Vfr {
-      float airspd_mps; // m/s
+      float airspd_mps;    // m/s
       float groundspd_mps; // m/s
-      float alt_m; // (MSL), m   ?? is this really MSL ?? it can't I think, appears to be above home
+      float alt_m;         // (MSL), m   ?? is this really MSL ?? it can't I think, appears to be above home
       float climbrate_mps; // m/s
       int16_t heading_deg; // degrees (0..360, 0=north)
-      uint16_t thro_pct; // percent, 0 to 100
+      uint16_t thro_pct;   // percent, 0 to 100
       uint8_t updated;
     };
     struct Vfr vfr;
 
     struct Bat {
       int32_t charge_consumed_mAh; // mAh, -1 if not known
-      int32_t energy_consumed_hJ; // 0.1 kJ, -1 if not known
-      int16_t temperature_cC; // centi-degrees C°, INT16_MAX if not known
-      uint32_t voltage_mV; // mV
-      int16_t current_cA; // 10*mA, -1 if not known
-      int8_t remaining_pct; // (0%: 0, 100%: 100), -1 if not known
-      int32_t time_remaining; // 0 if not known
-      uint8_t charge_state; // 0 if not known
+      int32_t energy_consumed_hJ;  // 0.1 kJ, -1 if not known
+      int16_t temperature_cC;      // centi-degrees C°, INT16_MAX if not known
+      uint32_t voltage_mV;         // mV
+      int16_t current_cA;          // 10*mA, -1 if not known
+      int8_t remaining_pct;        // (0%: 0, 100%: 100), -1 if not known
+      int32_t time_remaining;      // 0 if not known
+      uint8_t charge_state;        // 0 if not known
       uint32_t fault_bitmask;
-      int8_t cellcount; // -1 if not known
+      int8_t cellcount;            // -1 if not known
       uint8_t updated;
     };
     struct Bat bat1;
@@ -425,36 +424,36 @@ class MavlinkTelem
     };
 
     struct Ekf {
-      //comment: we don't really need the other fields in the EKF message
+      // comment: we don't really need the other fields in the EKF message
       uint16_t flags;
       uint8_t updated;
     };
     struct Ekf ekf;
 
     struct NavControllerOutput {
-      //comment: we don't really need the other fields
-      int16_t nav_bearing; // Current desired heading in degrees
+      // comment: we don't really need the other fields
+      int16_t nav_bearing;    // Current desired heading in degrees
       int16_t target_bearing; // Bearing to current MISSION/target in degrees
-      uint16_t wp_dist; // Distance to active MISSION in meters
+      uint16_t wp_dist;       // Distance to active MISSION in meters
       uint8_t updated;
     };
     struct NavControllerOutput navControllerOutput;
 
     struct Mission {
-      uint16_t count; // from MISSION_COUNT
+      uint16_t count;       // from MISSION_COUNT
       uint16_t seq_current; // from MISSION_CURRENT
       uint8_t updated;
     };
     struct Mission mission;
 
     struct MissionItem { // the INT version of it
-      //comment: we don't really need the other fields
-      uint16_t seq; // Waypoint ID (sequence number). Starts at zero. Increases monotonically for each waypoint, no gaps in the sequence (0,1,2,3,4).
-      uint8_t frame; // The coordinate system of the waypoint.
+      // comment: we don't really need the other fields
+      uint16_t seq;     // Waypoint ID (sequence number). Starts at zero. Increases monotonically for each waypoint, no gaps in the sequence (0,1,2,3,4).
+      uint8_t frame;    // The coordinate system of the waypoint.
       uint16_t command; // The scheduled action for the waypnt.
-      int32_t x; // PARAM5 / local: x position in meters * 1e4, global: latitude in degrees * 10^7
-      int32_t y; // PARAM6 / y position: local: x position in meters * 1e4, global: longitude in degrees *10^7
-      float z; // PARAM7 / z position: global: altitude in meters (relative or absolute, depending on frame.
+      int32_t x;        // PARAM5 / local: x position in meters * 1e4, global: latitude in degrees * 10^7
+      int32_t y;        // PARAM6 / y position: local: x position in meters * 1e4, global: longitude in degrees *10^7
+      float z;          // PARAM7 / z position: global: altitude in meters (relative or absolute, depending on frame.
       uint8_t updated;
     };
     struct MissionItem missionItem;
@@ -468,14 +467,14 @@ class MavlinkTelem
 
     // this is very flight stack dependent
     struct Parameters {
-      int16_t number; // we use -1 to indicate it wasn't obtained
-      int32_t BATT_CAPACITY; // type int32 //we use -1 to indicate it wasn't obtained
+      int16_t number;         // we use -1 to indicate it wasn't obtained
+      int32_t BATT_CAPACITY;  // type int32 //we use -1 to indicate it wasn't obtained
       int32_t BATT2_CAPACITY; // type int32 //we use -1 to indicate it wasn't obtained
-      float WPNAV_SPEED; // type = float //we use NAN to indicate it wasn't obtained
-      float WPNAV_ACCEL; // type = float //we use NAN to indicate it wasn't obtained
-      float WPNAV_ACCEL_Z; // type = float //we use NAN to indicate it wasn't obtained
-      int16_t SYSID_MYGCS; // we use -1 to indicate it wasn't obtained
-      int32_t ARMING_CHECK; // type int32 //we use -1 to indicate it wasn't obtained
+      float WPNAV_SPEED;      // type = float //we use NAN to indicate it wasn't obtained
+      float WPNAV_ACCEL;      // type = float //we use NAN to indicate it wasn't obtained
+      float WPNAV_ACCEL_Z;    // type = float //we use NAN to indicate it wasn't obtained
+      int16_t SYSID_MYGCS;    // we use -1 to indicate it wasn't obtained
+      int32_t ARMING_CHECK;   // type int32 //we use -1 to indicate it wasn't obtained
     };
     struct Parameters param;
 
@@ -491,21 +490,6 @@ class MavlinkTelem
 
     uint8_t _tcsm_base_mode;
     uint32_t _tcsm_custom_mode;
-    float _tcnt_alt_m;
-    float _tccs_speed_mps;
-    uint8_t _tccs_speed_type;
-    uint8_t _tmii_frame;
-    uint16_t _tmii_cmd;
-    uint8_t _tmii_current;
-    int32_t _tmii_lat, _tmii_lon;
-    float _tmii_alt_m;
-    uint8_t _t_coordinate_frame;
-    uint16_t _t_type_mask;
-    int32_t _t_lat, _t_lon;
-    float _t_alt, _t_vx, _t_vy, _t_vz, _t_yaw_rad, _t_yaw_rad_rate;
-    float _tccy_yaw_deg;
-    int8_t _tccy_dir;
-    bool _tccy_relative;
     float _tact_takeoff_alt_m;
     float _tacf_takeoff_alt_m;
     uint16_t _tmri_seq, _tmri_missiontype;
@@ -516,7 +500,8 @@ class MavlinkTelem
     {
       SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_PARAM_REQUEST_LIST);
     }
-    /* not used void setTaskParamRequestRead(const char* pname)
+    /* not used
+    void setTaskParamRequestRead(const char* pname)
     {
       strncpy(_prr_param_id, pname, 16);
       SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_PARAM_REQUEST_READ);
@@ -527,13 +512,11 @@ class MavlinkTelem
       set_request(TASK_AUTOPILOT, TASK_SENDMSG_MISSION_REQUEST_INT, 10, 473);
     }
 
-    void apSetFlightMode(uint32_t ap_flight_mode);
-    void apSetGroundSpeed(float speed);
-    void apSimpleGotoPosAlt(int32_t lat, int32_t lon, float alt);
-    void apGotoPosAltYawDeg(int32_t lat, int32_t lon, float alt, float yaw);
-    void apGotoPosAltVel(int32_t lat, int32_t lon, float alt, float vx, float vy, float vz);
-    void apSetYawDeg(float yaw, bool relative); // note, we can enter negative yaw here, sign determines direction
-
+    void apSetFlightMode(uint32_t ap_flight_mode)
+    {
+      _tcsm_base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED; _tcsm_custom_mode = ap_flight_mode;
+      SETTASK(TASK_AUTOPILOT, TASK_SENDCMD_DO_SET_MODE);
+    }
     void apRequestBanner(void)
     {
       SETTASK(TASK_AP, TASK_AP_REQUESTBANNER);
@@ -585,7 +568,7 @@ class MavlinkTelem
       bool photo_on;
       float available_capacity_MiB; // NAN if not known
       uint32_t recording_time_ms;
-      float battery_voltage_V; // NAN if not known
+      float battery_voltage_V;      // NAN if not known
       int8_t battery_remaining_pct; // (0%: 0, 100%: 100), -1 if not known
     };
     struct CameraStatus cameraStatus; // Status: variable data
@@ -803,11 +786,6 @@ class MavlinkTelem
       TASK_SENDMSG_MISSION_REQUEST_INT            = 0x00008000,
 
       TASK_SENDCMD_DO_SET_MODE                    = 0x00100000,
-      TASK_SENDCMD_NAV_TAKEOFF                    = 0x00200000, // simple_takeoff()
-      TASK_SENDCMD_DO_CHANGE_SPEED                = 0x00400000, // groundspeed(), airspeed()
-      TASK_SENDMSG_MISSION_ITEM_INT               = 0x00800000, // simple_goto()
-      TASK_SENDMSG_SET_POSITION_TARGET_GLOBAL_INT = 0x01000000,
-      TASK_SENDCMD_CONDITION_YAW                  = 0x02000000,
       TASK_SENDMSG_RC_CHANNELS_OVERRIDE           = 0x04000000,
       // ap
       TASK_AP_REQUESTBANNER                       = 0x00000001,

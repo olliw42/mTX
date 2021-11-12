@@ -14,11 +14,11 @@
 
 uint8_t MavlinkTelem::_mavapiMsgInFindOrAdd(uint32_t msgid)
 {
-  for (uint8_t i = 0; i < MAVMSGLIST_MAX; i++) {
+  for (uint8_t i = 0; i < MAVOUTLIST_MAX; i++) {
     if (!_mavapi_rx_list[i]) continue;
     if (_mavapi_rx_list[i]->msgid == msgid) { return i; }
   }
-  for (uint8_t i = 0; i < MAVMSGLIST_MAX; i++) {
+  for (uint8_t i = 0; i < MAVOUTLIST_MAX; i++) {
     if (_mavapi_rx_list[i]) continue;
     // free spot, so add it
     _mavapi_rx_list[i] = (MavMsg*)malloc(sizeof(MavMsg));
@@ -60,7 +60,7 @@ uint8_t MavlinkTelem::mavapiMsgInCount(void)
   if (!_mavapi_rx_enabled) return 0;
 
   uint8_t cnt = 0;
-  for (uint8_t i = 0; i < MAVMSGLIST_MAX; i++) if(_mavapi_rx_list[i]) cnt++;
+  for (uint8_t i = 0; i < MAVOUTLIST_MAX; i++) if(_mavapi_rx_list[i]) cnt++;
   return cnt;
 }
 
@@ -69,7 +69,7 @@ MavlinkTelem::MavMsg* MavlinkTelem::mavapiMsgInGet(uint32_t msgid)
   if (!_mavapi_rx_enabled) return NULL;
 
   uint8_t i_found = UINT8_MAX;
-  for (uint8_t i = 0; i < MAVMSGLIST_MAX; i++) {
+  for (uint8_t i = 0; i < MAVOUTLIST_MAX; i++) {
     if (!_mavapi_rx_list[i]) continue;
     if (!_mavapi_rx_list[i]->payload_ptr) continue; // it must have been received completely
     if (_mavapi_rx_list[i]->msgid == msgid) { i_found = i; }
@@ -84,7 +84,7 @@ MavlinkTelem::MavMsg* MavlinkTelem::mavapiMsgInGetLast(void)
 
   uint32_t t_max = 0;
   uint8_t i_found = UINT8_MAX;
-  for (uint8_t i = 0; i < MAVMSGLIST_MAX; i++) {
+  for (uint8_t i = 0; i < MAVOUTLIST_MAX; i++) {
     if (!_mavapi_rx_list[i]) continue;
     if (!_mavapi_rx_list[i]->payload_ptr) continue; // it must have been received completely
     if (_mavapi_rx_list[i]->timestamp > t_max) { t_max = _mavapi_rx_list[i]->timestamp; i_found = i; }
@@ -192,7 +192,7 @@ void MavlinkTelem::paramGenerateMessage(void)
 
 uint8_t MavlinkTelem::registerParam(uint8_t sysid, uint8_t compid, const char* param_id, uint8_t param_type)
 {
-  if (_paramInList_count >= MAVPARAMLIST_MAX) return UINT8_MAX;
+  if (_paramInList_count >= MAVPARAMINLIST_MAX) return UINT8_MAX;
 
   //we check if it is already in list, to avoid multiple registration
   uint8_t i = _param_find(sysid, compid, param_id);
