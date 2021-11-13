@@ -63,6 +63,11 @@ tmr10ms_t mavlinkRcOverrideRate(void);
 #include "thirdparty/Mavlink/out/opentx/opentx.h"
 #include "thirdparty/Mavlink/out/lib/fastmavlink_router.h"
 
+#define FASTMAVLINK_PARAM_NUM   7
+extern const fmav_param_entry_t fmav_param_list[FASTMAVLINK_PARAM_NUM];
+
+#include "thirdparty/Mavlink/out/lib/fastmavlink_parameters.h"
+
 // -- main Mavlink stuff --
 
 #define MAVLINK_TELEM_MY_SYSID        254 //MissionPlanner is 255, QGroundControl is 255
@@ -143,6 +148,7 @@ class MavlinkTelem
     void doTask(void);
 
     void handleMessageAutopilot(void);
+    void handleMessageGcsAndAlike(void);
     void handleMessageCamera(void);
     void handleMessageGimbal(void);
     void handleMessageGimbalClient(void);

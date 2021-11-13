@@ -644,6 +644,7 @@ void MavlinkTelem::handleMessageAutopilot(void)
       fmav_param_value_t payload;
       fmav_msg_param_value_decode(&payload, &_msg);
       if (!strncmp(payload.param_id,"BATT_CAPACITY",16)) {
+      if (param.count < 0) param.count = payload.param_count; // we set it on first occasion, we could check subsequent, but don't
         param.BATT_CAPACITY = payload.param_value;
         clear_request(TASK_AP, TASK_AP_REQUESTPARAM_BATT_CAPACITY);
       }
