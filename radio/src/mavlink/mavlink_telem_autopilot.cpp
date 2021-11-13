@@ -643,32 +643,32 @@ void MavlinkTelem::handleMessageAutopilot(void)
     case FASTMAVLINK_MSG_ID_PARAM_VALUE: {
       fmav_param_value_t payload;
       fmav_msg_param_value_decode(&payload, &_msg);
-      if (!strncmp(payload.param_id,"BATT_CAPACITY",16)) {
       if (param.count < 0) param.count = payload.param_count; // we set it on first occasion, we could check subsequent, but don't
+      if (!strncmp(payload.param_id, "BATT_CAPACITY", 16)) {
         param.BATT_CAPACITY = payload.param_value;
         clear_request(TASK_AP, TASK_AP_REQUESTPARAM_BATT_CAPACITY);
       }
-      if (!strncmp(payload.param_id,"BATT2_CAPACITY",16)) {
+      if (!strncmp(payload.param_id, "BATT2_CAPACITY", 16)) {
         param.BATT2_CAPACITY = payload.param_value;
         clear_request(TASK_AP, TASK_AP_REQUESTPARAM_BATT2_CAPACITY);
       }
-      if (!strncmp(payload.param_id,"WPNAV_SPEED",16)) {
+      if (!strncmp(payload.param_id, "WPNAV_SPEED", 16)) {
         param.WPNAV_SPEED = payload.param_value;
         clear_request(TASK_AP, TASK_AP_REQUESTPARAM_WPNAV_SPEED);
       }
-      if (!strncmp(payload.param_id,"WPNAV_ACCEL",16)) {
+      if (!strncmp(payload.param_id, "WPNAV_ACCEL", 16)) {
         param.WPNAV_ACCEL = payload.param_value;
         clear_request(TASK_AP, TASK_AP_REQUESTPARAM_WPNAV_ACCEL);
       }
-      if (!strncmp(payload.param_id,"WPNAV_ACCEL_Z",16)) {
+      if (!strncmp(payload.param_id, "WPNAV_ACCEL_Z", 16)) {
         param.WPNAV_ACCEL_Z = payload.param_value;
         clear_request(TASK_AP, TASK_AP_REQUESTPARAM_WPNAV_ACCEL_Z);
       }
-      if (!strncmp(payload.param_id,"SYSID_MYGCS",16)) {
+      if (!strncmp(payload.param_id, "SYSID_MYGCS", 16)) {
         param.SYSID_MYGCS = payload.param_value;
         clear_request(TASK_AP, TASK_AP_REQUESTPARAM_SYSID_MYGCS);
       }
-      if (!strncmp(payload.param_id,"ARMING_CHECK",16)) {
+      if (!strncmp(payload.param_id, "ARMING_CHECK", 16)) {
         param.ARMING_CHECK = payload.param_value;
         clear_request(TASK_AP, TASK_AP_REQUESTPARAM_ARMING_CHECK);
       }

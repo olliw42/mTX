@@ -146,7 +146,7 @@ bool MavlinkTelem::mavapiMsgOutEmpty(void)
 
 // -- MAVLINK API PARAMETERS --
 
-//returns an index into the _paramInList
+// returns an index into the _paramInList
 uint8_t MavlinkTelem::_param_find(uint8_t sysid, uint8_t compid, const char* param_id)
 {
   for(uint8_t i = 0; i < _paramInList_count; i++) {
@@ -194,7 +194,7 @@ uint8_t MavlinkTelem::registerParam(uint8_t sysid, uint8_t compid, const char* p
 {
   if (_paramInList_count >= MAVPARAMINLIST_MAX) return UINT8_MAX;
 
-  //we check if it is already in list, to avoid multiple registration
+  // we check if it is already in list, to avoid multiple registration
   uint8_t i = _param_find(sysid, compid, param_id);
   if (i != UINT8_MAX) return UINT8_MAX;
 

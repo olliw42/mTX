@@ -134,7 +134,7 @@ bool MavlinkTelem::doTaskCameraLowPriority(void)
 
 void MavlinkTelem::handleMessageCamera(void)
 {
-  camera.is_receiving = MAVLINK_TELEM_RECEIVING_TIMEOUT; //we accept any msg from the camera to indicate it is alive
+  camera.is_receiving = MAVLINK_TELEM_RECEIVING_TIMEOUT; // we accept any msg from the camera to indicate it is alive
 
   switch (_msg.msgid) {
     case FASTMAVLINK_MSG_ID_HEARTBEAT: {
@@ -224,7 +224,7 @@ void MavlinkTelem::handleMessageCamera(void)
 
 void MavlinkTelem::setCameraStartupRequests(void)
 {
-  set_request(TASK_CAMERA, TASK_SENDREQUEST_CAMERA_INFORMATION, 10, 200+0); //10x every ca 2sec
+  set_request(TASK_CAMERA, TASK_SENDREQUEST_CAMERA_INFORMATION, 10, 200+0); // 10x every ca 2sec
   set_request(TASK_CAMERA, TASK_SENDREQUEST_CAMERA_SETTINGS, 10, 200+5);
   set_request(TASK_CAMERA, TASK_SENDREQUEST_CAMERA_CAPTURE_STATUS, 10, 200+10);
   set_request(TASK_CAMERA, TASK_SENDREQUEST_STORAGE_INFORMATION, 10, 200+15);

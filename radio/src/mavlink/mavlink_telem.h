@@ -170,7 +170,7 @@ class MavlinkTelem
 
     // REQUESTS
 
-    #define REQUESTLIST_MAX  32
+    #define REQUESTLIST_MAX   32
 
     // Times
 
@@ -190,7 +190,7 @@ class MavlinkTelem
     // in the receive list we need to differentiate not only by msgid, but also by sysid-compid
     // if two components send the same message at (too) high rate considering only msgid leads to message loss
 
-    #define MAVOUTLIST_MAX  64
+    #define MAVOUTLIST_MAX    64
 
     struct MavMsg {
       uint32_t msgid;
@@ -218,7 +218,7 @@ class MavlinkTelem
     // we go with it despite it's cost
     // it doesn't really allow us to work on pointers, so we redo what we need
 
-    #define MAVOUTFIFO_MAX  4
+    #define MAVOUTFIFO_MAX   4
 
     fmav_message_t* _mavapiMsgOutFifo = NULL; // we allocate it only then it is really needed
     volatile uint32_t _wi = 0;
@@ -243,8 +243,8 @@ class MavlinkTelem
       uint8_t request_or_set:1;
     };
 
-    #define MAVPARAMINLIST_MAX      32
-    #define MAVPARAMOUTFIFO_SIZE    32
+    #define MAVPARAMINLIST_MAX    32
+    #define MAVPARAMOUTFIFO_SIZE  32
 
     ParamItem _paramInList[MAVPARAMINLIST_MAX];
     uint8_t _paramInList_count = 0;
@@ -492,7 +492,6 @@ class MavlinkTelem
     }
 
     // some tasks need some additional data
-    //not used char _prr_param_id[16+1];
 
     uint8_t _tcsm_base_mode;
     uint32_t _tcsm_custom_mode;

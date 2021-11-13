@@ -267,7 +267,7 @@ void MavlinkTelem::sendGolbalPositionInt(int32_t lat, int32_t lon, float alt, fl
 
 void MavlinkTelem::handleMessage(void)
 {
-  if (_msg.sysid == 0) return; //this can't be anything meaningful
+  if (_msg.sysid == 0) return; // this can't be anything meaningful
 
   // autodetect sys id, and handle autopilot connecting
   if (!isSystemIdValid() || (autopilot.compid == 0)) {
@@ -301,7 +301,7 @@ void MavlinkTelem::handleMessage(void)
          ((_msg.compid >= MAV_COMP_ID_CAMERA) && (_msg.compid <= MAV_COMP_ID_CAMERA6)) ) ) {
       _resetCamera();
       camera.compid = _msg.compid;
-      camera.requests_triggered = 1; //we schedule them
+      camera.requests_triggered = 1; // we schedule them
     }
   }
 
@@ -314,19 +314,19 @@ void MavlinkTelem::handleMessage(void)
          ((_msg.compid >= MAV_COMP_ID_GIMBAL2) && (_msg.compid <= MAV_COMP_ID_GIMBAL6))) ) ) {
       _resetGimbalAndGimbalClient();
       gimbal.compid = _msg.compid;
-      gimbal.is_initialized = true; //no startup requests, so true
+      gimbal.is_initialized = true; // no startup requests, so true
     }
   }
 
   if ((gimbalmanager.compid == 0) && (gimbal.compid > 0) && (_msg.msgid == FASTMAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_STATUS)) {
     fmav_storm32_gimbal_manager_status_t payload;
     fmav_msg_storm32_gimbal_manager_status_decode(&payload, &_msg);
-    if (payload.gimbal_id == gimbal.compid) { //this is the gimbal's gimbal manager
+    if (payload.gimbal_id == gimbal.compid) { // this is the gimbal's gimbal manager
       _resetGimbalClient();
       gimbalmanager.compid = _msg.compid;
       gimbalmanagerOut.device_flags = payload.device_flags;
       gimbalmanagerOut.manager_flags = payload.manager_flags;
-      gimbalmanager.requests_triggered = 1; //we schedule them
+      gimbalmanager.requests_triggered = 1; // we schedule them
     }
   }
 
@@ -352,7 +352,7 @@ void MavlinkTelem::handleMessage(void)
     radio.noise = payload.noise;
     radio.remnoise = payload.remnoise;
     radio.is_receiving = MAVLINK_TELEM_RADIO_RECEIVING_TIMEOUT;
-    telemetrySetRssiValue(radio.remrssi); //let's report the rssi of the air side
+    telemetrySetRssiValue(radio.remrssi); // let's report the rssi of the air side
     return;
   }
 
@@ -361,13 +361,13 @@ void MavlinkTelem::handleMessage(void)
     handleMessageGcsAndAlike();
   }
 
-  //we handle all qshot wherever they come from
+  // we handle all qshot wherever they come from
   handleMessageQShot();
 
-  //handle parameter
+  // handle parameter
   paramHandleMessage(&_msg);
 
-  if (_msg.sysid != _sysid) return; //this is not from our system
+  if (_msg.sysid != _sysid) return; // this is not from our system
 
   // handle messages coming from autopilot
   if (autopilot.compid && (_msg.compid == autopilot.compid)) {
@@ -521,29 +521,29 @@ void MavlinkTelem::doTask(void)
   // handle pending tasks
   // do only one task and hence one msg_out per loop
   if (!_msg_out_available && TASK_IS_PENDING()) {
-    //other TASKS
+    // other TASKS
     if (doTaskAutopilot()) return;
     if (doTaskGimbalAndGimbalClient()) return;
     if (doTaskCamera()) return;
 
-    //TASK_ME
+    // TASK_ME
     if (_task[TASK_ME] & TASK_ME_SENDMYHEARTBEAT) {
       RESETTASK(TASK_ME, TASK_ME_SENDMYHEARTBEAT);
       uint8_t base_mode = MAV_MODE_PREFLIGHT | MAV_MODE_FLAG_CUSTOM_MODE_ENABLED | MAV_MODE_FLAG_SAFETY_ARMED;
       uint8_t system_status = MAV_STATE_UNINIT | MAV_STATE_ACTIVE;
       uint32_t custom_mode = 0;
       generateHeartbeat(base_mode, custom_mode, system_status);
-      return; // do only one per loop
+      return; //do only one per loop
     }
     if (_task[TASK_ME] & TASK_SENDMSG_MAVLINK_API) {
       RESETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_API);
       mavapiGenerateMessage();
-      return; // do only one per loop
+      return; //do only one per loop
     }
     if (_task[TASK_ME] & TASK_SENDMSG_MAVLINK_PARAM) {
       RESETTASK(TASK_ME, TASK_SENDMSG_MAVLINK_PARAM);
       paramGenerateMessage();
-      return; // do only one per loop
+      return; //do only one per loop
     }
     if (_task[TASK_ME] & TASK_ME_SENDMSG_GLOBAL_POSITION_INT) {
       RESETTASK(TASK_ME,TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
@@ -553,7 +553,7 @@ void MavlinkTelem::doTask(void)
     if (_task[TASK_ME] & TASK_ME_SENDMYAUTOPILOTVERSION) {
       RESETTASK(TASK_ME, TASK_ME_SENDMYAUTOPILOTVERSION);
       generateAutopilotVersion();
-      return; // do only one per loop
+      return; //do only one per loop
     }
     if (_task[TASK_ME] & TASK_ME_SENDMYBANNER) {
       RESETTASK(TASK_ME, TASK_ME_SENDMYBANNER);
@@ -562,7 +562,7 @@ void MavlinkTelem::doTask(void)
       memset(text, 0, FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN);
       strncpy(text, banner, FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN);
       generateStatustext(MAV_SEVERITY_INFO, text, 0, 0);
-      return; // do only one per loop
+      return; //do only one per loop
     }
     if (_task[TASK_ME] & TASK_ME_SENDMYPARAMLIST) {
       //RESETTASK(TASK_ME, TASK_ME_SENDMYPARAMLIST);
@@ -574,7 +574,7 @@ void MavlinkTelem::doTask(void)
         _prl_index++;
         _prl_tlast = tnow;
         if (_prl_index >= FASTMAVLINK_PARAM_NUM) RESETTASK(TASK_ME, TASK_ME_SENDMYPARAMLIST);
-        return; // do only one per loop
+        return; //do only one per loop
       }
       // do not return here, so other tasks can go on
     }
@@ -584,10 +584,10 @@ void MavlinkTelem::doTask(void)
       if (fmav_param_get_param_union(&param_union, _pv_index)) {
         generateParamValue(fmav_param_list[_pv_index].name, param_union.p_float, param_union.type, FASTMAVLINK_PARAM_NUM, _pv_index);
       }
-      return; // do only one per loop
+      return; //do only one per loop
     }
 
-    //other TASKS low priority
+    // other TASKS low priority
     if (doTaskAutopilotLowPriority()) return;
     if (doTaskCameraLowPriority()) return;
     if (doTaskQShot()) return;
