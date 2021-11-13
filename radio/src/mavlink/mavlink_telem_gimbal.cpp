@@ -102,7 +102,7 @@ void MavlinkTelem::generateCmdDoMountConfigure(uint8_t tsystem, uint8_t tcompone
       );
 }
 
-//ArduPilot: if a mount has no pan control, then this will also yaw the copter in guided mode overwriting _fixed_yaw !!
+// ArduPilot: if a mount has no pan control, then this will also yaw the copter in guided mode overwriting _fixed_yaw !!
 void MavlinkTelem::generateCmdDoMountControl(uint8_t tsystem, uint8_t tcomponent, float pitch_deg, float yaw_deg, uint8_t mode)
 {
   _generateCmdLong(tsystem, tcomponent,
@@ -119,7 +119,8 @@ void MavlinkTelem::generateCmdRequestGimbalDeviceInformation(uint8_t tsystem, ui
       );
 }
 
-//STorM32 specific
+// STorM32 gimbal protocol v2
+
 void MavlinkTelem::generateStorm32GimbalDeviceControl(uint8_t tsystem, uint8_t tcomponent,
     float pitch_deg, float yaw_deg, uint16_t flags)
 {
@@ -143,7 +144,6 @@ float q[4];
   _msg_out_available = true;
 }
 
-//STorM32 specific
 void MavlinkTelem::generateCmdRequestStorm32GimbalManagerInformation(uint8_t tsystem, uint8_t tcomponent)
 {
   _generateCmdLong(tsystem, tcomponent,
@@ -152,7 +152,28 @@ void MavlinkTelem::generateCmdRequestStorm32GimbalManagerInformation(uint8_t tsy
       );
 }
 
-//STorM32 specific
+// we have 3 ways to control the gimbal
+// - STORM32_GIMBAL_MANAGER_CONTROL_PITCHYAW: uses pitch & yaw Euler angles. This is the canonical method.
+// - STORM32_GIMBAL_MANAGER_CONTROL: uses a quaternion
+// - MAV_CMD_STORM32_DO_GIMBAL_MANAGER_CONTROL_PITCHYAW: uses pitch & yaw Euler angles
+// we map all three to the same interface
+
+void MavlinkTelem::generateStorm32GimbalManagerControlPitchYaw(uint8_t tsystem, uint8_t tcomponent,
+    uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags)
+{
+  fmav_msg_storm32_gimbal_manager_control_pitchyaw_pack(
+      &_msg_out, _my_sysid, _my_compid,
+      tsystem, tcomponent,
+      gimbal_id,
+      MAV_STORM32_GIMBAL_MANAGER_CLIENT_GCS, //client
+      device_flags, manager_flags,
+      pitch_deg*FDEGTORAD, yaw_deg*FDEGTORAD,
+      NAN, NAN,
+      &_status_out
+      );
+  _msg_out_available = true;
+}
+
 void MavlinkTelem::generateStorm32GimbalManagerControl(uint8_t tsystem, uint8_t tcomponent,
     uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags)
 {
@@ -178,24 +199,6 @@ float q[4];
   _msg_out_available = true;
 }
 
-//STorM32 specific
-void MavlinkTelem::generateStorm32GimbalManagerControlPitchYaw(uint8_t tsystem, uint8_t tcomponent,
-    uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags)
-{
-  fmav_msg_storm32_gimbal_manager_control_pitchyaw_pack(
-      &_msg_out, _my_sysid, _my_compid,
-      tsystem, tcomponent,
-      gimbal_id,
-      MAV_STORM32_GIMBAL_MANAGER_CLIENT_GCS, //client
-      device_flags, manager_flags,
-      pitch_deg*FDEGTORAD, yaw_deg*FDEGTORAD,
-      NAN, NAN,
-      &_status_out
-      );
-  _msg_out_available = true;
-}
-
-//STorM32 specific
 void MavlinkTelem::generateCmdStorm32DoGimbalManagerControlPitchYaw(uint8_t tsystem, uint8_t tcomponent,
     uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags)
 {
@@ -245,7 +248,7 @@ void MavlinkTelem::setStorm32GimbalClientRetract(bool enable)
   if (!_storm32_gimbal_protocol_v2) return;
 
   gimbalmanagerOut.device_flags &=~ (MAV_STORM32_GIMBAL_DEVICE_FLAGS_RETRACT | MAV_STORM32_GIMBAL_DEVICE_FLAGS_NEUTRAL);
-  if( enable ){
+  if (enable) {
     gimbalmanagerOut.device_flags |= MAV_STORM32_GIMBAL_DEVICE_FLAGS_RETRACT;
   }
 }
@@ -255,7 +258,7 @@ void MavlinkTelem::setStorm32GimbalClientNeutral(bool enable)
   if (!_storm32_gimbal_protocol_v2) return;
 
   gimbalmanagerOut.device_flags &=~ (MAV_STORM32_GIMBAL_DEVICE_FLAGS_RETRACT | MAV_STORM32_GIMBAL_DEVICE_FLAGS_NEUTRAL);
-  if( enable ){
+  if (enable) {
     gimbalmanagerOut.device_flags |= MAV_STORM32_GIMBAL_DEVICE_FLAGS_NEUTRAL;
   }
 }
@@ -267,13 +270,13 @@ void MavlinkTelem::setStorm32GimbalClientLock(bool roll_lock, bool pitch_lock, b
   gimbalmanagerOut.device_flags &=~ (MAV_STORM32_GIMBAL_DEVICE_FLAGS_ROLL_LOCK |
                                      MAV_STORM32_GIMBAL_DEVICE_FLAGS_PITCH_LOCK |
                                      MAV_STORM32_GIMBAL_DEVICE_FLAGS_YAW_LOCK );
-  if( roll_lock ){
+  if (roll_lock) {
     gimbalmanagerOut.device_flags |= MAV_STORM32_GIMBAL_DEVICE_FLAGS_ROLL_LOCK;
   }
-  if( pitch_lock ){
+  if (pitch_lock) {
     gimbalmanagerOut.device_flags |= MAV_STORM32_GIMBAL_DEVICE_FLAGS_PITCH_LOCK;
   }
-  if( yaw_lock ){
+  if (yaw_lock) {
     gimbalmanagerOut.device_flags |= MAV_STORM32_GIMBAL_DEVICE_FLAGS_YAW_LOCK;
   }
 }
@@ -316,18 +319,18 @@ void MavlinkTelem::sendStorm32GimbalManagerPitchYawDeg(float pitch, float yaw)
   SETTASK(TASK_GIMBAL, TASK_SENDMSG_GIMBAL_MANAGER_CONTROL_PITCHYAW);
 }
 
-void MavlinkTelem::sendStorm32GimbalManagerControlPitchYawDeg(float pitch, float yaw)
+void MavlinkTelem::sendStorm32GimbalManagerCntrlPitchYawDeg(float pitch, float yaw)
 {
   if (!gimbalmanager.compid) return; //no gimbal manager
 
-  _refreshGimbalClientFlags(&_t_storm32GM_control_gdflags, &_t_storm32GM_control_gmflags);
+  _refreshGimbalClientFlags(&_t_storm32GMcntrl_gdflags, &_t_storm32GMcntrl_gmflags);
 
-  if ((_t_storm32GM_control_gdflags & MAV_STORM32_GIMBAL_DEVICE_FLAGS_RETRACT) ||
-      (_t_storm32GM_control_gdflags & MAV_STORM32_GIMBAL_DEVICE_FLAGS_NEUTRAL)) {
+  if ((_t_storm32GMcntrl_gdflags & MAV_STORM32_GIMBAL_DEVICE_FLAGS_RETRACT) ||
+      (_t_storm32GMcntrl_gdflags & MAV_STORM32_GIMBAL_DEVICE_FLAGS_NEUTRAL)) {
     pitch = yaw = 0.0f;
   }
-  _t_storm32GM_control_pitch_deg = pitch;
-  _t_storm32GM_control_yaw_deg = yaw;
+  _t_storm32GMcntrl_pitch_deg = pitch;
+  _t_storm32GMcntrl_yaw_deg = yaw;
   SETTASK(TASK_GIMBAL, TASK_SENDMSG_GIMBAL_MANAGER_CONTROL);
 }
 
@@ -335,14 +338,14 @@ void MavlinkTelem::sendStorm32GimbalManagerCmdPitchYawDeg(float pitch, float yaw
 {
   if (!gimbalmanager.compid) return; //no gimbal manager
 
-  _refreshGimbalClientFlags(&_t_storm32GM_cmd_gdflags, &_t_storm32GM_cmd_gmflags);
+  _refreshGimbalClientFlags(&_t_storm32GMcmd_gdflags, &_t_storm32GMcmd_gmflags);
 
-  if ((_t_storm32GM_cmd_gdflags & MAV_STORM32_GIMBAL_DEVICE_FLAGS_RETRACT) ||
-      (_t_storm32GM_cmd_gdflags & MAV_STORM32_GIMBAL_DEVICE_FLAGS_NEUTRAL)) {
+  if ((_t_storm32GMcmd_gdflags & MAV_STORM32_GIMBAL_DEVICE_FLAGS_RETRACT) ||
+      (_t_storm32GMcmd_gdflags & MAV_STORM32_GIMBAL_DEVICE_FLAGS_NEUTRAL)) {
     pitch = yaw = 0.0f;
   }
-  _t_storm32GM_cmd_pitch_deg = pitch;
-  _t_storm32GM_cmd_yaw_deg = yaw;
+  _t_storm32GMcmd_pitch_deg = pitch;
+  _t_storm32GMcmd_yaw_deg = yaw;
   SETTASK(TASK_GIMBAL, TASK_SENDCMD_DO_GIMBAL_MANAGER_CONTROL_PITCHYAW);
 }
 
@@ -398,13 +401,13 @@ bool MavlinkTelem::doTaskGimbalAndGimbalClient(void)
   if (_task[TASK_GIMBAL] & TASK_SENDMSG_GIMBAL_MANAGER_CONTROL) {
     RESETTASK(TASK_GIMBAL, TASK_SENDMSG_GIMBAL_MANAGER_CONTROL);
     generateStorm32GimbalManagerControl(_sysid, gimbalmanager.compid, gimbal.compid,
-        _t_storm32GM_control_pitch_deg, _t_storm32GM_control_yaw_deg, _t_storm32GM_control_gdflags, _t_storm32GM_control_gmflags);
+        _t_storm32GMcntrl_pitch_deg, _t_storm32GMcntrl_yaw_deg, _t_storm32GMcntrl_gdflags, _t_storm32GMcntrl_gmflags);
     return true; //do only one per loop
   }
   if (_task[TASK_GIMBAL] & TASK_SENDCMD_DO_GIMBAL_MANAGER_CONTROL_PITCHYAW) {
     RESETTASK(TASK_GIMBAL, TASK_SENDCMD_DO_GIMBAL_MANAGER_CONTROL_PITCHYAW);
     generateCmdStorm32DoGimbalManagerControlPitchYaw(_sysid, gimbalmanager.compid, gimbal.compid,
-        _t_storm32GM_cmd_pitch_deg, _t_storm32GM_cmd_yaw_deg, _t_storm32GM_cmd_gdflags, _t_storm32GM_cmd_gmflags);
+        _t_storm32GMcmd_pitch_deg, _t_storm32GMcmd_yaw_deg, _t_storm32GMcmd_gdflags, _t_storm32GMcmd_gmflags);
     return true; //do only one per loop
   }
   if (_task[TASK_GIMBAL] & TASK_SENDREQUEST_GIMBAL_MANAGER_INFORMATION) {

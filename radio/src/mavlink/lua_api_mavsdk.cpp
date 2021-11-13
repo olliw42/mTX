@@ -153,7 +153,7 @@ static int luaMavsdkIsGimbalProtocolV2(lua_State *L)
 
 static int luaMavsdkSetGimbalProtocolV2(lua_State *L)
 {
-  bool flag = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checknumber(L, 1) > 0);
+  bool flag = LUAL_CHECKBOOLEAN(L, 1);
   mavlinkTelem.setStorm32GimbalProtocolV2(flag);
   return 0;
 }
@@ -194,23 +194,23 @@ static int luaMavsdkGimbalClientGetStatus(lua_State *L)
 
 static int luaMavsdkGimbalClientSetRetract(lua_State *L)
 {
-  bool flag = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checkinteger(L, 1) > 0);
+  bool flag = LUAL_CHECKBOOLEAN(L, 1);
   mavlinkTelem.setStorm32GimbalClientRetract(flag);
   return 0;
 }
 
 static int luaMavsdkGimbalClientSetNeutral(lua_State *L)
 {
-  bool flag = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checkinteger(L, 1) > 0);
+  bool flag = LUAL_CHECKBOOLEAN(L, 1);
   mavlinkTelem.setStorm32GimbalClientNeutral(flag);
   return 0;
 }
 
 static int luaMavsdkGimbalClientSetLock(lua_State *L)
 {
-  bool roll_lock = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checkinteger(L, 1) > 0);
-  bool pitch_lock = LUAL_CHECKBOOLEAN(L, 2); //(luaL_checkinteger(L, 1) > 0);
-  bool yaw_lock = LUAL_CHECKBOOLEAN(L, 3); //(luaL_checkinteger(L, 1) > 0);
+  bool roll_lock = LUAL_CHECKBOOLEAN(L, 1);
+  bool pitch_lock = LUAL_CHECKBOOLEAN(L, 2);
+  bool yaw_lock = LUAL_CHECKBOOLEAN(L, 3);
   mavlinkTelem.setStorm32GimbalClientLock(roll_lock, pitch_lock, yaw_lock);
   return 0;
 }
@@ -230,11 +230,11 @@ static int luaMavsdkGimbalClientSendPitchYawDeg(lua_State *L)
   return 0;
 }
 
-static int luaMavsdkGimbalClientSendControlPitchYawDeg(lua_State *L)
+static int luaMavsdkGimbalClientSendCntrlPitchYawDeg(lua_State *L)
 {
   float pitch = luaL_checknumber(L, 1);
   float yaw = luaL_checknumber(L, 2);
-  mavlinkTelem.sendStorm32GimbalManagerControlPitchYawDeg(pitch, yaw);
+  mavlinkTelem.sendStorm32GimbalManagerCntrlPitchYawDeg(pitch, yaw);
   return 0;
 }
 
@@ -548,7 +548,7 @@ static int luaMavsdkGetRadioRssiRaw(lua_State *L)
 {
   uint8_t rssi = UINT8_MAX;
   if (mavlinkTelem.radio.is_receiving) {
-    rssi = mavlinkTelem.radio.remrssi; //let's report the rssi of the air side
+    rssi = mavlinkTelem.radio.remrssi; // let's report the rssi of the air side
   }
   else if (mavlinkTelem.radio.is_receiving65) {
     rssi = mavlinkTelem.radio.rssi65;
@@ -1194,7 +1194,7 @@ static int luaMavsdkApRequestBanner(lua_State *L)
 
 static int luaMavsdkApArm(lua_State *L)
 {
-  bool flag = LUAL_CHECKBOOLEAN(L, 1); // luaL_checkinteger(L, 1);
+  bool flag = LUAL_CHECKBOOLEAN(L, 1);
   mavlinkTelem.apArm(flag);
   return 0;
 }
@@ -1211,68 +1211,6 @@ static int luaMavsdkApLand(lua_State *L)
   mavlinkTelem.apLand();
   return 0;
 }
-
-/*
-static int luaMavsdkApSetGroundSpeed(lua_State *L)
-{
-  float speed = luaL_checknumber(L, 1);
-  mavlinkTelem.apSetGroundSpeed(speed);
-  return 0;
-}
-*/
-/*
-static int luaMavsdkApSimpleGotoPosIntAltRel(lua_State *L)
-{
-  int32_t lat = luaL_checkinteger(L, 1);
-  int32_t lon = luaL_checkinteger(L, 2);
-  float alt = luaL_checknumber(L, 3);
-  mavlinkTelem.apSimpleGotoPosAlt(lat, lon, alt);
-  return 0;
-}
-*/
-/*
-static int luaMavsdkApGotoPosIntAltRel(lua_State *L)
-{
-  int32_t lat = luaL_checkinteger(L, 1);
-  int32_t lon = luaL_checkinteger(L, 2);
-  float alt = luaL_checknumber(L, 3);
-  mavlinkTelem.apGotoPosAltYawDeg(lat, lon, alt, NAN);
-  return 0;
-}
-*/
-/*
-static int luaMavsdkApGotoPosIntAltRelYawDeg(lua_State *L)
-{
-  int32_t lat = luaL_checkinteger(L, 1);
-  int32_t lon = luaL_checkinteger(L, 2);
-  float alt = luaL_checknumber(L, 3);
-  float yaw = luaL_checknumber(L, 4);
-  mavlinkTelem.apGotoPosAltYawDeg(lat, lon, alt, yaw);
-  return 0;
-}
-*/
-/*
-static int luaMavsdkApGotoPosIntAltRelVel(lua_State *L)
-{
-  int32_t lat = luaL_checkinteger(L, 1);
-  int32_t lon = luaL_checkinteger(L, 2);
-  float alt = luaL_checknumber(L, 3);
-  float vx = luaL_checknumber(L, 4);
-  float vy = luaL_checknumber(L, 5);
-  float vz = luaL_checknumber(L, 6);
-  mavlinkTelem.apGotoPosAltVel(lat, lon, alt, vx, vy, vz);
-  return 0;
-}
-*/
-/*
-static int luaMavsdkApSetYawDeg(lua_State *L)
-{
-  float yaw = luaL_checknumber(L, 1);
-  int32_t relative = luaL_optunsigned(L, 2, 0);
-  mavlinkTelem.apSetYawDeg(yaw, (relative) ? true : false);
-  return 0;
-}
-*/
 
 static int luaMavsdkApCopterFlyClick(lua_State *L)
 {
@@ -1321,9 +1259,9 @@ static int luaMavsdkIsStatusTextAvailable(lua_State *L)
 
 static int luaMavsdkGetStatusText(lua_State *L)
 {
-  char text[FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN+1]; //mavlink string is not necessarily \0 terminated
+  char text[FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN+1]; // mavlink string is not necessarily \0 terminated
   fmav_statustext_t payload;
-  if (!mavlinkTelem.statustext.fifo.pop(payload)) { //should not happen, use isStatusTextAvailable() to check beforehand
+  if (!mavlinkTelem.statustext.fifo.pop(payload)) { // should not happen, use isStatusTextAvailable() to check beforehand
     text[0] = '\0';
     payload.severity = MAV_SEVERITY_INFO;
     lua_pushnil(L);
@@ -1368,7 +1306,7 @@ static int luaMavsdkGetMissionItem(lua_State *L)
     case MAV_FRAME_GLOBAL_INT:
     case MAV_FRAME_GLOBAL_RELATIVE_ALT_INT:
     case MAV_FRAME_GLOBAL_TERRAIN_ALT_INT:
-    //these should not occur, but play it safe and handle them anyway
+    // these should not occur, but play it safe and handle them anyway
     case MAV_FRAME_GLOBAL:
     case MAV_FRAME_GLOBAL_RELATIVE_ALT:
     case MAV_FRAME_GLOBAL_TERRAIN_ALT:
@@ -1399,7 +1337,7 @@ static int luaMavsdkOptionIsRssiEnabled(lua_State *L)
 
 static int luaMavsdkOptionEnableRssi(lua_State *L)
 {
-  bool flag = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checkinteger(L, 1) > 0);
+  bool flag = LUAL_CHECKBOOLEAN(L, 1);
   g_model.mavlinkRssi = flag;
   return 0;
 }
@@ -1421,7 +1359,7 @@ static int luaMavsdkOptionSetRssiScale(lua_State *L)
 
 static int luaMavsdkRadioDisableRssiVoice(lua_State *L)
 {
-  bool flag = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checkinteger(L, 1) > 0);
+  bool flag = LUAL_CHECKBOOLEAN(L, 1);
   mavlinkTelem.radio.rssi_voice_telemetryok_disabled = flag;
   return 0;
 }
@@ -1451,7 +1389,7 @@ static int luaMavsdkOptionGetSendPosition(lua_State *L)
 
 static int luaMavsdkOptionSetSendPosition(lua_State *L)
 {
-  bool flag = LUAL_CHECKBOOLEAN(L, 1); //(luaL_checkinteger(L, 1) > 0);
+  bool flag = LUAL_CHECKBOOLEAN(L, 1);
   g_model.mavlinkSendPosition = flag;
   return 0;
 }
@@ -1506,8 +1444,8 @@ const luaL_Reg mavsdkLib[] = {
   { "gimbalClientSetLock", luaMavsdkGimbalClientSetLock },
   { "gimbalClientSetFlags", luaMavsdkGimbalClientSetFlags },
   { "gimbalClientSendPitchYawDeg", luaMavsdkGimbalClientSendPitchYawDeg },
-  //for testing only
-  { "gimbalClientSendControlPitchYawDeg", luaMavsdkGimbalClientSendControlPitchYawDeg },
+  // should normally not be used
+  { "gimbalClientSendCntrlPitchYawDeg", luaMavsdkGimbalClientSendCntrlPitchYawDeg },
   { "gimbalClientSendCmdPitchYawDeg", luaMavsdkGimbalClientSendCmdPitchYawDeg },
   { "gimbalDeviceSendPitchYawDeg", luaMavsdkGimbalDeviceSendPitchYawDeg },
 

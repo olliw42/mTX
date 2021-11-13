@@ -23,7 +23,7 @@ uint32_t mavlinkTelemAux2Baudrate(void);
 extern Fifo<uint8_t, 1024> mavlinkTelemUsbRxFifo;
 #endif
 
-//even though we only allow 2 serial uart channels max, we need this
+// even though we only allow 2 serial uart channels max, we need this
 // since the two aux buffers cannot be reused, as they may be used by something else
 // so, no way out
 extern Fifo<uint8_t, 32> mavlinkTelemExternalTxFifo_frame;
@@ -71,8 +71,8 @@ extern const fmav_param_entry_t fmav_param_list[FASTMAVLINK_PARAM_NUM];
 
 // -- main Mavlink stuff --
 
-#define MAVLINK_TELEM_MY_SYSID        254 //MissionPlanner is 255, QGroundControl is 255
-#define MAVLINK_TELEM_MY_COMPID       (MAV_COMP_ID_MISSIONPLANNER + 4) //191 is companion, 194 is free
+#define MAVLINK_TELEM_MY_SYSID        254 // MissionPlanner is 255, QGroundControl is 255
+#define MAVLINK_TELEM_MY_COMPID       (MAV_COMP_ID_MISSIONPLANNER + 4) // 191 is companion, 194 is free
 
 // tick10ms() is called every 10 ms from 10ms ISR
 // if this is changed, timing needs to be adapted !!
@@ -126,8 +126,8 @@ class MavlinkTelem
     void generateCmdRequestGimbalDeviceInformation(uint8_t tsystem, uint8_t tcomponent);
     void generateStorm32GimbalDeviceControl(uint8_t tsystem, uint8_t tcomponent, float pitch_deg, float yaw_deg, uint16_t flags);
     void generateCmdRequestStorm32GimbalManagerInformation(uint8_t tsystem, uint8_t tcomponent);
-    void generateStorm32GimbalManagerControl(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags);
     void generateStorm32GimbalManagerControlPitchYaw(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags);
+    void generateStorm32GimbalManagerControl(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags);
     void generateCmdStorm32DoGimbalManagerControlPitchYaw(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags);
     void generateCmdDoQShotConfigure(uint8_t tsystem, uint8_t tcomponent, uint8_t mode, uint8_t shot_state);
     void generateQShotStatus(uint8_t mode, uint8_t shot_state);
@@ -654,15 +654,15 @@ class MavlinkTelem
     uint16_t _t_storm32GD_flags;
     float _t_storm32GM_pitch_deg, _t_storm32GM_yaw_deg;
     uint16_t _t_storm32GM_gdflags, _t_storm32GM_gmflags;
-    float _t_storm32GM_control_pitch_deg, _t_storm32GM_control_yaw_deg;
-    uint16_t _t_storm32GM_control_gdflags, _t_storm32GM_control_gmflags;
-    float _t_storm32GM_cmd_pitch_deg, _t_storm32GM_cmd_yaw_deg;
-    uint16_t _t_storm32GM_cmd_gdflags, _t_storm32GM_cmd_gmflags;
+    float _t_storm32GMcntrl_pitch_deg, _t_storm32GMcntrl_yaw_deg;
+    uint16_t _t_storm32GMcntrl_gdflags, _t_storm32GMcntrl_gmflags;
+    float _t_storm32GMcmd_pitch_deg, _t_storm32GMcmd_yaw_deg;
+    uint16_t _t_storm32GMcmd_gdflags, _t_storm32GMcmd_gmflags;
 
     // convenience task wrapper
     void sendStorm32GimbalDevicePitchYawDeg(float pitch, float yaw);
     void sendStorm32GimbalManagerPitchYawDeg(float pitch, float yaw);
-    void sendStorm32GimbalManagerControlPitchYawDeg(float pitch, float yaw);
+    void sendStorm32GimbalManagerCntrlPitchYawDeg(float pitch, float yaw);
     void sendStorm32GimbalManagerCmdPitchYawDeg(float pitch, float yaw);
 
     struct GimbalManagerOut { // collective structure to handle gimbalmanager outgoing flags
