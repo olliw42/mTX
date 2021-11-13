@@ -59,6 +59,7 @@ tmr10ms_t mavlinkRcOverrideRate(void);
 
 #define FASTMAVLINK_ROUTER_LINKS_MAX        4
 #define FASTMAVLINK_ROUTER_COMPONENTS_MAX   12
+#define FASTMAVLINK_ROUTER_USE_TIMEOUT
 
 #include "thirdparty/Mavlink/out/opentx/opentx.h"
 #include "thirdparty/Mavlink/out/lib/fastmavlink_router.h"

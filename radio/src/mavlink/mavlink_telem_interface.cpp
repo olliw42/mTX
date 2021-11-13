@@ -462,6 +462,11 @@ tmr10ms_t mavlinkRcOverrideRate(void)
   return 10; // 100 ms = 10 Hz = default
 }
 
+uint8_t fmav_router_time_100ms(void)
+{
+   return get_tmr10ms() / 10;
+}
+
 // -- MavlinkTelem handlers --
 
 // map aux1,aux2,external onto serial1 & serial2

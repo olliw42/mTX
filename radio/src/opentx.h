@@ -32,6 +32,7 @@ TODO:
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+router timeout
 tx bay send channels
 rssi voice
 my parameters

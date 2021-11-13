@@ -628,7 +628,7 @@ void MavlinkTelem::wakeup()
 
   if (_usb_enabled != usb_enabled) {
     _usb_enabled = usb_enabled;
-    fmav_router_clearout_link(3);
+    fmav_router_reset_link(3);
   }
 
   if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) mavlinkTelemExternal_wakeup();
