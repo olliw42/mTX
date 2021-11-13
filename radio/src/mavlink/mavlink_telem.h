@@ -467,7 +467,7 @@ class MavlinkTelem
 
     // this is very flight stack dependent
     struct Parameters {
-      int16_t number;         // we use -1 to indicate it wasn't obtained
+      int16_t count;          // we use -1 to indicate nothing was obtained
       int32_t BATT_CAPACITY;  // type int32 //we use -1 to indicate it wasn't obtained
       int32_t BATT2_CAPACITY; // type int32 //we use -1 to indicate it wasn't obtained
       float WPNAV_SPEED;      // type = float //we use NAN to indicate it wasn't obtained
@@ -921,14 +921,20 @@ class MavlinkTelem
     bool serial1_isexternal = false;
     bool serial2_isexternal = false;
 
-    // Parameters
-    uint8_t p_my_sysid;
-    uint8_t p_my_compid;
-    uint8_t p_mavlinkRssi;
-    uint8_t p_mavlinkRssiScale;
-    uint8_t p_mavlinkMimicSensors;
-    uint8_t p_mavlinkRcOverride;
-    uint8_t p_mavlinkSendPosition;
+    // My Parameters stuff
+    struct MyParameters {
+      uint8_t my_sysid;
+      uint8_t my_compid;
+      uint8_t mavlinkRssi;
+      uint8_t mavlinkRssiScale;
+      uint8_t mavlinkMimicSensors;
+      uint8_t mavlinkRcOverride;
+      uint8_t mavlinkSendPosition;
+    };
+    struct MyParameters p;
+
+    void _mavlink_copy_g2p(void);
+    void _mavlink_copy_p2g(void);
 };
 
 extern MavlinkTelem mavlinkTelem;

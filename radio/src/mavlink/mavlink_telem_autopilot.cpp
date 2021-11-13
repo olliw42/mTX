@@ -807,7 +807,7 @@ void MavlinkTelem::_resetAutopilot(void)
   missionItem.z = 0.0f; // PARAM7 / z position: global: altitude in meters (relative or absolute, depending on frame.
   missionItem.updated = 0;
 
-  param.number = -1;
+  param.count = -1;
   param.BATT_CAPACITY = -1;
   param.BATT2_CAPACITY = -1;
   param.WPNAV_SPEED = NAN;

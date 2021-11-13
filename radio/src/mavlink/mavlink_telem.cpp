@@ -98,40 +98,36 @@ void MavlinkTelem::do_requests(void)
 
 // -- My Parameters
 
-#define FASTMAVLINK_PARAM_NUM  7
-
 const fmav_param_entry_t fmav_param_list[FASTMAVLINK_PARAM_NUM] = {
-  {(uint8_t*)&(mavlinkTelem.p_my_sysid), MAV_PARAM_TYPE_UINT8, "MY_SYSID" },
-  {(uint8_t*)&(mavlinkTelem.p_my_compid), MAV_PARAM_TYPE_UINT8, "MY_COMPID" },
-  {(uint8_t*)&(mavlinkTelem.p_mavlinkRssi), MAV_PARAM_TYPE_UINT8, "RSSI_ENABLE" },
-  {(uint8_t*)&(mavlinkTelem.p_mavlinkRssiScale), MAV_PARAM_TYPE_UINT8, "RSSI_SCALE" },
-  {(uint8_t*)&(mavlinkTelem.p_mavlinkMimicSensors), MAV_PARAM_TYPE_UINT8, "MIMIC_SENSORS" },
-  {(uint8_t*)&(mavlinkTelem.p_mavlinkRcOverride), MAV_PARAM_TYPE_UINT8, "RC_OVERRIDE" },
-  {(uint8_t*)&(mavlinkTelem.p_mavlinkSendPosition), MAV_PARAM_TYPE_UINT8, "SEND_POSITION" },
+  {(uint8_t*)&(mavlinkTelem.p.my_sysid), MAV_PARAM_TYPE_UINT8, "MY_SYSID" },
+  {(uint8_t*)&(mavlinkTelem.p.my_compid), MAV_PARAM_TYPE_UINT8, "MY_COMPID" },
+  {(uint8_t*)&(mavlinkTelem.p.mavlinkRssi), MAV_PARAM_TYPE_UINT8, "RSSI_ENABLE" },
+  {(uint8_t*)&(mavlinkTelem.p.mavlinkRssiScale), MAV_PARAM_TYPE_UINT8, "RSSI_SCALE" },
+  {(uint8_t*)&(mavlinkTelem.p.mavlinkMimicSensors), MAV_PARAM_TYPE_UINT8, "MIMIC_SENSORS" },
+  {(uint8_t*)&(mavlinkTelem.p.mavlinkRcOverride), MAV_PARAM_TYPE_UINT8, "RC_OVERRIDE" },
+  {(uint8_t*)&(mavlinkTelem.p.mavlinkSendPosition), MAV_PARAM_TYPE_UINT8, "SEND_POSITION" },
 };
 
-#include "thirdparty/Mavlink/out/lib/fastmavlink_parameters.h"
-
-void _mavlink_copy_g2p(void)
+void MavlinkTelem::_mavlink_copy_g2p(void)
 {
-  mavlinkTelem.p_my_sysid = MAVLINK_TELEM_MY_SYSID; // cannot be written, only read
-  mavlinkTelem.p_my_compid = MAVLINK_TELEM_MY_COMPID; // cannot be written, only read
+  p.my_sysid = MAVLINK_TELEM_MY_SYSID; // cannot be written, only read
+  p.my_compid = MAVLINK_TELEM_MY_COMPID; // cannot be written, only read
 
-  mavlinkTelem.p_mavlinkRssi = g_model.mavlinkRssi;
-  mavlinkTelem.p_mavlinkRssiScale = g_model.mavlinkRssiScale;
-  mavlinkTelem.p_mavlinkMimicSensors = g_model.mavlinkMimicSensors;
-  mavlinkTelem.p_mavlinkRcOverride = g_model.mavlinkRcOverride;
-  mavlinkTelem.p_mavlinkSendPosition = g_model.mavlinkSendPosition;
+  p.mavlinkRssi = g_model.mavlinkRssi;
+  p.mavlinkRssiScale = g_model.mavlinkRssiScale;
+  p.mavlinkMimicSensors = g_model.mavlinkMimicSensors;
+  p.mavlinkRcOverride = g_model.mavlinkRcOverride;
+  p.mavlinkSendPosition = g_model.mavlinkSendPosition;
 }
 
-void _mavlink_copy_p2g(void)
+void MavlinkTelem::_mavlink_copy_p2g(void)
 {
-  g_model.mavlinkRssi = (mavlinkTelem.p_mavlinkRssi > 0) ? 1 : 0;
-  g_model.mavlinkRssiScale = mavlinkTelem.p_mavlinkRssiScale;
-  g_model.mavlinkMimicSensors = (mavlinkTelem.p_mavlinkMimicSensors > 0) ? 1 : 0;
-  if (mavlinkTelem.p_mavlinkRcOverride > 14) mavlinkTelem.p_mavlinkRcOverride = 0;
-  g_model.mavlinkRcOverride = mavlinkTelem.p_mavlinkRcOverride;
-  g_model.mavlinkSendPosition = (mavlinkTelem.p_mavlinkSendPosition > 0) ? 1 : 0;
+  g_model.mavlinkRssi = (p.mavlinkRssi > 0) ? 1 : 0;
+  g_model.mavlinkRssiScale = p.mavlinkRssiScale;
+  g_model.mavlinkMimicSensors = (p.mavlinkMimicSensors > 0) ? 1 : 0;
+  if (mavlinkTelem.p.mavlinkRcOverride > 14) p.mavlinkRcOverride = 0;
+  g_model.mavlinkRcOverride = p.mavlinkRcOverride;
+  g_model.mavlinkSendPosition = (p.mavlinkSendPosition > 0) ? 1 : 0;
 }
 
 // -- Generate MAVLink messages --
