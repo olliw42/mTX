@@ -135,16 +135,16 @@ modified files in radio/src/
     translations/untranslated.h:     2x
 
 added files
-    telemetry/mavlink/mavlink_telem_autopilot.cpp
-    telemetry/mavlink/mavlink_telem_camera.cpp
-    telemetry/mavlink/mavlink_telem_gimbal.cpp
-    telemetry/mavlink/mavlink_telem_interface.cpp
-    telemetry/mavlink/mavlink_telem_mavapi.cpp
-    telemetry/mavlink/mavlink_telem_qshot.cpp
-    telemetry/mavlink/mavlink_telem.cpp
-    telemetry/mavlink/mavlink_telem.h
-    lua/api_mavlink.cpp
-    lua/api_mavsdk.cpp
+    mavlink/mavlink_telem_autopilot.cpp
+    mavlink/mavlink_telem_camera.cpp
+    mavlink/mavlink_telem_gimbal.cpp
+    mavlink/mavlink_telem_interface.cpp
+    mavlink/mavlink_telem_mavapi.cpp
+    mavlink/mavlink_telem_qshot.cpp
+    mavlink/mavlink_telem.cpp
+    mavlink/mavlink_telem.h
+    mavlink/lua_api_mavlink.cpp
+    mavlink/lua_api_mavsdk.cpp
     thirdparty/Mavlink/
 
 

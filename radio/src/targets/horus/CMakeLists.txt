@@ -353,12 +353,16 @@ if (TELEMETRY_MAVLINK)
     mavlink/mavlink_telem_interface.cpp
     mavlink/mavlink_telem_mavapi.cpp
     mavlink/mavlink_telem_autopilot.cpp 
+    mavlink/mavlink_telem_gcs_and_alike.cpp
     mavlink/mavlink_telem_camera.cpp
     mavlink/mavlink_telem_gimbal.cpp 
     mavlink/mavlink_telem_qshot.cpp
     )
   if (NOT LUA STREQUAL NO)
-    set(SRC ${SRC} mavlink/lua_api_mavlink.cpp mavlink/lua_api_mavsdk.cpp)
+    set(SRC ${SRC} 
+      mavlink/lua_api_mavlink.cpp 
+      mavlink/lua_api_mavsdk.cpp
+      )
   endif()
 endif()
 # //OWEND
