@@ -705,6 +705,12 @@ class MavlinkTelem
     void sendQShotStatus(uint8_t mode, uint8_t shot_state);
     void sendQShotButtonState(uint8_t button_state);
 
+    // local tx GPS for POSITION INT
+    bool txGpsHasPositionIntFix(void)
+    {
+      return _txgps_has_pos_int_fix;
+    }
+
     // SOME more MAVLink stuff
 
     const uint8_t mySysId(void) { return _my_sysid; }
@@ -890,6 +896,7 @@ class MavlinkTelem
     // STUFF
 
     bool _storm32_gimbal_protocol_v2 = false;
+    bool _txgps_has_pos_int_fix = false;
 
     // MORE MAVLINK STUFF
 

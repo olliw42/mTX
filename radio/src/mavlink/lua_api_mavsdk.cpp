@@ -1327,6 +1327,20 @@ static int luaMavsdkGetMissionItem(lua_State *L)
   return 1;
 }
 
+// -- Local Tx GPS --
+
+static int luaMavsdkTxGpsHasPositionIntFix(lua_State *L)
+{
+  lua_pushboolean(L, mavlinkTelem.txGpsHasPositionIntFix());
+  return 1;
+}
+
+static int luaMavsdkIsTxGpsAvailable(lua_State *L)
+{
+  lua_pushboolean(L, (gpsData.tlast != 0));
+  return 1;
+}
+
 // -- Fake RSSI --
 
 static int luaMavsdkOptionIsRssiEnabled(lua_State *L)
@@ -1561,6 +1575,9 @@ const luaL_Reg mavsdkLib[] = {
   { "apCopterFlyPause", luaMavsdkApCopterFlyPause },
   { "apGetRangefinder", luaMavsdkApGetRangefinder },
   { "apGetArmingCheck", luaMavsdkApGetArmingCheck },
+
+  { "txGpsHasPosIntFix", luaMavsdkTxGpsHasPositionIntFix },
+  { "isTxGpsAvailable", luaMavsdkIsTxGpsAvailable },
 
   { "optionIsRssiEnabled", luaMavsdkOptionIsRssiEnabled },
   { "optionEnableRssi", luaMavsdkOptionEnableRssi },

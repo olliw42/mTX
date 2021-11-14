@@ -491,27 +491,29 @@ void MavlinkTelem::doTask(void)
   // do send global position int
   if (g_model.mavlinkSendPosition && param.SYSID_MYGCS >= 0) {
     if ((auxSerialMode == UART_MODE_GPS || aux2SerialMode == UART_MODE_GPS) &&
-        (gpsData.fix) && (gpsData.numSat >= 7) && (gpsData.hdop < 500) &&
         (gpsData.tlast > _gps_tlast)) {
       _gps_tlast = gpsData.tlast;
-      //_gpi_lat = gpsData.latitude * 10; // arg, we lose an order of magnitude
-      //_gpi_lon = gpsData.longitude * 10;
-      //_gpi_alt = (int32_t)gpsData.altitude * 1000; // a comment in gps.h says it would be in 0.1m, but that's not correct, it is in m, as the code in gps.cpp shows
-      _gpi_lat = gpsData.lat_1e7;
-      _gpi_lon = gpsData.lon_1e7;
-      _gpi_alt = gpsData.alt_cm * 10; // the gps height is extremely inaccurate
-      _gpi_relative_alt = 1250; // home altitude ??? just set it to 1.25m
-      _gpi_vx = _gpi_vy = _gpi_vz = 0;
-      if (0) { //gpsData.speed > 10) { //don't do it ever currently
-        constexpr float FPI = 3.141592653589793f;
-        constexpr float FDEGTORAD = FPI/180.0f;
-        float v = gpsData.speed * 0.1f;
-        float course = gpsData.groundCourse * 0.1f * FDEGTORAD;
-        _gpi_vx = cosf(course) * v;
-        _gpi_vy = sinf(course) * v;
+      _txgps_has_pos_int_fix = ((gpsData.fix) && (gpsData.numSat >= 7) && (gpsData.hdop < 300));
+      if (_txgps_has_pos_int_fix) {
+        //_gpi_lat = gpsData.latitude * 10; // arg, we lose an order of magnitude
+        //_gpi_lon = gpsData.longitude * 10;
+        //_gpi_alt = (int32_t)gpsData.altitude * 1000; // a comment in gps.h says it would be in 0.1m, but that's not correct, it is in m, as the code in gps.cpp shows
+        _gpi_lat = gpsData.lat_1e7;
+        _gpi_lon = gpsData.lon_1e7;
+        _gpi_alt = gpsData.alt_cm * 10; // the gps height is extremely inaccurate
+        _gpi_relative_alt = 1250; // home altitude ??? just set it to 1.25m
+        _gpi_vx = _gpi_vy = _gpi_vz = 0;
+        if (0) { //gpsData.speed > 10) { //don't do it ever currently
+          constexpr float FPI = 3.141592653589793f;
+          constexpr float FDEGTORAD = FPI/180.0f;
+          float v = gpsData.speed * 0.1f;
+          float course = gpsData.groundCourse * 0.1f * FDEGTORAD;
+          _gpi_vx = cosf(course) * v;
+          _gpi_vy = sinf(course) * v;
+        }
+        _gpi_hdg = UINT16_MAX; //gpsData.groundCourse * 10;
+        SETTASK(TASK_ME, TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
       }
-      _gpi_hdg = UINT16_MAX; //gpsData.groundCourse * 10;
-      SETTASK(TASK_ME, TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
     }
   }
 
@@ -841,6 +843,8 @@ void MavlinkTelem::_reset(void)
   bytes_tx_persec = 0;
   _msg_tx_persec_cnt = 0;
   _bytes_tx_persec_cnt = 0;
+
+  _txgps_has_pos_int_fix = false;
 
   mavapiInit();
 }

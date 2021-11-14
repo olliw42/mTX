@@ -36,9 +36,9 @@ router timeout
 tx bay send channels
 rssi voice
 my parameters
-send position
+send global position int
 aux serial cleanify
-gps hot enable
+gps hot enable, gps improvements
 x12s
 mavapi: get lib_constants generator correct
 mavapi, params, other small improvements
