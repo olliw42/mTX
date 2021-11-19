@@ -27,11 +27,11 @@
 TODO:
 - is velocity for send GLOBAL_POSITION_INT correct ? is velocity needed for follow to work
 - is_receiving handling should be improved such as to distinguish between a momentary connection lost and a reset of a component
-- new gps nmea parser, loss of precision in lat,lon
 
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
+new gps driver, nmea currently, ubx to set rate to 4Hz, makes huge difference, but set it to 3Hz
 router timeout
 tx bay send channels
 rssi voice

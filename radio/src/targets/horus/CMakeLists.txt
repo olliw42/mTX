@@ -288,7 +288,8 @@ endif()
 
 # //OW
 if(SERIAL_GPS)
-  set(SRC ${SRC} gps.cpp)
+#  set(SRC ${SRC} gps.cpp)
+  set(SRC ${SRC} mavlink/gps2.cpp)
   set(TARGET_SRC ${TARGET_SRC} gps_driver.cpp)
   add_definitions(-DSERIAL_GPS)
   add_definitions(-DINTERNAL_GPS)

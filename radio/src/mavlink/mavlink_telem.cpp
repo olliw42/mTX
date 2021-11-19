@@ -491,23 +491,20 @@ void MavlinkTelem::doTask(void)
   // do send global position int
   if (g_model.mavlinkSendPosition && param.SYSID_MYGCS >= 0) {
     if ((auxSerialMode == UART_MODE_GPS || aux2SerialMode == UART_MODE_GPS) &&
-        (gpsData.tlast > _gps_tlast)) {
-      _gps_tlast = gpsData.tlast;
-      _txgps_has_pos_int_fix = ((gpsData.fix) && (gpsData.numSat >= 7) && (gpsData.hdop < 300));
+        (gps_msg_received_tlast > _gps_tlast)) {
+      _gps_tlast = gps_msg_received_tlast;
+      _txgps_has_pos_int_fix = ((gpsData.fix) && (gpsData.numSat >= 8) && (gpsData.hdop < 150));
       if (_txgps_has_pos_int_fix) {
-        //_gpi_lat = gpsData.latitude * 10; // arg, we lose an order of magnitude
-        //_gpi_lon = gpsData.longitude * 10;
-        //_gpi_alt = (int32_t)gpsData.altitude * 1000; // a comment in gps.h says it would be in 0.1m, but that's not correct, it is in m, as the code in gps.cpp shows
-        _gpi_lat = gpsData.lat_1e7;
-        _gpi_lon = gpsData.lon_1e7;
-        _gpi_alt = gpsData.alt_cm * 10; // the gps height is extremely inaccurate
+        _gpi_lat = gpsData2.lat_1e7;
+        _gpi_lon = gpsData2.lon_1e7;
+        _gpi_alt = gpsData2.alt_cm * 10; // the gps height is extremely inaccurate
         _gpi_relative_alt = 1250; // home altitude ??? just set it to 1.25m
         _gpi_vx = _gpi_vy = _gpi_vz = 0;
         if (0) { //gpsData.speed > 10) { //don't do it ever currently
           constexpr float FPI = 3.141592653589793f;
           constexpr float FDEGTORAD = FPI/180.0f;
-          float v = gpsData.speed * 0.1f;
-          float course = gpsData.groundCourse * 0.1f * FDEGTORAD;
+          float v = gpsData2.speed_cms * 0.01f;
+          float course = gpsData2.cog_cdeg * 0.01f * FDEGTORAD;
           _gpi_vx = cosf(course) * v;
           _gpi_vy = sinf(course) * v;
         }

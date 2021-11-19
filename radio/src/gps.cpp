@@ -114,15 +114,7 @@ uint32_t grab_fields(char * src, uint8_t mult)
       if (mult == 0)
         break;
       else
-//OW
-//        src[i + mult] = 0;
-      {
-        for (uint32_t j = i; j < i + mult; j++) {
-          if (src[j] < '0' || src[j] > '9') src[j] = '0';
-        }
-        src[i + mult] = '\0';
-      }
-//OWEND
+        src[i + mult] = 0;
     }
     tmp *= 10;
     if (src[i] >= '0' && src[i] <= '9')
@@ -145,11 +137,6 @@ typedef struct gpsDataNmea_s
   uint16_t hdop;
   uint32_t date;
   uint32_t time;
-//OW
-  int32_t lat_1e7; // degrees * 1E7
-  int32_t lon_1e7; // degrees * 1E7
-  int32_t alt_cm; // altitude in cm
-//OWEND
 } gpsDataNmea_t;
 
 bool gpsNewFrameNMEA(char c)
@@ -198,9 +185,6 @@ bool gpsNewFrameNMEA(char c)
           switch (param) {
             case 2:
               gps_Msg.latitude = GPS_coord_to_degrees(string);
-//OW
-              gps_Msg.lat_1e7 = gps_Msg.latitude * 10; //TODO: get it more precise
-//OWEND
               break;
             case 3:
               if (string[0] == 'S')
@@ -208,9 +192,6 @@ bool gpsNewFrameNMEA(char c)
               break;
             case 4:
               gps_Msg.longitude = GPS_coord_to_degrees(string);
-//OW
-              gps_Msg.lon_1e7 = gps_Msg.longitude * 10; //TODO: get it more precise
-//OWEND
               break;
             case 5:
               if (string[0] == 'W')
@@ -232,9 +213,6 @@ bool gpsNewFrameNMEA(char c)
               break;
             case 9:
               gps_Msg.altitude = grab_fields(string, 0);     // altitude in meters added by Mis
-//OW
-              gps_Msg.alt_cm = grab_fields(string, 2); // altitude in cm
-//OWEND
               break;
           }
           break;
@@ -291,15 +269,7 @@ bool gpsNewFrameNMEA(char c)
                 gpsData.longitude = gps_Msg.longitude;
                 gpsData.altitude = gps_Msg.altitude;
                 __enable_irq();
-//OW
-                gpsData.lat_1e7 = gps_Msg.lat_1e7;
-                gpsData.lon_1e7 = gps_Msg.lon_1e7;
-                gpsData.alt_cm = gps_Msg.alt_cm;
-//OWEND
               }
-//OW
-              gpsData.tlast = get_tmr10ms();
-//OWEND
               break;
             case FRAME_RMC:
               gpsData.speed = gps_Msg.speed;
@@ -355,12 +325,6 @@ void gpsWakeup()
   while (gpsGetByte(&byte)) {
     gpsNewData(byte);
   }
-//OW
-#if defined(SERIAL_GPS)
-  tmr10ms_t tnow = get_tmr10ms();
-  if ((tnow - gpsData.tlast) > 500) gpsClear();
-#endif
-//OWEND
 }
 
 char hex(uint8_t b) {
@@ -386,8 +350,5 @@ void gpsSendFrame(const char * frame)
 }
 
 //OW
-void gpsClear()
-{
-  memset(&gpsData, 0, sizeof(gpsdata_t));
-}
+void gpsClear() {}
 //OWEND

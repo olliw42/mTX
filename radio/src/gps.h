@@ -36,12 +36,6 @@ struct gpsdata_t
   uint16_t speed;                 // speed in 0.1m/s
   uint16_t groundCourse;          // degrees * 10
   uint16_t hdop;
-//OW
-  tmr10ms_t tlast;
-  int32_t lat_1e7; // degrees * 1E7
-  int32_t lon_1e7; // degrees * 1E7
-  int32_t alt_cm; // altitude in cm
-//OWEND
 };
 
 extern gpsdata_t gpsData;
@@ -50,7 +44,18 @@ void gpsWakeup();
 void gpsSendFrame(const char * frame);
 
 //OW
-void gpsClear();
+// extension to OpenTx's gpsdata_t structure
+typedef struct {
+  int32_t lat_1e7; // in 1e7 deg, 1e7 = 1°
+  int32_t lon_1e7; // in 1e7 deg, 1e7 = 1°
+  int32_t alt_cm; // in cm, 10 = 1m, is above sea level in m
+  int32_t speed_cms; // in cm / s, 100 = 1 m/s
+  uint16_t cog_cdeg; // in cdeg, 100 = 1°
+} gpsdata2_t;
+
+extern tmr10ms_t gps_msg_received_tlast;
+extern gpsdata2_t gpsData2;
+void gpsClear(void);
 //OWEND
 
 #endif // _GPS_H_

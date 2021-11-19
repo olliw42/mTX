@@ -1337,7 +1337,7 @@ static int luaMavsdkTxGpsHasPositionIntFix(lua_State *L)
 
 static int luaMavsdkIsTxGpsAvailable(lua_State *L)
 {
-  lua_pushboolean(L, (gpsData.tlast != 0));
+  lua_pushboolean(L, (gps_msg_received_tlast != 0));
   return 1;
 }
 
