@@ -1328,18 +1328,43 @@ static int luaMavsdkGetMissionItem(lua_State *L)
 }
 
 // -- Local Tx GPS --
+// doesn't really belong to here, but for the moment let's accept it
 
-static int luaMavsdkTxGpsHasPositionIntFix(lua_State *L)
+static int luaMavsdkTxGpsHasPositionFix(lua_State *L)
 {
-  lua_pushboolean(L, mavlinkTelem.txGpsHasPositionIntFix());
+  lua_pushboolean(L, gpsData2.has_pos_fix);
   return 1;
 }
 
-static int luaMavsdkIsTxGpsAvailable(lua_State *L)
+static int luaMavsdkTxGpsIsAvailable(lua_State *L)
 {
   lua_pushboolean(L, (gps_msg_received_tlast != 0));
   return 1;
 }
+
+static int luaMavsdkGetTxGps(lua_State * L)
+{
+  lua_createtable(L, 0, 11);
+  lua_pushtableinteger(L, "fix", gpsData2.fix);
+  lua_pushtableinteger(L, "hdop", gpsData.hdop);
+  lua_pushtableinteger(L, "vdop", gpsData2.vdop);
+  lua_pushtablenumber(L, "lat", gpsData2.lat_1e7 * 0.0000001);
+  lua_pushtablenumber(L, "lon", gpsData2.lon_1e7 * 0.0000001);
+  lua_pushtablenumber(L, "alt", gpsData2.alt_mm * 0.001);
+  lua_pushtablenumber(L, "speed", gpsData2.speed_mms * 0.001);
+  lua_pushtablenumber(L, "heading", gpsData2.cog_cdeg * 0.01);
+  lua_pushtablenumber(L, "velN", gpsData2.velN_mms * 0.001);
+  lua_pushtablenumber(L, "velE", gpsData2.velE_mms * 0.001);
+  lua_pushtablenumber(L, "velD", gpsData2.velD_mms * 0.001);
+  return 1;
+}
+
+static int luaMavsdkIsSendingPositionInt(lua_State *L)
+{
+  lua_pushboolean(L, (mavlinkTelem.isSendingPositionInt() != 0));
+  return 1;
+}
+
 
 // -- Fake RSSI --
 
@@ -1576,8 +1601,10 @@ const luaL_Reg mavsdkLib[] = {
   { "apGetRangefinder", luaMavsdkApGetRangefinder },
   { "apGetArmingCheck", luaMavsdkApGetArmingCheck },
 
-  { "txGpsHasPosIntFix", luaMavsdkTxGpsHasPositionIntFix },
-  { "isTxGpsAvailable", luaMavsdkIsTxGpsAvailable },
+  { "txGpsIsAvailable", luaMavsdkTxGpsIsAvailable },
+  { "txGpsHasPosFix", luaMavsdkTxGpsHasPositionFix },
+  { "getTxGps", luaMavsdkGetTxGps },
+  { "isSendingPosInt", luaMavsdkIsSendingPositionInt },
 
   { "optionIsRssiEnabled", luaMavsdkOptionIsRssiEnabled },
   { "optionEnableRssi", luaMavsdkOptionEnableRssi },

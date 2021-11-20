@@ -6,12 +6,15 @@
 #include "opentx.h"
 
 
+#define GPS_TIMEOUT_10MS   500 // 5 sec
+
 tmr10ms_t gps_msg_received_tlast = 0;
 
 gpsdata2_t gpsData2 = {0};
 
 void gps_parse_nextchar(char c);
 void gps_reset(void);
+void gps_do(void);
 
 
 //-------------------------------------------------------
@@ -54,8 +57,9 @@ void gpsWakeup()
   while (gpsGetByte(&byte)) {
     gps_parse_nextchar(byte); // gpsNewData(byte);
   }
+  gps_do();
   tmr10ms_t tnow = get_tmr10ms();
-  if ((tnow - gps_msg_received_tlast) > 500) gpsClear(); // timeout of 5 sec
+  if ((tnow - gps_msg_received_tlast) > GPS_TIMEOUT_10MS) gpsClear();
 }
 
 void gpsClear(void)
@@ -70,10 +74,6 @@ void gpsClear(void)
 //-------------------------------------------------------
 // New GPS Driver
 //-------------------------------------------------------
-
-#define GPS_LOCATION_VALID_QUALITY  1
-#define GPS_LOCATION_VALID_HDOP     150 //1.5
-#define GPS_LOCATION_VALID_SAT      8
 
 typedef enum {
   GPS_PARSER_STATE_IDLE = 0,
@@ -93,6 +93,20 @@ typedef enum {
 typedef enum {
   GPS_INIT_STATE_IDLE = 0,
   GPS_INIT_STATE_START,
+  // disable NMEA messages
+  GPS_INIT_STATE_DISABLE_TXT,
+  GPS_INIT_STATE_DISABLE_GSA,
+  GPS_INIT_STATE_DISABLE_GSV,
+  GPS_INIT_STATE_DISABLE_GLL,
+  GPS_INIT_STATE_DISABLE_VTG,
+  GPS_INIT_STATE_DISABLE_RMC,
+  GPS_INIT_STATE_DISABLE_GGA,
+  GPS_INIT_STATE_DISABLE_NMEA,
+  // do UBX stuff
+  GPS_INIT_STATE_UBX_ENABLE_DOP1,
+  GPS_INIT_STATE_UBX_ENABLE_SOL1,
+  GPS_INIT_STATE_UBX_ENABLE_PVT1,
+  GPS_INIT_STATE_UBX_RATE,
 } GPSINITSTATEENUM;
 
 
@@ -138,8 +152,7 @@ typedef struct {
   };
 
   uint8_t initialized;
-  uint8_t init_step;
-  uint16_t init_mask;
+  uint8_t init_state;
   tmr10ms_t init_timefornextstep_10ms;
 } tGps;
 
@@ -189,90 +202,158 @@ uint8_t nmea_digestmsg(tGps* gps)
   if (gps->nmea_msg.TalkerID == NMEA_TALKER_UNDEFIND) return 0;
 
   gpsData.packetCount++;
-  uint8_t res = 0;
 
-  if (gps->nmea_msg.SentenceID == NMEA_SENTENCE_GGA) {
-      tNmeaGGA sentence;
-      if (!nmea_parse_GGA(&sentence, &(gps->nmea_msg) )) return 0;
-
-      int32_t latitude = sentence.lat_1e7 / 10; // OpenTx wants it in 1e6
-      int32_t longitude = sentence.lon_1e7 / 10; // OpenTx wants it in 1e6
-      int32_t altitude = sentence.alt_cm / 100; // OpenTx wants it in m // NOTE: the lua description is incorrect!
-
-      // this is GPGGA, so we do the update
-      gpsData.fix = (sentence.fix) ? 1 : 0;
-      gpsData.numSat = sentence.sat;
-      gpsData.hdop = sentence.hdop;
-      if (gpsData.fix) {
-        __disable_irq(); // do the atomic update of lat/lon
-        gpsData.latitude = latitude;
-        gpsData.longitude = longitude;
-        gpsData.altitude = altitude;
-        __enable_irq();
-
-        gpsData2.lat_1e7 = sentence.lat_1e7;
-        gpsData2.lon_1e7 = sentence.lon_1e7;
-        gpsData2.alt_cm = sentence.alt_cm;
-      }
-
-      gps_msg_received_tlast = get_tmr10ms();
-      res = 1;
-  }
-  if (gps->nmea_msg.SentenceID == NMEA_SENTENCE_RMC) {
-      tNmeaRMC sentence;
-      if (!nmea_parse_RMC(&sentence, &(gps->nmea_msg) )) return 0;
-
-      gpsData.speed = sentence.speed_cms; // OpenTx wants it in cms
-      gpsData.groundCourse = sentence.cog_cdeg / 10; // OpenTx wants it in ddeg
-
-      res = 1;
-#if defined(RTCLOCK) && 0
-      // set RTC clock if needed
-      if (g_eeGeneral.adjustRTC && sentence.fix) {
-          div_t qr = div(sentence.date, 100);
-          uint8_t year = qr.rem;
-          qr = div(qr.quot, 100);
-          uint8_t mon = qr.rem;
-          uint8_t day = qr.quot;
-          qr = div(sentence.time, 100);
-          uint8_t sec = qr.rem;
-          qr = div(qr.quot, 100);
-          uint8_t min = qr.rem;
-          uint8_t hour = qr.quot;
-          rtcAdjust(year+2000, mon, day, hour, min, sec);
-      }
-#endif
-  }
-
-  if (_gps.initialized) return res;
-
-  // turn off frames, and initialize rate (do this only once a second)
-  static tmr10ms_t gps_cmd_send_tlast = 0;
-
-  tmr10ms_t tnow = get_tmr10ms();
-  if ((tnow - gps_cmd_send_tlast) > 100) {
-      switch (gps->nmea_msg.SentenceID) {
-      case NMEA_SENTENCE_VTG: nmea_send_pubx_disable("VTG"); gps_cmd_send_tlast = tnow; break;
-      case NMEA_SENTENCE_GSA: nmea_send_pubx_disable("GSA"); gps_cmd_send_tlast = tnow; break;
-      case NMEA_SENTENCE_GSV: nmea_send_pubx_disable("GSV"); gps_cmd_send_tlast = tnow; break;
-      case NMEA_SENTENCE_GLL: nmea_send_pubx_disable("GLL"); gps_cmd_send_tlast = tnow; break;
-      case NMEA_SENTENCE_TXT: nmea_send_pubx_disable("TXT"); gps_cmd_send_tlast = tnow; break;
-      default:
-          if ((tnow - gps_cmd_send_tlast) > 200) {
-              //ubx_send_cnfrate(250); // 4 Hz output rate, more is not reasonable at 9600bps
-              ubx_send_cnfrate(333); // 4 Hz works, but play it safe and go with 3 Hz
-              _gps.initialized = 1;
-          }
+  if (!_gps.initialized && !_gps.init_state) {
+      if (gps->nmea_msg.SentenceID == NMEA_SENTENCE_GGA) { // wait for all initial TXT sentences having passed
+          _gps.init_state = GPS_INIT_STATE_START;
       }
   }
 
-  return res;
-};
+  return 1;
+}
 
 
 uint8_t ubx_digestmsg(tGps* gps)
 {
+  gpsData.packetCount++;
+
+  if (gps->ubx_msg.ClassID != UBX_CLASS_NAV) return 0;
+
+  if (gps->ubx_msg.MessageID == UBX_NAV_PVT) {
+      if (gps->ubx_msg.Length != UBLOX_UBXNAVPVT_LEN) return 0; // should never happen, but play it safe
+
+      gps_msg_received_tlast = get_tmr10ms(); // mark it as received, and reset timeout
+
+      tUbxNavPvtPacket pvt;
+      memcpy(&pvt, gps->buf, sizeof(tUbxNavPvtPacket));
+
+      // give OpenTx what it wants
+      int32_t latitude = pvt.lat / 10; // OpenTx wants it in 1e6
+      int32_t longitude = pvt.lon / 10; // OpenTx wants it in 1e6
+      int32_t altitude = pvt.hMSL / 1000; // OpenTx wants it in m // NOTE: the lua description is incorrect!
+
+      //gpsData.fix = (pvt.fixType >= UBX_NAV_PVT_FIXTYPE_2DFIX && pvt.fixType <= UBX_NAV_PVT_FIXTYPE_3DFIX) ? 1 : 0;
+      gpsData.fix = (pvt.flags & UBX_NAV_PVT_FLAGS_GNSSFIXOK) ? 1 : 0;
+      gpsData.numSat = pvt.numSV;
+
+      if (gpsData.fix) {
+          __disable_irq(); // do the atomic update of lat/lon
+          gpsData.latitude = latitude;
+          gpsData.longitude = longitude;
+          gpsData.altitude = altitude;
+          __enable_irq();
+      }
+
+      gpsData.speed = pvt.gSpeed / 10; // OpenTx wants it in cm/s
+      gpsData.groundCourse = pvt.headMot / 10000; // OpenTx wants it in ddeg
+
+      // that's what we want in addition
+      gpsData2.fix = 0;
+      if (pvt.flags & UBX_NAV_PVT_FLAGS_GNSSFIXOK) { // flags bitfield says that fix is OK
+          switch (pvt.fixType) {
+          case UBX_NAV_PVT_FIXTYPE_2DFIX:
+              gpsData2.fix = 2;
+              break;
+          case UBX_NAV_PVT_FIXTYPE_3DFIX:
+          case UBX_NAV_PVT_FIXTYPE_GNSSDEADRECKONING:
+              gpsData2.fix = 3;
+              break;
+          }
+      }
+      gpsData2.has_pos_fix = ((gpsData2.fix >= 3) && (gpsData.numSat >= 8) && (gpsData.hdop < 150));
+
+      gpsData2.lat_1e7 = pvt.lat;
+      gpsData2.lon_1e7 = pvt.lon;
+      gpsData2.alt_mm = pvt.hMSL;
+      gpsData2.speed_mms = pvt.gSpeed;
+      gpsData2.cog_cdeg = pvt.headMot / 1000;
+
+      gpsData2.velN_mms = pvt.velN;
+      gpsData2.velE_mms = pvt.velE;
+      gpsData2.velD_mms = pvt.velD;
+
+#if defined(RTCLOCK) && 0
+      // set RTC clock if needed
+      if (g_eeGeneral.adjustRTC && gpsData.fix) {
+          uint8_t year = pvt.year; //TODO: check if all these are correct !!!!!
+          uint8_t mon = pvt.month;
+          uint8_t day = pvt.day;
+          uint8_t sec = pvt.sec;
+          uint8_t min = pvt.min;
+          uint8_t hour = pvt.hour;
+          rtcAdjust(year+2000, mon, day, hour, min, sec);
+      }
+#endif
+      return 1;
+  }
+
+  if (gps->ubx_msg.MessageID == UBX_NAV_DOP) {
+      if (gps->ubx_msg.Length != UBLOX_UBXNAVDOP_LEN) return 0; // should never happen, but play it safe
+
+      tUbxNavDopPacket dop;
+      memcpy(&dop, gps->buf, sizeof(tUbxNavDopPacket));
+
+      // give OpenTx what it wants
+      gpsData.hdop = dop.hDOP;
+
+      // that's what we want in addition
+      gpsData2.vdop = dop.vDOP;
+
+      return 1;
+  }
+
   return 0;
+};
+
+
+void gps_do(void)
+{
+  if (_gps.initialized) return;
+
+  tmr10ms_t tnow = get_tmr10ms();
+  gps_msg_received_tlast = tnow; // we mark it as received, this prevents reset
+
+  if (_gps.init_state == GPS_INIT_STATE_IDLE) return;
+
+  if (_gps.init_state == GPS_INIT_STATE_START) {
+      _gps.state = GPS_PARSER_STATE_IDLE; // reset parser
+      _gps.init_timefornextstep_10ms = tnow + 25; // wait a bit, to not interrupt the current NMEA stream
+      _gps.init_state = GPS_INIT_STATE_DISABLE_NMEA;
+  }
+
+  if (tnow < _gps.init_timefornextstep_10ms) return;
+
+  switch (_gps.init_state) {
+  case GPS_INIT_STATE_DISABLE_NMEA:
+      nmea_send_pubx_cnfg();
+      _gps.init_timefornextstep_10ms = tnow + 50;
+      _gps.init_state = GPS_INIT_STATE_UBX_ENABLE_DOP1;
+      break;
+  case GPS_INIT_STATE_UBX_ENABLE_DOP1:
+      ubx_send_cnfmsg_dop1();
+      _gps.init_timefornextstep_10ms = tnow + 50;
+      _gps.init_state = GPS_INIT_STATE_UBX_ENABLE_PVT1;
+      break;
+  case GPS_INIT_STATE_UBX_ENABLE_PVT1:
+      ubx_send_cnfmsg_pvt1();
+      _gps.init_timefornextstep_10ms = tnow + 50;
+      _gps.init_state = GPS_INIT_STATE_UBX_RATE;
+      break;
+  case GPS_INIT_STATE_UBX_RATE:
+      // PVT: 8 + 92 = 100 bytes
+      // DOP: 8 + 18 = 26 bytes
+      // 5 Hz with PVT & DOP = 5 x 126 bytes/s = 630 bytes/2 = 66% of bandwidth @ 9600bps
+      switch (g_model.mavlinkSendPosition) {
+      case 1: ubx_send_cnfrate(1000); break; // 1 Hz
+      case 2: ubx_send_cnfrate(500); break; // 2 Hz
+      case 3: ubx_send_cnfrate(333); break; // 3 Hz
+      case 4: ubx_send_cnfrate(250); break; // 4 Hz
+      case 5: ubx_send_cnfrate(200); break; // 5 Hz
+      default: ubx_send_cnfrate(1000); break; // 1 Hz
+      }
+      _gps.initialized = 1;
+      break;
+  }
 };
 
 

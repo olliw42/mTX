@@ -16,6 +16,17 @@ uint8_t ubx_digestmsg(tGps* gps);
 //-------------------------------------------------------
 // UBX
 //-------------------------------------------------------
+// ubx frame structure
+// stx1         = 1 byte
+// stx2         = 1 byte
+// class id     = 1 byte
+// message id   = 1 byte
+// payload len  = 2 bytes
+// payload
+// crc          = 2 bytes
+// => header len = 6 bytes
+// => frame len = 8 + payload len
+
 
 #define UBX_STARTSIGN1            0xB5
 #define UBX_STARTSIGN2            0x62
@@ -51,7 +62,7 @@ typedef struct {
 */
 
 
-static inline void ubx_putc_wcrc(char c, uint8_t* crcA, uint8_t* crcB)
+static inline void _ubx_putc_wcrc(char c, uint8_t* crcA, uint8_t* crcB)
 {
   gps_hal_putc(c);
   (*crcA) += c;
@@ -59,19 +70,19 @@ static inline void ubx_putc_wcrc(char c, uint8_t* crcA, uint8_t* crcB)
 }
 
 
-void ubx_send(uint16_t clas, uint16_t message, uint8_t* payload, uint16_t len)
+void ubx_send(uint8_t classid, uint8_t msgid, uint8_t* payload, uint16_t len)
 {
 uint8_t crcA = 0, crcB = 0;
 
   gps_hal_putc(UBX_STARTSIGN1);
   gps_hal_putc(UBX_STARTSIGN2);
 
-  ubx_putc_wcrc(clas, &crcA, &crcB);
-  ubx_putc_wcrc(message, &crcA, &crcB);
-  ubx_putc_wcrc(len, &crcA, &crcB);
-  ubx_putc_wcrc(len >> 8, &crcA, &crcB);
+  _ubx_putc_wcrc(classid, &crcA, &crcB);
+  _ubx_putc_wcrc(msgid, &crcA, &crcB);
+  _ubx_putc_wcrc(len, &crcA, &crcB);
+  _ubx_putc_wcrc(len >> 8, &crcA, &crcB);
   for(uint16_t n = 0; n < len; n++) {
-      ubx_putc_wcrc(payload[n], &crcA, &crcB);
+      _ubx_putc_wcrc(payload[n], &crcA, &crcB);
   }
 
   gps_hal_putc(crcA);
@@ -228,10 +239,10 @@ typedef struct {
 // UBX NAV SOL 0x06
 
 typedef enum {
-  UBX_NAV_SOL_GNSSFIXOK = (1<<0),
-  UBX_NAV_SOL_DIFFSOLN = (1<<1),
-  UBX_NAV_SOL_WKNSET = (1<<2),
-  UBX_NAV_SOL_TOWSET = (1<<3),
+  UBX_NAV_SOL_FLAGS_GNSSFIXOK = (1<<0),
+  UBX_NAV_SOL_FLAGS_DIFFSOLN = (1<<1),
+  UBX_NAV_SOL_FLAGS_WKNSET = (1<<2),
+  UBX_NAV_SOL_FLAGS_TOWSET = (1<<3),
 } UBXNAVSOLFLAGSENUM;
 
 GPS_PACKED(
@@ -258,38 +269,39 @@ typedef struct {
 // UBX NAV PVT 0x07
 
 typedef enum {
-  UBX_NAV_PVT_VALIDDATE = (1<<0),
-  UBX_NAV_PVT_VALIDTIME = (1<<1),
-  UBX_NAV_PVT_FULLYRESOLVED = (1<<2),
+  UBX_NAV_PVT_VALID_DATE = (1<<0),
+  UBX_NAV_PVT_VALID_TIME = (1<<1),
+  UBX_NAV_PVT_VALID_FULLYRESOLVED = (1<<2),
+  UBX_NAV_PVT_VALID_MAG = (1<<3),
 } UBXNAVPVTVALIDENUM;
 
 typedef enum {
-  UBX_NAV_PVT_NOFIX = 0,
-  UBX_NAV_PVT_DEADRECKONINGONLY = 1,
-  UBX_NAV_PVT_2DFIX = 2,
-  UBX_NAV_PVT_3DFIX = 3,
-  UBX_NAV_PVT_GNSSDEADRECKONING = 4,
-  UBX_NAV_PVT_TIMEONLYFIX = 5,
-} UBXNAVPVTFIXENUM;
+  UBX_NAV_PVT_FIXTYPE_NOFIX = 0,
+  UBX_NAV_PVT_FIXTYPE_DEADRECKONINGONLY = 1,
+  UBX_NAV_PVT_FIXTYPE_2DFIX = 2,
+  UBX_NAV_PVT_FIXTYPE_3DFIX = 3,
+  UBX_NAV_PVT_FIXTYPE_GNSSDEADRECKONING = 4,
+  UBX_NAV_PVT_FIXTYPE_TIMEONLYFIX = 5,
+} UBXNAVPVTFIXTYPEENUM;
 
 typedef enum {
-  UBX_NAV_PVT_GNSSFIXOK = (1<<0),
-  UBX_NAV_PVT_DIFFSOLN = (1<<1),
-  UBX_NAV_PVT_HEADVEHVALID = (1<<5),
+  UBX_NAV_PVT_FLAGS_GNSSFIXOK = (1<<0),
+  UBX_NAV_PVT_FLAGS_DIFFSOLN = (1<<1),
+  UBX_NAV_PVT_FLAGS_HEADVEHVALID = (1<<5),
 } UBXNAVPVTFLAGSENUM;
 
 typedef enum {
-  UBX_NAV_PVT_CONFIRMAVAIL = (1<<5),
-  UBX_NAV_PVT_CONFIRMDATE = (1<<6),
-  UBX_NAV_PVT_CONFIRMTIME = (1<<7),
+  UBX_NAV_PVT_FLAGS2_CONFIRMAVAIL = (1<<5),
+  UBX_NAV_PVT_FLAGS2_CONFIRMDATE = (1<<6),
+  UBX_NAV_PVT_FLAGS2_CONFIRMTIME = (1<<7),
 } UBXNAVPVTFLAGS2ENUM;
 
 GPS_PACKED(
 typedef struct {
   uint32_t iTOW;        // ms
   uint16_t year;
-  uint8_t  month;
-  uint8_t  day;         // d, 1..-31
+  uint8_t  month;       // m, 1...12
+  uint8_t  day;         // d, 1...31
   uint8_t  hour;        // h, 0...23
   uint8_t  min;         // min, 0...59
   uint8_t  sec;         // s, 0...60
@@ -422,7 +434,6 @@ static inline void ubx_send_cnfprt_default(void)
 {
    ubx_send(UBX_CLASS_CFG, UBX_CNF_PRT, (uint8_t*)UBLOX_UBXCNFPRT_DEFAULT, UBLOX_UBXCNFPRT_LEN);
 }
-
 
 
 #endif // GPS_UBX_H

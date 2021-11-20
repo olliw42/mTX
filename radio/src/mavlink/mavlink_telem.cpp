@@ -125,9 +125,8 @@ void MavlinkTelem::_mavlink_copy_p2g(void)
   g_model.mavlinkRssi = (p.mavlinkRssi > 0) ? 1 : 0;
   g_model.mavlinkRssiScale = p.mavlinkRssiScale;
   g_model.mavlinkMimicSensors = (p.mavlinkMimicSensors > 0) ? 1 : 0;
-  if (mavlinkTelem.p.mavlinkRcOverride > 14) p.mavlinkRcOverride = 0;
-  g_model.mavlinkRcOverride = p.mavlinkRcOverride;
-  g_model.mavlinkSendPosition = (p.mavlinkSendPosition > 0) ? 1 : 0;
+  g_model.mavlinkRcOverride = (p.mavlinkRcOverride <= 14) ? p.mavlinkRcOverride : 0;
+  g_model.mavlinkSendPosition = (p.mavlinkSendPosition <= 5) ? p.mavlinkSendPosition : 0;
 }
 
 // -- Generate MAVLink messages --
@@ -259,7 +258,8 @@ void MavlinkTelem::sendGolbalPositionInt(int32_t lat, int32_t lon, float alt, fl
   _gpi_vx = vx * 100.0f;
   _gpi_vy = vy * 100.0f;
   _gpi_vz = vz * 100.0f;
-  _gpi_hdg = (hdg_deg > 360.0f) ? UINT16_MAX : hdg_deg;
+  if (hdg_deg < 0.0f) hdg_deg += 360.0f;
+  _gpi_hdg = (hdg_deg > 360.0f) ? UINT16_MAX : hdg_deg * 100.0f;
   SETTASK(TASK_ME, TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
 }
 
@@ -488,29 +488,29 @@ void MavlinkTelem::doTask(void)
     }
   }
 
-  // do send global position int
+  // so send global position int
   if (g_model.mavlinkSendPosition && param.SYSID_MYGCS >= 0) {
-    if ((auxSerialMode == UART_MODE_GPS || aux2SerialMode == UART_MODE_GPS) &&
-        (gps_msg_received_tlast > _gps_tlast)) {
-      _gps_tlast = gps_msg_received_tlast;
-      _txgps_has_pos_int_fix = ((gpsData.fix) && (gpsData.numSat >= 8) && (gpsData.hdop < 150));
-      if (_txgps_has_pos_int_fix) {
+    if (gps_msg_received_tlast > _txgps_tlast && gpsData2.has_pos_fix) {
+      _txgps_tlast = gps_msg_received_tlast;
+      _is_sending_pos_int = true;
+
+        // lat,lon in 1e7, alt in mm, v in cm/s, heading in cdeg
         _gpi_lat = gpsData2.lat_1e7;
         _gpi_lon = gpsData2.lon_1e7;
-        _gpi_alt = gpsData2.alt_cm * 10; // the gps height is extremely inaccurate
+        _gpi_alt = gpsData2.alt_mm; // the gps height is extremely inaccurate
         _gpi_relative_alt = 1250; // home altitude ??? just set it to 1.25m
         _gpi_vx = _gpi_vy = _gpi_vz = 0;
-        if (0) { //gpsData.speed > 10) { //don't do it ever currently
+        _gpi_hdg = UINT16_MAX;
+        if (0) { // gpsData2.speed_mms > 5000) { //from m8 tests: above 5m/s the speed and heading is good
           constexpr float FPI = 3.141592653589793f;
           constexpr float FDEGTORAD = FPI/180.0f;
-          float v = gpsData2.speed_cms * 0.01f;
+          float v = gpsData2.speed_mms * 0.001f;
           float course = gpsData2.cog_cdeg * 0.01f * FDEGTORAD;
-          _gpi_vx = cosf(course) * v;
-          _gpi_vy = sinf(course) * v;
+          _gpi_vx = 100.0f * cosf(course) * v;
+          _gpi_vy = 100.0f * sinf(course) * v;
+          _gpi_hdg = gpsData2.cog_cdeg;
         }
-        _gpi_hdg = UINT16_MAX; //gpsData.groundCourse * 10;
         SETTASK(TASK_ME, TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
-      }
     }
   }
 
@@ -632,7 +632,7 @@ void MavlinkTelem::wakeup()
 
   if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) mavlinkTelemExternal_wakeup();
 
-  // skip out if not one of the serial1, serial2 is enabled
+  // skip out if not at least one of the serial1, serial2 is enabled
   if (!serial1_enabled && !serial2_enabled) return;
 
   // look for incoming messages on all channels
@@ -841,7 +841,8 @@ void MavlinkTelem::_reset(void)
   _msg_tx_persec_cnt = 0;
   _bytes_tx_persec_cnt = 0;
 
-  _txgps_has_pos_int_fix = false;
+  gpsData2.has_pos_fix = false;
+  _is_sending_pos_int = false;
 
   mavapiInit();
 }

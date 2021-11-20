@@ -1408,14 +1408,15 @@ bool menuModelSetup(event_t event)
 
       case ITEM_MODEL_SETUP_MAVLINK_RCOVERRIDE: {
         lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MAVLINK_RC_OVERRIDE);
-        if (g_model.mavlinkRcOverride > 14) g_model.mavlinkRcOverride = 7; // sanitize
+        if (g_model.mavlinkRcOverride > 14) g_model.mavlinkRcOverride = 0; // sanitize
         g_model.mavlinkRcOverride = editChoice(MODEL_SETUP_2ND_COLUMN, y, STR_MAVLINK_RC_OVERRIDE_FREQUENCIES, g_model.mavlinkRcOverride, 0, 14, attr, event);
         break;
       }
 
       case ITEM_MODEL_SETUP_MAVLINK_SENDPOSITION: {
-        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, "Send Position");
-        g_model.mavlinkSendPosition = editCheckBox(g_model.mavlinkSendPosition, MODEL_SETUP_2ND_COLUMN, y, attr, event);
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_MAVLINK_SEND_POSITION);
+        if (g_model.mavlinkSendPosition > 5) g_model.mavlinkSendPosition = 0; // sanitize
+        g_model.mavlinkSendPosition = editChoice(MODEL_SETUP_2ND_COLUMN, y, STR_MAVLINK_SEND_POSITION_FREQUENCIES, g_model.mavlinkSendPosition, 0, 5, attr, event);
         break;
       }
 #endif

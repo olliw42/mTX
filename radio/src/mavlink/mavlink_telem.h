@@ -706,10 +706,7 @@ class MavlinkTelem
     void sendQShotButtonState(uint8_t button_state);
 
     // local tx GPS for POSITION INT
-    bool txGpsHasPositionIntFix(void)
-    {
-      return _txgps_has_pos_int_fix;
-    }
+    bool isSendingPositionInt(void) { return _is_sending_pos_int; }
 
     // SOME more MAVLink stuff
 
@@ -748,7 +745,7 @@ class MavlinkTelem
     uint8_t _my_compid = MAVLINK_TELEM_MY_COMPID;
     tmr10ms_t _my_heartbeat_tlast = 0;
     tmr10ms_t _rcoverride_tlast = 0;
-    tmr10ms_t _gps_tlast = 0;
+    tmr10ms_t _txgps_tlast = 0;
 
     uint8_t _sysid = 0; // is autodetected by inspecting the autopilot heartbeat
 
@@ -896,7 +893,7 @@ class MavlinkTelem
     // STUFF
 
     bool _storm32_gimbal_protocol_v2 = false;
-    bool _txgps_has_pos_int_fix = false;
+    bool _is_sending_pos_int = false;
 
     // MORE MAVLINK STUFF
 

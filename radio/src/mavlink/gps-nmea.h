@@ -258,6 +258,19 @@ char payload[NMEA_PUBX40_LEN+1];
 }
 
 
+#define NMEA_PUBX41         "$PUBX,41,1,0007,0001,9600,0"
+#define NMEA_PUBX41_LEN     27
+
+
+void nmea_send_pubx_cnfg(void)
+{
+char payload[NMEA_PUBX41_LEN+1];
+
+  strcpy(payload, NMEA_PUBX41);
+  nmea_send(payload);
+}
+
+
 //-------------------------------------------------------
 // Auxiliary Helpers
 //-------------------------------------------------------

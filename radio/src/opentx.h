@@ -31,7 +31,7 @@ TODO:
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
-new gps driver, nmea currently, ubx to set rate to 4Hz, makes huge difference, but set it to 3Hz
+new gps driver, all ubx, adjustable rate, up to 5Hz, makes huge difference, more gps data
 router timeout
 tx bay send channels
 rssi voice

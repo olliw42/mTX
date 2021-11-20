@@ -660,8 +660,8 @@ PACK(struct ModelData {
   uint16_t mavlinkRssi:1;
   uint16_t mavlinkMimicSensors:3; // currently just off/on, but allow e.g. FrSky, CF, FrSky passthrough.
   uint16_t mavlinkRcOverride:5; // currently only 15 needed, but keep space
-  uint16_t mavlinkSendPosition:1;
-  uint16_t mavlinkSpare1:6;
+  uint16_t mavlinkSendPosition:3;
+  uint16_t mavlinkSpare1:4;
   uint8_t  mavlinkRssiScale;
   uint8_t  mavlinkSpare2;
   // needs to adapt CHKSIZE below //if not all are used compile optimizes to lowest size, which may raise error
