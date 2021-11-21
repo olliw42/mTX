@@ -350,5 +350,7 @@ void gpsSendFrame(const char * frame)
 }
 
 //OW
+tmr10ms_t gps_msg_received_tlast = 0;
+gpsdata2_t gpsData2 = {0};
 void gpsClear() {}
 //OWEND
