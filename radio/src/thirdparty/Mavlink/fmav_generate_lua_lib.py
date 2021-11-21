@@ -150,7 +150,6 @@ def generateLibMessageForCheck(msg, m):
                 m.append('    }')
             else:
                 #we do the same for both [value:] and [value,], [value,,,] etc are not supported yet, so let's drop an error
-                print(field.name, invalid) 
                 if invalid.count(',') > 1:
                     print('ERROR: invalid attributes of format [value,,,] are not supported!')
                     exit()
