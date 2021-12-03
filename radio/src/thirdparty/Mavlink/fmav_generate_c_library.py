@@ -2,7 +2,7 @@
 '''
 fmav_generate_c_library.py
 calls fastMavlink generator for C header files
-(c) OlliW, OlliW42, www.olliw.eu
+Copyright (c) OlliW, OlliW42, www.olliw.eu
 '''
 import os
 import shutil
