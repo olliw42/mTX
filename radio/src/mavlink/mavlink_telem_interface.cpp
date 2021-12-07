@@ -57,10 +57,15 @@ void mavlinkStart()
 // -- EXTERNAL BAY SERIAL handlers --
 // we essentially redo everything from scratch
 // it is a bit of a tricky thing since we use the telemetry uart and not the module uart
+// TxFifo & RxFifo forms the 'serial' interface
+// TxFifo_frame is filled from TxFifo every 2ms, and is what is pushed out in Tx ISR
+// RXFifo is continuously filled in Rx ISR
+// if as command is detected, it is filled into RxFifo_cmd, prepended with 'OW'
 
-MAVLINK_RAM_SECTION Fifo<uint8_t, 32> mavlinkTelemExternalTxFifo_frame;
 MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemExternalTxFifo;
 MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemExternalRxFifo;
+MAVLINK_RAM_SECTION Fifo<uint8_t, 32> mBridgeTxFifo_frame;
+MAVLINK_RAM_SECTION Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
 
 void extmoduleMavlinkTelemStop(void)
 {
@@ -147,32 +152,38 @@ void extmoduleMavlinkTelemStart(void)
 // 16 bytes per slot = 8000 bytes/s = effectively 80000 bps, should be way enough
 // 3+16 bytes @ 400000 bps = 0.475 ms, 16 bytes @ 400000 bps = 0.4 ms, => 0.875 ms
 
-#define MAVLINKPACKET_SIZE 17
-#define CHANNELPACKET_SIZE 22
-#define CHANNELPACKET_STX  0xFF
+#define MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX    17
 
-inline void mavlinkTelemExternal_send_mavlinkpacket(void)
+#define MBRIDGE_CHANNELPACKET_SIZE  22
+#define MBRIDGE_CHANNELPACKET_STX   0xFF
+
+#define MBRIDGE_COMMANDPACKET_RX_PAYLOAD_SIZE       12
+#define MBRIDGE_COMMANDPACKET_TX_PAYLOAD_SIZE       22
+#define COMMANDPACKET_STX           0xA0
+#define COMMANDPACKET_STX_MASK      0xE0
+
+inline void mBridge_send_mavlinkpacket(void)
 {
   uint32_t count = mavlinkTelemExternalTxFifo.size();
-  if (count > MAVLINKPACKET_SIZE) count = MAVLINKPACKET_SIZE;
+  if (count > MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX) count = MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX;
 
   // always send header, this synchronizes slave
-  mavlinkTelemExternalTxFifo_frame.push('O');
-  mavlinkTelemExternalTxFifo_frame.push('W');
-  mavlinkTelemExternalTxFifo_frame.push((uint8_t)count);
+  mBridgeTxFifo_frame.push('O');
+  mBridgeTxFifo_frame.push('W');
+  mBridgeTxFifo_frame.push((uint8_t)count);
 
   // send payload
   for (uint16_t i = 0; i < count; i++) {
     uint8_t c;
     mavlinkTelemExternalTxFifo.pop(c);
-    mavlinkTelemExternalTxFifo_frame.push(c);
+    mBridgeTxFifo_frame.push(c);
   }
 }
 
 typedef union {
-  uint8_t c[CHANNELPACKET_SIZE];
+  uint8_t c[MBRIDGE_CHANNELPACKET_SIZE]; // 154 + 20 + 2 = 176 bits = 22 bytes
   struct {
-    uint16_t channel0  : 11; // 11 bits per channel * 16 channels = 22 bytes
+    uint16_t channel0  : 11; // 14 channels a 11 bits per channel = 154 bits
     uint16_t channel1  : 11;
     uint16_t channel2  : 11;
     uint16_t channel3  : 11;
@@ -186,45 +197,83 @@ typedef union {
     uint16_t channel11 : 11;
     uint16_t channel12 : 11;
     uint16_t channel13 : 11;
-    uint16_t channel14 : 11;
-    uint16_t channel15 : 11;
+    uint16_t channel14 : 10; // 2 channels a 10 bits per channel = 20 bits
+    uint16_t channel15 : 10;
+    uint16_t channel16 : 1; // 2 channels a 1 bit per channel = 2 bits
+    uint16_t channel17 : 1;
   } __attribute__ ((__packed__));
-} tChannelBuffer;
+} tMBridgeChannelBuffer;
 
-inline void mavlinkTelemExternal_send_channelpacket(void)
+uint16_t CH11BIT(uint8_t i)
 {
-  // always send header, this synchronizes slave
-  mavlinkTelemExternalTxFifo_frame.push('O');
-  mavlinkTelemExternalTxFifo_frame.push('W');
-  mavlinkTelemExternalTxFifo_frame.push((uint8_t)CHANNELPACKET_STX); // marker for channel packet
+  int16_t v = channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER + 1024;
+  if (v < 0) return 0;
+  if (v > 2047) return 2047;
+  return v;
+}
 
+uint16_t CH10BIT(uint8_t i)
+{
+  int16_t v = (channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER + 1024) / 2;
+  if (v < 0) return 0;
+  if (v > 1023) return 1023;
+  return v;
+}
+
+inline void mBridge_send_channelpacket(void)
+{
   // prepare payload
   // do not confuse with sbus, it is sbus packet format, but not sbus values
-  // we center the values, which are in range -2048...2047
-  tChannelBuffer payload;
-  #define CH(i) (uint16_t)( (channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER + 2048)/2 )
-  payload.channel0 = CH(0);
-  payload.channel1 = CH(1);
-  payload.channel2 = CH(2);
-  payload.channel3 = CH(3);
-  payload.channel4 = CH(4);
-  payload.channel5 = CH(5);
-  payload.channel6 = CH(6);
-  payload.channel7 = CH(7);
-  payload.channel8 = CH(8);
-  payload.channel9 = CH(9);
-  payload.channel10 = CH(10);
-  payload.channel11 = CH(11);
-  payload.channel12 = CH(12);
-  payload.channel13 = CH(13);
-  payload.channel14 = CH(14);
-  payload.channel15 = CH(15);
+  // we center the values, which are in range -1024..0..1023
+  tMBridgeChannelBuffer payload;
+  #define CH1BIT(i)  (uint16_t)( (channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER + 1024) >= 1536 ? 1 : 0 )
+
+  payload.channel0  = CH11BIT(0); // 11 bits, 0 .. 1024 .. 2047
+  payload.channel1  = CH11BIT(1);
+  payload.channel2  = CH11BIT(2);
+  payload.channel3  = CH11BIT(3);
+  payload.channel4  = CH11BIT(4);
+  payload.channel5  = CH11BIT(5);
+  payload.channel6  = CH11BIT(6);
+  payload.channel7  = CH11BIT(7);
+  payload.channel8  = CH11BIT(8);
+  payload.channel9  = CH11BIT(9);
+  payload.channel10 = CH11BIT(10);
+  payload.channel11 = CH11BIT(11);
+  payload.channel12 = CH11BIT(12);
+  payload.channel13 = CH11BIT(13);
+  payload.channel14 = CH10BIT(14); // 10 bits, 0 .. 512 .. 1023
+  payload.channel15 = CH10BIT(15);
+  payload.channel16 = CH1BIT(16); // 1 bit, 0..1
+  payload.channel17 = CH1BIT(17);
+
+  // always send header, this synchronizes slave
+  mBridgeTxFifo_frame.push('O');
+  mBridgeTxFifo_frame.push('W');
+  mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_CHANNELPACKET_STX); // marker for channel packet
 
   // send payload
-  for (uint16_t i = 0; i < CHANNELPACKET_SIZE; i++) {
-    mavlinkTelemExternalTxFifo_frame.push(payload.c[i]);
+  for (uint16_t i = 0; i < MBRIDGE_CHANNELPACKET_SIZE; i++) {
+    mBridgeTxFifo_frame.push(payload.c[i]);
   }
 }
+
+
+
+/* not yet used
+inline void mBridge_send_cmdpacket(uint8_t cmd, uint8_t* payload, uint8_t len)
+{
+  // always send header, this synchronizes slave
+  mBridgeTxFifo_frame.push('O');
+  mBridgeTxFifo_frame.push('W');
+  mBridgeTxFifo_frame.push((uint8_t)COMMANDPACKET_STX + (cmd &~ COMMANDPACKET_STX_MASK));
+
+  // send payload
+  for (uint16_t i = 0; i < MBRIDGE_COMMANDPACKET_TX_PAYLOAD_SIZE; i++) {
+    mBridgeTxFifo_frame.push((i < len) ? payload[i] : 0);
+  }
+}
+*/
 
 void mavlinkTelemExternal_wakeup(void)
 {
@@ -236,9 +285,9 @@ void mavlinkTelemExternal_wakeup(void)
 
   // every 10th slot we send a channel packet
   if (slot_counter == 0)
-    mavlinkTelemExternal_send_channelpacket();
+    mBridge_send_channelpacket();
   else
-    mavlinkTelemExternal_send_mavlinkpacket();
+    mBridge_send_mavlinkpacket();
 
   USART_ITConfig(TELEMETRY_USART, USART_IT_TXE, ENABLE); // enable TX interrupt, starts sending
 
@@ -266,6 +315,38 @@ bool mavlinkTelemExternalPutBuf(const uint8_t *buf, const uint16_t count)
   if (!mavlinkTelemExternalTxFifo.hasSpace(count)) return false;
   for (uint16_t i = 0; i < count; i++) mavlinkTelemExternalTxFifo.push(buf[i]);
   return true;
+}
+
+uint32_t mBridge_cmd_available(void)
+{
+  return mBridgeRxFifo_cmd.size();
+}
+
+bool mBridge_cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
+{
+  *len = 0;
+  uint8_t c = 0;
+  uint8_t state = 0;
+  while (mBridgeRxFifo_cmd.pop(c)) {
+    switch (state) {
+    case 0:
+      if (c == 'O') state = 1;
+      break;
+    case 1:
+      if (c == 'W') state = 2;
+      break;
+    case 2:
+      *cmd = c & 0x1F;
+      state = 3;
+      break;
+    case 3:
+      payload[*len] = c;
+      (*len)++;
+      break;
+    }
+    if (*len >= MBRIDGE_COMMANDPACKET_RX_PAYLOAD_SIZE) break; // end of packet reached
+  }
+  return (state < 3) ? false : true;
 }
 
 // -- AUX1, AUX2 handlers --

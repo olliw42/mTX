@@ -26,8 +26,6 @@ extern Fifo<uint8_t, 1024> mavlinkTelemUsbRxFifo;
 // even though we only allow 2 serial uart channels max, we need this
 // since the two aux buffers cannot be reused, as they may be used by something else
 // so, no way out
-extern Fifo<uint8_t, 32> mavlinkTelemExternalTxFifo_frame;
-extern Fifo<uint8_t, 1024> mavlinkTelemExternalRxFifo;
 
 void extmoduleMavlinkTelemStop(void);
 void extmoduleMavlinkTelemStart(void);
@@ -48,7 +46,12 @@ uint8_t mavlinkTelem3Getc(uint8_t *c);
 bool mavlinkTelem3HasSpace(uint16_t count);
 bool mavlinkTelem3PutBuf(const uint8_t *buf, const uint16_t count);
 
+// -- mBridge --
+
+#include "m-bridge.h"
+
 // -- more Interface --
+
 tmr10ms_t mavlinkRcOverrideRate(void);
 
 #define LUAL_CHECKBOOLEAN(L,i) (lua_isboolean(L,i) ? lua_toboolean(L,i) : (luaL_checkinteger(L,i) > 0))

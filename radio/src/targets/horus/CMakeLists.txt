@@ -358,6 +358,7 @@ if (TELEMETRY_MAVLINK)
     mavlink/mavlink_telem_camera.cpp
     mavlink/mavlink_telem_gimbal.cpp 
     mavlink/mavlink_telem_qshot.cpp
+    mavlink/m-bridge.cpp
     )
   if (NOT LUA STREQUAL NO)
     set(SRC ${SRC} 

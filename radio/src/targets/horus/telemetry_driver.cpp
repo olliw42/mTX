@@ -30,8 +30,10 @@ uint8_t telemetryFifoMode;
 
 //OW
 #if defined(TELEMETRY_MAVLINK)
-extern Fifo<uint8_t, 32> mavlinkTelemExternalTxFifo_frame;
+extern Fifo<uint8_t, 32> mBridgeTxFifo_frame;
 extern Fifo<uint8_t, 1024> mavlinkTelemExternalRxFifo;
+extern Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
+volatile uint8_t mavlinkTelemExternal_rx_state = 0;
 #endif
 //OWEND
 
@@ -400,7 +402,7 @@ extern "C" void TELEMETRY_USART_IRQHandler(void)
 
     if (USART_GetITStatus(TELEMETRY_USART, USART_IT_TXE) != RESET) {
       uint8_t txchar;
-      if (mavlinkTelemExternalTxFifo_frame.pop(txchar)) {
+      if (mBridgeTxFifo_frame.pop(txchar)) {
         USART_SendData(TELEMETRY_USART, txchar);
       }
       else {
@@ -418,12 +420,28 @@ extern "C" void TELEMETRY_USART_IRQHandler(void)
       USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_TC);
       TELEMETRY_DIR_GPIO->BSRRH = TELEMETRY_DIR_GPIO_PIN; // output disable
       TELEMETRY_USART->CR1 |= USART_CR1_RE; // turn on receiver
+      mavlinkTelemExternal_rx_state = 1;
     }
 
     if (USART_GetITStatus(TELEMETRY_USART, USART_IT_RXNE) != RESET) {
       USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_RXNE);
       uint8_t c = USART_ReceiveData(TELEMETRY_USART);
-      mavlinkTelemExternalRxFifo.push(c);
+      if (mavlinkTelemExternal_rx_state == 0) {
+        mavlinkTelemExternalRxFifo.push(c); // receive serial data
+      } else
+      if (mavlinkTelemExternal_rx_state == 1) {
+        if (c >= 0xA0) {
+          mBridgeRxFifo_cmd.push('O');
+          mBridgeRxFifo_cmd.push('W');
+          mBridgeRxFifo_cmd.push(c);
+          mavlinkTelemExternal_rx_state = 2; // switch to receive command
+        } else {
+          mavlinkTelemExternal_rx_state = 0; // switch to receive serial data
+        }
+      } else
+      if (mavlinkTelemExternal_rx_state == 2) {
+          mBridgeRxFifo_cmd.push(c); // receive command
+      }
     }
 
     return;

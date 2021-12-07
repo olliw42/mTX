@@ -728,6 +728,9 @@ void MavlinkTelem::wakeup()
       _msg_out_available = false; // message is targeted at unknown component
     }
   }
+
+  // do bridge commands
+  mBridge.wakeup();
 }
 
 // -- 10 ms tick --

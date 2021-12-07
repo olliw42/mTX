@@ -80,6 +80,21 @@ static int luaMavlinkGetTaskStats(lua_State *L)
   return 1;
 }
 
+//-- mbridge api --
+
+static int luaMBridgeGetStats(lua_State * L)
+{
+  lua_newtable(L);
+  lua_pushtableinteger(L, "rssi", mBridge.stats.rssi);
+  lua_pushtableinteger(L, "LQ", mBridge.stats.LQ);
+  lua_pushtableinteger(L, "rx_rssi", mBridge.stats.rx_rssi);
+  lua_pushtableinteger(L, "rx_LQ", mBridge.stats.rx_LQ);
+  lua_pushtableinteger(L, "LQ_transmitted", mBridge.stats.LQ_transmitted);
+  lua_pushtableinteger(L, "LQ_received", mBridge.stats.LQ_received);
+  lua_pushtableinteger(L, "LQ_valid_received", mBridge.stats.LQ_valid_received);
+  return 1;
+}
+
 //-- mavlink api --
 
 static int luaMavlinkGetMyIds(lua_State *L)
@@ -340,6 +355,8 @@ const luaL_Reg mavlinkLib[] = {
   { "getMemUsed", luaMavlinkGetMemUsed },
   { "getStackUsed", luaMavlinkGetStackUsed },
   { "getTaskStats", luaMavlinkGetTaskStats },
+
+  { "bridgeGetStats", luaMBridgeGetStats },
 
   { "getMyIds", luaMavlinkGetMyIds },
   { "getSystemId", luaMavlinkGetSystemId },
