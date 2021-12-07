@@ -31,7 +31,8 @@ TODO:
 type to getType() changes not marked with //OW
 support of hardware encoder also not marked with //OW
 
-v32 2021-11-21
+mBridge
+v31 2021-11-21
 new gps driver, all ubx, adjustable rate, up to 5Hz, makes huge difference, more gps data SERIAL_GPS
 router timeout
 tx bay send channels
