@@ -19,8 +19,8 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v31"
-#define OWVERSION     3100 // used by mavlink
+#define OWVERSIONSTR  "v32-rc1"
+#define OWVERSION     3200 // used by mavlink
 //OWEND
 
 /*
