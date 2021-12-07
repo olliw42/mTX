@@ -5,7 +5,117 @@
 
 #include "opentx.h"
 
+
+extern Fifo<uint8_t, 1024> mavlinkTelemExternalTxFifo;
+MAVLINK_RAM_SECTION Fifo<uint8_t, 32> mBridgeTxFifo_frame;
+MAVLINK_RAM_SECTION Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
+
 MBridge mBridge;
+
+uint32_t MBridge::cmd_available(void)
+{
+  return mBridgeRxFifo_cmd.size();
+}
+
+bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
+{
+  *len = 0;
+  uint8_t c = 0;
+  uint8_t state = 0;
+  while (mBridgeRxFifo_cmd.pop(c)) {
+    switch (state) {
+    case 0:
+      if (c == 'O') state = 1;
+      break;
+    case 1:
+      if (c == 'W') state = 2;
+      break;
+    case 2:
+      *cmd = c & 0x1F;
+      state = 3;
+      break;
+    case 3:
+      payload[*len] = c;
+      (*len)++;
+      break;
+    }
+    if (*len >= MBRIDGE_COMMANDPACKET_RX_PAYLOAD_SIZE) break; // end of packet reached
+  }
+  return (state < 3) ? false : true;
+}
+
+void MBridge::wakeup()
+{
+
+  if (cmd_available()) {
+    uint8_t cmd;
+    uint8_t payload[32];
+    uint8_t len;
+    bool res = cmd_get(&cmd, payload, &len);
+
+    if (res && (cmd == 0x01) && (len >= 7)) {
+      stats.rssi = -(payload[0]);
+      stats.LQ = payload[1];
+      stats.rx_rssi = -(payload[2]);
+      stats.rx_LQ = payload[3];
+      stats.LQ_transmitted = payload[4];
+      stats.LQ_received = payload[5];
+      stats.LQ_valid_received = payload[6];
+    }
+  }
+
+}
+
+void MBridge::send_serialpacket(void)
+{
+  uint32_t count = mavlinkTelemExternalTxFifo.size();
+  if (count > MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX) count = MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX;
+
+  // always send header, this synchronizes slave
+  mBridgeTxFifo_frame.push('O');
+  mBridgeTxFifo_frame.push('W');
+  mBridgeTxFifo_frame.push((uint8_t)count);
+
+  // send payload
+  for (uint16_t i = 0; i < count; i++) {
+    uint8_t c = '\0';
+    mavlinkTelemExternalTxFifo.pop(c);
+    mBridgeTxFifo_frame.push(c);
+  }
+}
+
+void MBridge::send_channelpacket(void)
+{
+ uint8_t payload[MBRIDGE_CHANNELPACKET_SIZE];
+ uint8_t len;
+
+  get_channels(payload, &len);
+
+  // always send header, this synchronizes slave
+  mBridgeTxFifo_frame.push('O');
+  mBridgeTxFifo_frame.push('W');
+  mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_CHANNELPACKET_STX); // marker for channel packet
+
+  // send payload
+  for (uint16_t i = 0; i < MBRIDGE_CHANNELPACKET_SIZE; i++) {
+    mBridgeTxFifo_frame.push(payload[i]);
+  }
+}
+
+/* not yet used
+void MBridge::send_cmdpacket(uint8_t cmd, uint8_t* payload, uint8_t len)
+{
+  // always send header, this synchronizes slave
+  mBridgeTxFifo_frame.push('O');
+  mBridgeTxFifo_frame.push('W');
+  mBridgeTxFifo_frame.push((uint8_t)COMMANDPACKET_STX + (cmd &~ COMMANDPACKET_STX_MASK));
+
+  // send payload
+  for (uint16_t i = 0; i < MBRIDGE_COMMANDPACKET_TX_PAYLOAD_SIZE; i++) {
+    mBridgeTxFifo_frame.push((i < len) ? payload[i] : 0);
+  }
+}
+*/
 
 typedef union {
   uint8_t c[MBRIDGE_CHANNELPACKET_SIZE]; // 154 + 20 + 2 = 176 bits = 22 bytes
@@ -74,25 +184,5 @@ void MBridge::get_channels(uint8_t* _payload, uint8_t* len)
   *len = MBRIDGE_CHANNELPACKET_SIZE;
 }
 
-void MBridge::wakeup()
-{
 
-  if (mBridge_cmd_available()) {
-    uint8_t cmd;
-    uint8_t payload[32];
-    uint8_t len;
-    bool res = mBridge_cmd_get(&cmd, payload, &len);
-
-    if (res && (cmd == 0x01) && (len >= 7)) {
-      stats.rssi = -(payload[0]);
-      stats.LQ = payload[1];
-      stats.rx_rssi = -(payload[2]);
-      stats.rx_LQ = payload[3];
-      stats.LQ_transmitted = payload[4];
-      stats.LQ_received = payload[5];
-      stats.LQ_valid_received = payload[6];
-    }
-  }
-
-}
 

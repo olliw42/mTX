@@ -64,8 +64,6 @@ void mavlinkStart()
 
 MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemExternalTxFifo;
 MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemExternalRxFifo;
-MAVLINK_RAM_SECTION Fifo<uint8_t, 32> mBridgeTxFifo_frame;
-MAVLINK_RAM_SECTION Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
 
 void extmoduleMavlinkTelemStop(void)
 {
@@ -143,6 +141,35 @@ void extmoduleMavlinkTelemStart(void)
   NVIC_EnableIRQ(TELEMETRY_USART_IRQn);
 }
 
+// this must be called regularly, at 2 ms
+// 115200 bps = 86 us per byte => 12 bytes per ms = 24 bytes per 2 ms
+// 3+24 bytes @ 400000 bps = 0.675 ms, 24 bytes @ 400000 bps = 0.6 ms => 1.275 ms
+// => enough time for a tx and rx packet in a 2 ms slot
+// however, the slots are not precisely fixed to 2 ms, can be shorter
+// so design for lower data rate, we send at most 16 bytes per slot
+// 16 bytes per slot = 8000 bytes/s = effectively 80000 bps, should be way enough
+// 3+16 bytes @ 400000 bps = 0.475 ms, 16 bytes @ 400000 bps = 0.4 ms, => 0.875 ms
+
+void mavlinkTelemExternal_wakeup(void)
+{
+  static uint8_t slot_counter = 0;
+
+  // we do it at the beginning, so it gives few cycles before TX is enabled
+  TELEMETRY_DIR_GPIO->BSRRL = TELEMETRY_DIR_GPIO_PIN; // enable output
+  TELEMETRY_USART->CR1 &= ~USART_CR1_RE; // turn off receiver
+
+  // every 10th slot we send a channel packet
+  if (slot_counter == 0)
+    mBridge.send_channelpacket();
+  else
+    mBridge.send_serialpacket();
+
+  USART_ITConfig(TELEMETRY_USART, USART_IT_TXE, ENABLE); // enable TX interrupt, starts sending
+
+  slot_counter++;
+  if (slot_counter >= 10) slot_counter = 0;
+}
+
 uint32_t mavlinkTelemExternalAvailable(void)
 {
   return mavlinkTelemExternalRxFifo.size();
@@ -163,118 +190,6 @@ bool mavlinkTelemExternalPutBuf(const uint8_t *buf, const uint16_t count)
   if (!mavlinkTelemExternalTxFifo.hasSpace(count)) return false;
   for (uint16_t i = 0; i < count; i++) mavlinkTelemExternalTxFifo.push(buf[i]);
   return true;
-}
-
-inline void mBridge_send_mavlinkpacket(void)
-{
-  uint32_t count = mavlinkTelemExternalTxFifo.size();
-  if (count > MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX) count = MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX;
-
-  // always send header, this synchronizes slave
-  mBridgeTxFifo_frame.push('O');
-  mBridgeTxFifo_frame.push('W');
-  mBridgeTxFifo_frame.push((uint8_t)count);
-
-  // send payload
-  for (uint16_t i = 0; i < count; i++) {
-    uint8_t c;
-    mavlinkTelemExternalTxFifo.pop(c);
-    mBridgeTxFifo_frame.push(c);
-  }
-}
-
-inline void mBridge_send_channelpacket(void)
-{
- uint8_t payload[MBRIDGE_CHANNELPACKET_SIZE];
- uint8_t len;
-
-  mBridge.get_channels(payload, &len);
-
-  // always send header, this synchronizes slave
-  mBridgeTxFifo_frame.push('O');
-  mBridgeTxFifo_frame.push('W');
-  mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_CHANNELPACKET_STX); // marker for channel packet
-
-  // send payload
-  for (uint16_t i = 0; i < MBRIDGE_CHANNELPACKET_SIZE; i++) {
-    mBridgeTxFifo_frame.push(payload[i]);
-  }
-}
-
-/* not yet used
-inline void mBridge_send_cmdpacket(uint8_t cmd, uint8_t* payload, uint8_t len)
-{
-  // always send header, this synchronizes slave
-  mBridgeTxFifo_frame.push('O');
-  mBridgeTxFifo_frame.push('W');
-  mBridgeTxFifo_frame.push((uint8_t)COMMANDPACKET_STX + (cmd &~ COMMANDPACKET_STX_MASK));
-
-  // send payload
-  for (uint16_t i = 0; i < MBRIDGE_COMMANDPACKET_TX_PAYLOAD_SIZE; i++) {
-    mBridgeTxFifo_frame.push((i < len) ? payload[i] : 0);
-  }
-}
-*/
-
-// this must be called regularly, at 2 ms
-// 115200 bps = 86 us per byte => 12 bytes per ms = 24 bytes per 2 ms
-// 3+24 bytes @ 400000 bps = 0.675 ms, 24 bytes @ 400000 bps = 0.6 ms => 1.275 ms
-// => enough time for a tx and rx packet in a 2 ms slot
-// however, the slots are not precisely fixed to 2 ms, can be shorter
-// so design for lower data rate, we send at most 16 bytes per slot
-// 16 bytes per slot = 8000 bytes/s = effectively 80000 bps, should be way enough
-// 3+16 bytes @ 400000 bps = 0.475 ms, 16 bytes @ 400000 bps = 0.4 ms, => 0.875 ms
-
-void mavlinkTelemExternal_wakeup(void)
-{
-  static uint8_t slot_counter = 0;
-
-  // we do it at the beginning, so it gives few cycles before TX is enabled
-  TELEMETRY_DIR_GPIO->BSRRL = TELEMETRY_DIR_GPIO_PIN; // enable output
-  TELEMETRY_USART->CR1 &= ~USART_CR1_RE; // turn off receiver
-
-  // every 10th slot we send a channel packet
-  if (slot_counter == 0)
-    mBridge_send_channelpacket();
-  else
-    mBridge_send_mavlinkpacket();
-
-  USART_ITConfig(TELEMETRY_USART, USART_IT_TXE, ENABLE); // enable TX interrupt, starts sending
-
-  slot_counter++;
-  if (slot_counter >= 10) slot_counter = 0;
-}
-
-uint32_t mBridge_cmd_available(void)
-{
-  return mBridgeRxFifo_cmd.size();
-}
-
-bool mBridge_cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
-{
-  *len = 0;
-  uint8_t c = 0;
-  uint8_t state = 0;
-  while (mBridgeRxFifo_cmd.pop(c)) {
-    switch (state) {
-    case 0:
-      if (c == 'O') state = 1;
-      break;
-    case 1:
-      if (c == 'W') state = 2;
-      break;
-    case 2:
-      *cmd = c & 0x1F;
-      state = 3;
-      break;
-    case 3:
-      payload[*len] = c;
-      (*len)++;
-      break;
-    }
-    if (*len >= MBRIDGE_COMMANDPACKET_RX_PAYLOAD_SIZE) break; // end of packet reached
-  }
-  return (state < 3) ? false : true;
 }
 
 // -- AUX1, AUX2 handlers --

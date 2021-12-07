@@ -19,12 +19,6 @@
 #define COMMANDPACKET_STX           0xA0
 #define COMMANDPACKET_STX_MASK      0xE0
 
-// -- MBridge interface --
-// implemented in mavlink_telem_interface.cpp
-
-uint32_t mBridge_cmd_available(void);
-bool mBridge_cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len);
-
 // -- MBridge class --
 
 class MBridge
@@ -33,8 +27,8 @@ class MBridge
     MBridge() { } // constructor
 
     void wakeup();
-
-    void get_channels(uint8_t* _payload, uint8_t* len);
+    void send_serialpacket(void);
+    void send_channelpacket(void);
 
     struct Stats {
       int8_t rssi;
@@ -47,6 +41,11 @@ class MBridge
     };
     struct Stats stats;
 
+  private:
+    uint32_t cmd_available(void);
+    bool cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len);
+
+    void get_channels(uint8_t* _payload, uint8_t* len);
 };
 
 extern MBridge mBridge;
