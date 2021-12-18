@@ -46,25 +46,38 @@ bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
 
 void MBridge::wakeup()
 {
-
   if (cmd_available()) {
     uint8_t cmd;
     uint8_t payload[32];
     uint8_t len;
     bool res = cmd_get(&cmd, payload, &len);
 
-    if (res && (cmd == 0x01) && (len >= 7)) {
-      stats.rssi = -(payload[0]);
-      stats.LQ = payload[1];
-      stats.rx_rssi = -(payload[2]);
-      stats.rx_LQ = payload[3];
-      stats.LQ_transmitted = payload[4];
-      stats.LQ_received = payload[5];
-      stats.LQ_valid_received = payload[6];
+    if (res && (cmd == MBRIDGE_CMD_TX_LINK_STATS) && (len >= sizeof(tMBridgeLinkStats))) {
+      set_linkstats((tMBridgeLinkStats*)payload);
     }
-  }
 
+  }
 }
+
+
+void MBridge::set_linkstats(tMBridgeLinkStats* ls)
+{
+  link_stats.rssi = -ls->rssi;
+  link_stats.LQ = ls->LQ;
+  link_stats.snr = ls->snr;
+  link_stats.rssi2 = ls->rssi2;
+  link_stats.ant_no = ls->ant_no;
+  link_stats.receiver_rssi = ls->receiver_rssi;
+  link_stats.receiver_LQ = ls->receiver_LQ;
+  link_stats.receiver_snr = ls->receiver_snr;
+  link_stats.receiver_rssi2 = ls->receiver_rssi2;
+  link_stats.receiver_ant_no = ls->receiver_ant_no;
+
+  link_stats.LQ_frames_received = ls->LQ_frames_received;
+  link_stats.LQ_received = ls->LQ_received;
+  link_stats.LQ_valid_received = ls->LQ_valid_received;
+}
+
 
 void MBridge::send_serialpacket(void)
 {

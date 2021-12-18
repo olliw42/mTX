@@ -82,16 +82,18 @@ static int luaMavlinkGetTaskStats(lua_State *L)
 
 //-- mbridge api --
 
-static int luaMBridgeGetStats(lua_State * L)
+static int luaMBridgeGetLinkStats(lua_State * L)
 {
   lua_newtable(L);
-  lua_pushtableinteger(L, "rssi", mBridge.stats.rssi);
-  lua_pushtableinteger(L, "LQ", mBridge.stats.LQ);
-  lua_pushtableinteger(L, "rx_rssi", mBridge.stats.rx_rssi);
-  lua_pushtableinteger(L, "rx_LQ", mBridge.stats.rx_LQ);
-  lua_pushtableinteger(L, "LQ_transmitted", mBridge.stats.LQ_transmitted);
-  lua_pushtableinteger(L, "LQ_received", mBridge.stats.LQ_received);
-  lua_pushtableinteger(L, "LQ_valid_received", mBridge.stats.LQ_valid_received);
+  lua_pushtableinteger(L, "rssi", mBridge.link_stats.rssi);
+  lua_pushtableinteger(L, "LQ", mBridge.link_stats.LQ);
+  lua_pushtableinteger(L, "snr", mBridge.link_stats.snr);
+  lua_pushtableinteger(L, "rx_rssi", mBridge.link_stats.receiver_rssi);
+  lua_pushtableinteger(L, "rx_LQ", mBridge.link_stats.receiver_LQ);
+  // only momentarily for debug
+  lua_pushtableinteger(L, "LQ_frames_received", mBridge.link_stats.LQ_frames_received);
+  lua_pushtableinteger(L, "LQ_received", mBridge.link_stats.LQ_received);
+  lua_pushtableinteger(L, "LQ_valid_received", mBridge.link_stats.LQ_valid_received);
   return 1;
 }
 
@@ -356,7 +358,7 @@ const luaL_Reg mavlinkLib[] = {
   { "getStackUsed", luaMavlinkGetStackUsed },
   { "getTaskStats", luaMavlinkGetTaskStats },
 
-  { "bridgeGetStats", luaMBridgeGetStats },
+  { "bridgeGetLinkStats", luaMBridgeGetLinkStats },
 
   { "getMyIds", luaMavlinkGetMyIds },
   { "getSystemId", luaMavlinkGetSystemId },

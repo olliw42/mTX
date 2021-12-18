@@ -19,6 +19,40 @@
 #define COMMANDPACKET_STX           0xA0
 #define COMMANDPACKET_STX_MASK      0xE0
 
+// -- packets as exchanged over MBridge
+// note that TX means here = received from module !
+// these defines are largely copied over from mbridge class from mLRS, in order to not have too much confusion
+
+#define MBRIDGE_PACKED(__Declaration__) __Declaration__ __attribute__((packed))
+
+typedef enum {
+  MBRIDGE_CMD_TX_LINK_STATS = 0x02,
+} MBRIDGE_CMD_TX_ENUM;
+
+
+MBRIDGE_PACKED(
+typedef struct
+{
+  uint8_t rssi;
+  uint8_t LQ;
+  int8_t snr;
+  uint8_t rssi2; // in case of 2nd antenna, invalid = UINT8_MAX
+
+  uint8_t receiver_rssi;
+  uint8_t receiver_LQ;
+  int8_t receiver_snr; // invalid = INT8_MAX
+  uint8_t receiver_rssi2; // in case of 2nd antenna, invalid = UINT8_MAX
+
+  uint8_t ant_no : 1; // 0: antenna 1, 1: antenna 2
+  uint8_t receiver_ant_no : 1; // 0: antenna 1, 1: antenna 2
+  uint8_t spare_bits : 6;
+
+  uint8_t LQ_frames_received;
+  uint8_t LQ_received;
+  uint8_t LQ_valid_received;
+}) tMBridgeLinkStats;
+
+
 // -- MBridge class --
 
 class MBridge
@@ -30,22 +64,31 @@ class MBridge
     void send_serialpacket(void);
     void send_channelpacket(void);
 
-    struct Stats {
+    struct LinkStats { // not exactly what is send in packet, but converted to be convenient !
       int8_t rssi;
       uint8_t LQ;
-      int8_t rx_rssi;
-      uint8_t rx_LQ;
-      uint8_t LQ_transmitted;
+      int8_t snr;
+      int8_t rssi2;
+      uint8_t ant_no;
+      int8_t receiver_rssi;
+      uint8_t receiver_LQ;
+      int8_t receiver_snr;
+      int8_t receiver_rssi2;
+      uint8_t receiver_ant_no;
+      // only momentarily for debug
+      uint8_t LQ_frames_received;
       uint8_t LQ_received;
       uint8_t LQ_valid_received;
     };
-    struct Stats stats;
+    struct LinkStats link_stats;
 
   private:
     uint32_t cmd_available(void);
     bool cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len);
 
     void get_channels(uint8_t* _payload, uint8_t* len);
+
+    void set_linkstats(tMBridgeLinkStats* ls);
 };
 
 extern MBridge mBridge;

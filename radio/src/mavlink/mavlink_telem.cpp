@@ -468,17 +468,15 @@ void MavlinkTelem::doTask(void)
       _rcoverride_tlast += dt_10ms;
       if ((tnow - _rcoverride_tlast) >= dt_10ms) _rcoverride_tlast = tnow; //we are late, so get back in sync
       for (uint8_t i = 0; i < 8; i++) {
-        /* would this be the right way to figure out which output is actually active ??
-        MixData * md;
-        if (i < MAX_MIXERS && (md=mixAddress(i))->srcRaw && md->destCh == i) {
-          int value = channelOutputs[i] + 2 * PPM_CH_CENTER(i) - 2 * PPM_CENTER;
-          _tovr_chan_raw[i] = value;
-        }
-        else {
-          _tovr_chan_raw[i] = UINT16_MAX;
-        }*/
+        /* we should do this, see pulses/sbus.cpp, and other in there:
+          int ch = g_model.moduleData[EXTERNAL_MODULE].channelsStart + channel;
+          if (ch > 31) return 0; // We will ignore 17 and 18th if that brings us over the limit
+          return channelOutputs[ch] + 2 * PPM_CH_CENTER(ch) - 2*PPM_CENTER;
+        */
         // the first four channels may not be ordered like with transmitter!!
-        int value = channelOutputs[i]/2 + PPM_CH_CENTER(i);
+        //int value = channelOutputs[i]/2 + PPM_CH_CENTER(i);
+        int ch = g_model.moduleData[INTERNAL_MODULE].channelsStart + i; // or EXTERNAL_MODULE ?
+        int value = channelOutputs[ch]/2 + PPM_CH_CENTER(ch);
         _tovr_chan_raw[i] = value;
       }
       for (uint8_t i = 8; i < 18; i++) { 
