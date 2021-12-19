@@ -62,7 +62,7 @@ void MBridge::wakeup()
 
 void MBridge::set_linkstats(tMBridgeLinkStats* ls)
 {
-  link_stats.rssi = -ls->rssi;
+  link_stats.rssi = ls->rssi;
   link_stats.LQ = ls->LQ;
   link_stats.snr = ls->snr;
   link_stats.rssi2 = ls->rssi2;
