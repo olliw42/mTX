@@ -1,14 +1,16 @@
-/*
- * The MAVLink for OpenTx project
- * Copyright (c) www.olliw.eu, OlliW, OlliW42
- */
+//*******************************************************
+// GPS Library
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
 
 #include "opentx.h"
 
 
 #define GPS_TIMEOUT_10MS   500 // 5 sec
 
-tmr10ms_t gps_msg_received_tlast = 0;
+uint32_t gps_msg_received_tlast = 0;
 
 gpsdata2_t gpsData2 = {0};
 
@@ -58,7 +60,7 @@ void gpsWakeup()
     gps_parse_nextchar(byte); // gpsNewData(byte);
   }
   gps_do();
-  tmr10ms_t tnow = get_tmr10ms();
+  uint32_t tnow = get_tmr10ms();
   if ((tnow - gps_msg_received_tlast) > GPS_TIMEOUT_10MS) gpsClear();
 }
 
@@ -153,7 +155,7 @@ typedef struct {
 
   uint8_t initialized;
   uint8_t init_state;
-  tmr10ms_t init_timefornextstep_10ms;
+  uint32_t init_timefornextstep_10ms;
 } tGps;
 
 tGps _gps = {0};
@@ -310,7 +312,7 @@ void gps_do(void)
 {
   if (_gps.initialized) return;
 
-  tmr10ms_t tnow = get_tmr10ms();
+  uint32_t tnow = get_tmr10ms();
   gps_msg_received_tlast = tnow; // we mark it as received, this prevents reset
 
   if (_gps.init_state == GPS_INIT_STATE_IDLE) return;

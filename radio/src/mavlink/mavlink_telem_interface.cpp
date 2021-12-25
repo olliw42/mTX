@@ -1,9 +1,12 @@
-/*
- * The MAVLink for OpenTx project
- * (c) www.olliw.eu, OlliW, OlliW42
- */
+//*******************************************************
+// The MAVLink for OpenTx project
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
 
 #include "opentx.h"
+#include "stamp.h"
 
 // -- CoOS RTOS mavlink task handlers --
 
@@ -361,7 +364,14 @@ bool mavlinkTelem3PutBuf(const uint8_t* buf, const uint16_t count){ return false
 
 // -- more Interface helpers --
 
-tmr10ms_t mavlinkRcOverrideRate(void)
+uint8_t fmav_router_time_100ms(void)
+{
+   return get_tmr10ms() / 10;
+}
+
+// -- MavlinkTelem handlers --
+
+uint32_t mavlinkRcOverrideRate(void)
 {
   switch (g_model.mavlinkRcOverride) {
     case 1:
@@ -386,42 +396,32 @@ tmr10ms_t mavlinkRcOverrideRate(void)
   return 10; // 100 ms = 10 Hz = default
 }
 
-uint8_t fmav_router_time_100ms(void)
+const uint32_t MavlinkTelem::version(void)
 {
-   return get_tmr10ms() / 10;
+ return OWVERSION;
 }
 
-// -- MavlinkTelem handlers --
-
-// map aux1,aux2,external onto serial1 & serial2
-void MavlinkTelem::map_serials(void)
+const char* MavlinkTelem::versionstr(void)
 {
-  if (_external_enabled) {
-    if (_aux1_enabled && _aux2_enabled) {
-      // shit, what should we do??? we give aux,aux2 priority
-      serial1_enabled = serial2_enabled = true;
-      serial1_isexternal = serial2_isexternal = false;
-    }
-    else if (_aux1_enabled && !_aux2_enabled) {
-      serial1_enabled = true;
-      serial1_isexternal = false;
-      serial2_enabled = serial2_isexternal = true;
-    }
-    else if (!_aux1_enabled && _aux2_enabled) {
-      serial1_enabled = serial1_isexternal = true;
-      serial2_enabled = true;
-      serial2_isexternal = false;
-    }
-    else {
-      serial1_enabled = serial1_isexternal = true;
-      serial2_enabled = serial2_isexternal = false;
-    }
-  }
-  else{
-    serial1_enabled = _aux1_enabled;
-    serial2_enabled = _aux2_enabled;
-    serial1_isexternal = serial2_isexternal = false;
-  }
+  return OWVERSIONSTR;
+}
+
+const char* MavlinkTelem::banner(void)
+{
+  return "OpenTx with MAVLink " VERSION " " OWVERSIONSTR;
+}
+
+uint32_t MavlinkTelem::getTime_10ms(void)
+{
+  return get_tmr10ms();
+}
+
+uint32_t MavlinkTelem::getTime_10us(void) // ca 11.9h, should be sufficient
+{
+  uint16_t t2MHz_now = getTmr2MHz();
+  _t10us_last += (t2MHz_now - _t2MHz_last);
+  _t2MHz_last = t2MHz_now;
+  return _t10us_last/20;
 }
 
 void MavlinkTelem::telemetrySetValue(uint16_t id, uint8_t subId, uint8_t instance, int32_t value, uint32_t unit, uint32_t prec)

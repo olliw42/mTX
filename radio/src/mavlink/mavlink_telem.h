@@ -1,9 +1,10 @@
-/*
- * The MAVLink for OpenTx project
- * (c) www.olliw.eu, OlliW, OlliW42
- */
+//*******************************************************
+// The MAVLink for OpenTx project
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
 
-#define MAVLINKTELEMVERSIONSTR  OWVERSIONSTR
 
 #define MAVLINK_RAM_SECTION  __attribute__((section (".ram")))
 
@@ -48,7 +49,7 @@ bool mavlinkTelem3PutBuf(const uint8_t *buf, const uint16_t count);
 
 // -- mBridge --
 
-#include "m-bridge.h"
+#include "mbridge.h"
 
 // -- more Interface --
 
@@ -91,6 +92,12 @@ class MavlinkTelem
 {
   public:
     MavlinkTelem() { _init(); } // constructor
+
+    const uint32_t version(void);
+    const char* versionstr(void);
+    const char* banner(void);
+    uint32_t getTime_10ms(void);
+    uint32_t getTime_10us(void);
 
     void wakeup();
     void tick10ms();
@@ -178,17 +185,10 @@ class MavlinkTelem
 
     // Times
 
-    uint32_t time_boot_ms(void) { return get_tmr10ms()*10; }
+    uint32_t time_boot_ms(void) { return getTime_10ms()*10; }
 
     uint16_t _t2MHz_last = 0;
     uint64_t _t10us_last = 0;
-
-    uint32_t time10us(void) { // ca 11.9h, should be sufficient
-      uint16_t t2MHz_now = getTmr2MHz();
-      _t10us_last += (t2MHz_now - _t2MHz_last);
-      _t2MHz_last = t2MHz_now;
-      return _t10us_last/20;
-    }
 
     // MAVLINK API
     // in the receive list we need to differentiate not only by msgid, but also by sysid-compid

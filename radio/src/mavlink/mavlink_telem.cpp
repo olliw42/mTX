@@ -1,7 +1,9 @@
-/*
- * The MAVLink for OpenTx project
- * (c) www.olliw.eu, OlliW, OlliW42
- */
+//*******************************************************
+// The MAVLink for OpenTx project
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
 
 #include "opentx.h"
 #include "stamp.h"
@@ -28,7 +30,7 @@ void MavlinkTelem::pop_and_set_task(void)
 
 // -- REQUEST handlers --
 
-void MavlinkTelem::set_request(uint8_t idx, uint32_t task, uint8_t retry, tmr10ms_t rate)
+void MavlinkTelem::set_request(uint8_t idx, uint32_t task, uint8_t retry, uint32_t rate)
 {
   push_task(idx, task);
 
@@ -51,7 +53,7 @@ void MavlinkTelem::set_request(uint8_t idx, uint32_t task, uint8_t retry, tmr10m
   _requestList[empty_i].task = task;
   _requestList[empty_i].idx = idx;
   _requestList[empty_i].retry = retry;
-  _requestList[empty_i].tlast = get_tmr10ms();
+  _requestList[empty_i].tlast = getTime_10ms();
   _requestList[empty_i].trate = rate;
 }
 
@@ -70,7 +72,7 @@ void MavlinkTelem::clear_request(uint8_t idx, uint32_t task)
 
 void MavlinkTelem::do_requests(void)
 {
-  tmr10ms_t tnow = get_tmr10ms();
+  uint32_t tnow = getTime_10ms();
 
   for (uint16_t i = 0; i < TASKIDX_MAX; i++) _request_is_waiting[i] = 0;
 
@@ -81,7 +83,7 @@ void MavlinkTelem::do_requests(void)
 
     if ((tnow - _requestList[i].tlast) >= _requestList[i].trate) {
       push_task(_requestList[i].idx, _requestList[i].task);
-      _requestList[i].tlast = get_tmr10ms();
+      _requestList[i].tlast = getTime_10ms();
       if (_requestList[i].retry < UINT8_MAX) {
         if (_requestList[i].retry) _requestList[i].retry--;
         if (!_requestList[i].retry) _requestList[i].task = 0; // clear request
@@ -157,7 +159,7 @@ void MavlinkTelem::generateHeartbeat(uint8_t base_mode, uint32_t custom_mode, ui
 void MavlinkTelem::generateAutopilotVersion(void)
 {
 uint64_t capabilities = 0;
-uint32_t flight_sw_version = OWVERSION;
+uint32_t flight_sw_version = version();
 uint32_t middleware_sw_version = 0;
 uint32_t os_sw_version = 2314;
 uint32_t board_version = 0;
@@ -388,7 +390,7 @@ void MavlinkTelem::handleMessage(void)
 
 void MavlinkTelem::doTask(void)
 {
-  tmr10ms_t tnow = get_tmr10ms();
+  uint32_t tnow = getTime_10ms();
 
   bool tick_1Hz = false;
 
@@ -463,7 +465,7 @@ void MavlinkTelem::doTask(void)
   // per MAVLink spec 0 and UNIT16_MAX should not be considered for channels >= 8, but it doesn't do it for 0
   // but we can hope that it handles 0 for the higher channels
   if (g_model.mavlinkRcOverride && param.SYSID_MYGCS >= 0) {
-    tmr10ms_t dt_10ms = mavlinkRcOverrideRate();
+    uint32_t dt_10ms = mavlinkRcOverrideRate();
     if ((tnow - _rcoverride_tlast) >= dt_10ms) {
       _rcoverride_tlast += dt_10ms;
       if ((tnow - _rcoverride_tlast) >= dt_10ms) _rcoverride_tlast = tnow; //we are late, so get back in sync
@@ -554,10 +556,9 @@ void MavlinkTelem::doTask(void)
     }
     if (_task[TASK_ME] & TASK_ME_SENDMYBANNER) {
       RESETTASK(TASK_ME, TASK_ME_SENDMYBANNER);
-      const char banner[] = "OpenTx with MAVLink " VERSION " " OWVERSIONSTR;
       char text[FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN];
       memset(text, 0, FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN);
-      strncpy(text, banner, FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN);
+      strncpy(text, banner(), FASTMAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN);
       generateStatustext(MAV_SEVERITY_INFO, text, 0, 0);
       return; //do only one per loop
     }
@@ -598,6 +599,36 @@ void MavlinkTelem::doTask(void)
 // serial1 = link 1
 // serial2 = link 2
 // usb     = link 3
+// map aux1,aux2,external onto serial1 & serial2
+void MavlinkTelem::map_serials(void)
+{
+  if (_external_enabled) {
+    if (_aux1_enabled && _aux2_enabled) {
+      // shit, what should we do??? we give aux,aux2 priority
+      serial1_enabled = serial2_enabled = true;
+      serial1_isexternal = serial2_isexternal = false;
+    }
+    else if (_aux1_enabled && !_aux2_enabled) {
+      serial1_enabled = true;
+      serial1_isexternal = false;
+      serial2_enabled = serial2_isexternal = true;
+    }
+    else if (!_aux1_enabled && _aux2_enabled) {
+      serial1_enabled = serial1_isexternal = true;
+      serial2_enabled = true;
+      serial2_isexternal = false;
+    }
+    else {
+      serial1_enabled = serial1_isexternal = true;
+      serial2_enabled = serial2_isexternal = false;
+    }
+  }
+  else{
+    serial1_enabled = _aux1_enabled;
+    serial2_enabled = _aux2_enabled;
+    serial1_isexternal = serial2_isexternal = false;
+  }
+}
 
 void MavlinkTelem::wakeup()
 {
@@ -749,7 +780,7 @@ void MavlinkTelem::tick10ms()
   check(camera.is_receiving, _resetCamera());
 
   // keep 10us timer updated
-  time10us();
+  getTime_10us();
 }
 
 // -- Resets --

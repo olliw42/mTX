@@ -1,7 +1,9 @@
-/*
- * The MAVLink for OpenTx project
- * Copyright (c) www.olliw.eu, OlliW, OlliW42
- */
+//*******************************************************
+// GPS Library
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
 
 #ifndef GPS_NMEA_H
 #define GPS_NMEA_H

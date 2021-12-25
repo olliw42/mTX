@@ -1,7 +1,9 @@
-/*
- * The MAVLink for OpenTx project
- * (c) www.olliw.eu, OlliW, OlliW42
- */
+//*******************************************************
+// MavTelem Library
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
 
 #include "opentx.h"
 

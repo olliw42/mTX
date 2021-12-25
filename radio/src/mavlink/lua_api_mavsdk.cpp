@@ -1,7 +1,9 @@
-/*
- * The MAVLink for OpenTx project
- * (c) www.olliw.eu, OlliW, OlliW42
- */
+//*******************************************************
+// MavTelem Library
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
 
 #include <ctype.h>
 #include <stdio.h>
@@ -399,7 +401,7 @@ static int luaMavsdkMavTelemIsEnabled(lua_State *L)
 
 static int luaMavsdkMavTelemVersion(lua_State *L)
 {
-  lua_pushstring(L, MAVLINKTELEMVERSIONSTR);
+  lua_pushstring(L, mavlinkTelem.versionstr());
   return 1;
 }
 

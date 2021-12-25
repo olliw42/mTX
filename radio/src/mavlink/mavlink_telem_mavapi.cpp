@@ -1,7 +1,9 @@
-/*
- * The MAVLink for OpenTx project
- * (c) www.olliw.eu, OlliW, OlliW42
- */
+//*******************************************************
+// MavTelem Library
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
 
 #include "opentx.h"
 
@@ -47,7 +49,7 @@ void MavlinkTelem::mavapiHandleMessage(fmav_message_t* msg)
   _mavapi_rx_list[i]->target_compid = msg->target_compid;
   memcpy(_mavapi_rx_list[i]->payload_ptr, msg->payload, msg->payload_max_len);
   _mavapi_rx_list[i]->updated = true;
-  _mavapi_rx_list[i]->timestamp = time10us();
+  _mavapi_rx_list[i]->timestamp = getTime_10us();
 }
 
 void MavlinkTelem::mavapiMsgInEnable(bool flag)
