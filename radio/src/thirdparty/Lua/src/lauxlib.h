@@ -38,6 +38,7 @@ extern const luaL_Reg modelLib[];
 #if defined(TELEMETRY_MAVLINK)
 extern const luaL_Reg mavlinkLib[];
 extern const luaL_Reg mavsdkLib[];
+extern const luaL_Reg mbridgeLib[];
 #endif
 //OWEND
 

@@ -364,6 +364,7 @@ if (TELEMETRY_MAVLINK)
     set(SRC ${SRC} 
       mavlink/lua_api_mavlink.cpp 
       mavlink/lua_api_mavsdk.cpp
+      mavlink/lua_api_mbridge.cpp 
       )
   endif()
 endif()

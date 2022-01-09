@@ -24,6 +24,7 @@ extern const luaR_value_entry opentxConstants[];
 #if defined(TELEMETRY_MAVLINK)
 extern const luaR_value_entry mavlinkConstants[];
 extern const luaR_value_entry mavsdkConstants[];
+extern const luaR_value_entry mbridgeConstants[];
 #endif
 //OWEND
 
