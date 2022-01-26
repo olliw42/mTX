@@ -12,13 +12,25 @@ extern Fifo<uint8_t, 1024> mavlinkTelemExternalTxFifo;
 MAVLINK_RAM_SECTION Fifo<uint8_t, 32> mBridgeTxFifo_frame;
 MAVLINK_RAM_SECTION Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
 
+
 MBridge mBridge;
+
+
+uint8_t MBridge::cmd_payload_len(uint8_t cmd)
+{
+  switch (cmd) {
+  case MBRIDGE_CMD_TX_LINK_STATS: return MBRIDGE_CMD_TX_LINK_STATS_LEN;
+  }
+  return 0;
+}
+
 
 bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
 {
   *len = 0;
   uint8_t c = 0;
   uint8_t state = 0;
+  uint8_t payload_len = 0;
   while (mBridgeRxFifo_cmd.pop(c)) {
     switch (state) {
     case 0:
@@ -29,32 +41,38 @@ bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
       break;
     case 2:
       *cmd = c & (~MBRIDGE_COMMANDPACKET_MASK);
+      payload_len = cmd_payload_len(*cmd);
       state = 3;
       break;
     case 3:
       payload[*len] = c;
       (*len)++;
+      if (*len >= payload_len) return true; // end of packet reached
       break;
     }
-    if (*len >= MBRIDGE_M2R_COMMAND_PAYLOAD_LEN) break; // end of packet reached
+    if (*len >= MBRIDGE_M2R_COMMAND_PAYLOAD_LEN_MAX) return false; // should not happen, but play it safe
   }
-  return (state < 3) ? false : true;
+  return false;
 }
+
 
 void MBridge::read_in()
 {
 uint8_t cmd;
-uint8_t payload[32];
+uint8_t payload[MBRIDGE_M2R_COMMAND_PAYLOAD_LEN_MAX];
 uint8_t len;
 
-  if (!mBridgeRxFifo_cmd.size()) return;
+  if (!mBridgeRxFifo_cmd.size()) return; // nothing received
 
-  if (!cmd_get(&cmd, payload, &len)) return;
+  if (!cmd_get(&cmd, payload, &len)) return; // received frame doesn't match
 
-  if ((cmd == MBRIDGE_CMD_TX_LINK_STATS) && (len >= sizeof(tMBridgeLinkStats))) {
+  switch (cmd) {
+  case MBRIDGE_CMD_TX_LINK_STATS:
     set_linkstats((tMBridgeLinkStats*)payload);
+    break;
   }
 }
+
 
 void MBridge::set_linkstats(tMBridgeLinkStats* ls)
 {
@@ -74,6 +92,7 @@ void MBridge::set_linkstats(tMBridgeLinkStats* ls)
   link_stats.LQ_valid_received = ls->LQ_valid_received;
 }
 
+
 void MBridge::send_serialpacket(void)
 {
   uint32_t count = mavlinkTelemExternalTxFifo.size();
@@ -91,6 +110,7 @@ void MBridge::send_serialpacket(void)
     mBridgeTxFifo_frame.push(c);
   }
 }
+
 
 void MBridge::send_channelpacket(void)
 {
@@ -110,6 +130,7 @@ void MBridge::send_channelpacket(void)
   }
 }
 
+
 /* not yet used
 void MBridge::send_cmdpacket(uint8_t cmd, uint8_t* payload, uint8_t len)
 {
@@ -125,10 +146,11 @@ void MBridge::send_cmdpacket(uint8_t cmd, uint8_t* payload, uint8_t len)
 }
 */
 
+
 typedef union {
-  uint8_t c[MBRIDGE_CHANNELPACKET_SIZE]; // 154 + 20 + 2 = 176 bits = 22 bytes
+  uint8_t c[MBRIDGE_CHANNELPACKET_SIZE]; // 176 + 8 = 184 bits = 23 bytes
   struct {
-    uint16_t channel0  : 11; // 14 channels a 11 bits per channel = 154 bits
+    uint16_t channel0  : 11; // 16 channels a 11 bits per channel = 176 bits
     uint16_t channel1  : 11;
     uint16_t channel2  : 11;
     uint16_t channel3  : 11;
@@ -142,12 +164,13 @@ typedef union {
     uint16_t channel11 : 11;
     uint16_t channel12 : 11;
     uint16_t channel13 : 11;
-    uint16_t channel14 : 10; // 2 channels a 10 bits per channel = 20 bits
-    uint16_t channel15 : 10;
-    uint16_t channel16 : 1; // 2 channels a 1 bit per channel = 2 bits
-    uint16_t channel17 : 1;
+    uint16_t channel14 : 11;
+    uint16_t channel15 : 11;
+    uint8_t channel16 : 1; // 2 channels a 1 bit per channel = 2 bits
+    uint8_t channel17 : 1;
   } __attribute__ ((__packed__));
 } tMBridgeChannelBuffer;
+
 
 uint16_t CH11BIT(uint8_t i)
 {
@@ -157,13 +180,6 @@ uint16_t CH11BIT(uint8_t i)
   return v;
 }
 
-uint16_t CH10BIT(uint8_t i)
-{
-  int16_t v = (channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER + 1024) / 2;
-  if (v < 0) return 0;
-  if (v > 1023) return 1023;
-  return v;
-}
 
 void MBridge::get_channels(uint8_t* _payload, uint8_t* len)
 {
@@ -184,8 +200,8 @@ void MBridge::get_channels(uint8_t* _payload, uint8_t* len)
   payload->channel11 = CH11BIT(11);
   payload->channel12 = CH11BIT(12);
   payload->channel13 = CH11BIT(13);
-  payload->channel14 = CH10BIT(14); // 10 bits, 0 .. 512 .. 1023
-  payload->channel15 = CH10BIT(15);
+  payload->channel14 = CH11BIT(14);
+  payload->channel15 = CH11BIT(15);
   payload->channel16 = CH1BIT(16); // 1 bit, 0..1
   payload->channel17 = CH1BIT(17);
 

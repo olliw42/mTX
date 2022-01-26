@@ -14,11 +14,11 @@
 #define MBRIDGE_STX1                                'O'
 #define MBRIDGE_STX2                                'W'
 
-#define MBRIDGE_R2M_SERIAL_PAYLOAD_LEN_MAX    17
+#define MBRIDGE_R2M_SERIAL_PAYLOAD_LEN_MAX          24
 
-#define MBRIDGE_CHANNELPACKET_SIZE                  22
+#define MBRIDGE_CHANNELPACKET_SIZE                  23
 
-#define MBRIDGE_M2R_COMMAND_PAYLOAD_LEN             12
+#define MBRIDGE_M2R_COMMAND_PAYLOAD_LEN_MAX         24
 
 
 typedef enum {
@@ -27,15 +27,20 @@ typedef enum {
   MBRIDGE_COMMANDPACKET_MASK  = 0xE0, // 0b111x
 } MBRIDGE_PACKET_STX_ENUM;
 
+
 // -- packets as exchanged over MBridge
 // note that TX means here = received from module !
 // these defines are largely copied over from mbridge class from mLRS, in order to not have too much confusion
 
 #define MBRIDGE_PACKED(__Declaration__) __Declaration__ __attribute__((packed))
 
+
 typedef enum {
   MBRIDGE_CMD_TX_LINK_STATS = 0x02,
-} MBRIDGE_CMD_TX_ENUM;
+} MBRIDGE_CMD_ENUM;
+
+
+#define MBRIDGE_CMD_TX_LINK_STATS_LEN  12
 
 
 MBRIDGE_PACKED(
@@ -91,6 +96,7 @@ class MBridge
     struct LinkStats link_stats;
 
   private:
+    uint8_t cmd_payload_len(uint8_t cmd);
     bool cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len);
 
     void get_channels(uint8_t* _payload, uint8_t* len);
