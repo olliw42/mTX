@@ -36,7 +36,7 @@ bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
       (*len)++;
       break;
     }
-    if (*len >= MBRIDGE_M2R_COMMANDPACKET_PAYLOAD_LEN) break; // end of packet reached
+    if (*len >= MBRIDGE_M2R_COMMAND_PAYLOAD_LEN) break; // end of packet reached
   }
   return (state < 3) ? false : true;
 }
@@ -77,7 +77,7 @@ void MBridge::set_linkstats(tMBridgeLinkStats* ls)
 void MBridge::send_serialpacket(void)
 {
   uint32_t count = mavlinkTelemExternalTxFifo.size();
-  if (count > MBRIDGE_R2M_SERIALPACKET_PAYLOAD_LEN_MAX) count = MBRIDGE_R2M_SERIALPACKET_PAYLOAD_LEN_MAX;
+  if (count > MBRIDGE_R2M_SERIAL_PAYLOAD_LEN_MAX) count = MBRIDGE_R2M_SERIAL_PAYLOAD_LEN_MAX;
 
   // always send header, this synchronizes slave
   mBridgeTxFifo_frame.push(MBRIDGE_STX1);
@@ -116,10 +116,10 @@ void MBridge::send_cmdpacket(uint8_t cmd, uint8_t* payload, uint8_t len)
   // always send header, this synchronizes slave
   mBridgeTxFifo_frame.push('O');
   mBridgeTxFifo_frame.push('W');
-  mBridgeTxFifo_frame.push((uint8_t)COMMANDPACKET_STX + (cmd &~ COMMANDPACKET_STX_MASK));
+  mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_COMMANDPACKET_STX + (cmd &~ MBRIDGE_COMMANDPACKET_STX_MASK));
 
   // send payload
-  for (uint16_t i = 0; i < MBRIDGE_COMMANDPACKET_TX_PAYLOAD_SIZE; i++) {
+  for (uint16_t i = 0; i < MBRIDGE_R2M_COMMAND_PAYLOAD_LEN; i++) {
     mBridgeTxFifo_frame.push((i < len) ? payload[i] : 0);
   }
 }

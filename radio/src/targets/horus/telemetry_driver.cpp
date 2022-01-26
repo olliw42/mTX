@@ -433,7 +433,7 @@ extern "C" void TELEMETRY_USART_IRQHandler(void)
         mavlinkTelemExternalRxFifo.push(c); // receive serial data
       } else
       if (mavlinkTelemExternal_rx_state == 1) {
-        if (c >= 0xA0) {
+        if ((c & MBRIDGE_COMMANDPACKET_MASK) == MBRIDGE_COMMANDPACKET_STX) {
           mBridgeRxFifo_cmd.push(MBRIDGE_STX1);
           mBridgeRxFifo_cmd.push(MBRIDGE_STX2);
           mBridgeRxFifo_cmd.push(c);
