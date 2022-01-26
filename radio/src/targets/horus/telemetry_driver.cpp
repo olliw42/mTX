@@ -434,8 +434,8 @@ extern "C" void TELEMETRY_USART_IRQHandler(void)
       } else
       if (mavlinkTelemExternal_rx_state == 1) {
         if (c >= 0xA0) {
-          mBridgeRxFifo_cmd.push('O');
-          mBridgeRxFifo_cmd.push('W');
+          mBridgeRxFifo_cmd.push(MBRIDGE_STX1);
+          mBridgeRxFifo_cmd.push(MBRIDGE_STX2);
           mBridgeRxFifo_cmd.push(c);
           mavlinkTelemExternal_rx_state = 3; // switch to receive command
         } else {

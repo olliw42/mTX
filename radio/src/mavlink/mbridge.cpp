@@ -22,13 +22,13 @@ bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
   while (mBridgeRxFifo_cmd.pop(c)) {
     switch (state) {
     case 0:
-      if (c == 'O') state = 1;
+      if (c == MBRIDGE_STX1) state = 1;
       break;
     case 1:
-      if (c == 'W') state = 2;
+      if (c == MBRIDGE_STX2) state = 2;
       break;
     case 2:
-      *cmd = c & 0x1F;
+      *cmd = c & (~MBRIDGE_COMMANDPACKET_MASK);
       state = 3;
       break;
     case 3:
@@ -36,7 +36,7 @@ bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
       (*len)++;
       break;
     }
-    if (*len >= MBRIDGE_COMMANDPACKET_RX_PAYLOAD_SIZE) break; // end of packet reached
+    if (*len >= MBRIDGE_M2R_COMMANDPACKET_PAYLOAD_LEN) break; // end of packet reached
   }
   return (state < 3) ? false : true;
 }
@@ -77,11 +77,11 @@ void MBridge::set_linkstats(tMBridgeLinkStats* ls)
 void MBridge::send_serialpacket(void)
 {
   uint32_t count = mavlinkTelemExternalTxFifo.size();
-  if (count > MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX) count = MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX;
+  if (count > MBRIDGE_R2M_SERIALPACKET_PAYLOAD_LEN_MAX) count = MBRIDGE_R2M_SERIALPACKET_PAYLOAD_LEN_MAX;
 
   // always send header, this synchronizes slave
-  mBridgeTxFifo_frame.push('O');
-  mBridgeTxFifo_frame.push('W');
+  mBridgeTxFifo_frame.push(MBRIDGE_STX1);
+  mBridgeTxFifo_frame.push(MBRIDGE_STX2);
   mBridgeTxFifo_frame.push((uint8_t)count);
 
   // send payload
@@ -100,8 +100,8 @@ void MBridge::send_channelpacket(void)
   get_channels(payload, &len);
 
   // always send header, this synchronizes slave
-  mBridgeTxFifo_frame.push('O');
-  mBridgeTxFifo_frame.push('W');
+  mBridgeTxFifo_frame.push(MBRIDGE_STX1);
+  mBridgeTxFifo_frame.push(MBRIDGE_STX2);
   mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_CHANNELPACKET_STX); // marker for channel packet
 
   // send payload

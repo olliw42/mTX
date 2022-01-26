@@ -11,15 +11,23 @@
 
 // -- MBridge definitions --
 
-#define MBRIDGE_SERIALPACKET_TX_PAYLOAD_SIZE_MAX    17
+#define MBRIDGE_STX1                                'O'
+#define MBRIDGE_STX2                                'W'
 
-#define MBRIDGE_CHANNELPACKET_SIZE  22
-#define MBRIDGE_CHANNELPACKET_STX   0xFF
+#define MBRIDGE_R2M_SERIALPACKET_PAYLOAD_LEN_MAX    17
 
-#define MBRIDGE_COMMANDPACKET_RX_PAYLOAD_SIZE       12
-#define MBRIDGE_COMMANDPACKET_TX_PAYLOAD_SIZE       22
-#define COMMANDPACKET_STX           0xA0
-#define COMMANDPACKET_STX_MASK      0xE0
+#define MBRIDGE_CHANNELPACKET_SIZE                  22
+
+#define MBRIDGE_M2R_COMMANDPACKET_PAYLOAD_LEN       12
+#define MBRIDGE_R2M_COMMANDPACKET_PAYLOAD_LEN       22
+
+typedef enum {
+  MBRIDGE_SERIALPACKET_STX    = 0x00,
+  MBRIDGE_CHANNELPACKET_STX   = 0xFF,
+  MBRIDGE_COMMANDPACKET_STX   = 0xA0, // 0b101x
+  MBRIDGE_COMMANDPACKET_MASK  = 0xE0, // 0b111x
+} MBRIDGE_PACKET_STX_ENUM;
+
 
 // -- packets as exchanged over MBridge
 // note that TX means here = received from module !
