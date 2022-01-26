@@ -659,6 +659,7 @@ void MavlinkTelem::wakeup()
     fmav_router_reset_link(3);
   }
 
+  // do bridge
   if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) mavlinkTelemExternal_wakeup();
 
   // skip out if not at least one of the serial1, serial2 is enabled
@@ -757,9 +758,6 @@ void MavlinkTelem::wakeup()
       _msg_out_available = false; // message is targeted at unknown component
     }
   }
-
-  // do bridge commands
-  mBridge.wakeup();
 }
 
 // -- 10 ms tick --

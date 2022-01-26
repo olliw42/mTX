@@ -62,7 +62,7 @@ class MBridge
   public:
     MBridge() { } // constructor
 
-    void wakeup();
+    void read_in();
     void send_serialpacket(void);
     void send_channelpacket(void);
 
@@ -85,7 +85,6 @@ class MBridge
     struct LinkStats link_stats;
 
   private:
-    uint32_t cmd_available(void);
     bool cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len);
 
     void get_channels(uint8_t* _payload, uint8_t* len);

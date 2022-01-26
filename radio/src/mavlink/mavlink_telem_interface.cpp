@@ -157,6 +157,8 @@ void mavlinkTelemExternal_wakeup(void)
 {
   static uint8_t slot_counter = 0;
 
+  mBridge.read_in();
+
   // we do it at the beginning, so it gives few cycles before TX is enabled
   TELEMETRY_DIR_GPIO->BSRRL = TELEMETRY_DIR_GPIO_PIN; // enable output
   TELEMETRY_USART->CR1 &= ~USART_CR1_RE; // turn off receiver

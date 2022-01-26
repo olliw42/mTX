@@ -414,19 +414,22 @@ extern "C" void TELEMETRY_USART_IRQHandler(void)
         USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_TC);
         USART_ITConfig(TELEMETRY_USART, USART_IT_TC, ENABLE);
       }
+      mavlinkTelemExternal_rx_state = 0;
     }
     else if (USART_GetITStatus(TELEMETRY_USART, USART_IT_TC) != RESET) {
       USART_ITConfig(TELEMETRY_USART, USART_IT_TC, DISABLE);
       USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_TC);
       TELEMETRY_DIR_GPIO->BSRRH = TELEMETRY_DIR_GPIO_PIN; // output disable
+      USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_RXNE);
       TELEMETRY_USART->CR1 |= USART_CR1_RE; // turn on receiver
       mavlinkTelemExternal_rx_state = 1;
+      mBridgeRxFifo_cmd.clear();
     }
 
     if (USART_GetITStatus(TELEMETRY_USART, USART_IT_RXNE) != RESET) {
       USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_RXNE);
       uint8_t c = USART_ReceiveData(TELEMETRY_USART);
-      if (mavlinkTelemExternal_rx_state == 0) {
+      if (mavlinkTelemExternal_rx_state == 2) {
         mavlinkTelemExternalRxFifo.push(c); // receive serial data
       } else
       if (mavlinkTelemExternal_rx_state == 1) {
@@ -434,12 +437,12 @@ extern "C" void TELEMETRY_USART_IRQHandler(void)
           mBridgeRxFifo_cmd.push('O');
           mBridgeRxFifo_cmd.push('W');
           mBridgeRxFifo_cmd.push(c);
-          mavlinkTelemExternal_rx_state = 2; // switch to receive command
+          mavlinkTelemExternal_rx_state = 3; // switch to receive command
         } else {
-          mavlinkTelemExternal_rx_state = 0; // switch to receive serial data
+          mavlinkTelemExternal_rx_state = 2; // switch to receive serial data
         }
       } else
-      if (mavlinkTelemExternal_rx_state == 2) {
+      if (mavlinkTelemExternal_rx_state == 3) {
           mBridgeRxFifo_cmd.push(c); // receive command
       }
     }

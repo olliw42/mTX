@@ -14,11 +14,6 @@ MAVLINK_RAM_SECTION Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
 
 MBridge mBridge;
 
-uint32_t MBridge::cmd_available(void)
-{
-  return mBridgeRxFifo_cmd.size();
-}
-
 bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
 {
   *len = 0;
@@ -46,21 +41,20 @@ bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
   return (state < 3) ? false : true;
 }
 
-void MBridge::wakeup()
+void MBridge::read_in()
 {
-  if (cmd_available()) {
-    uint8_t cmd;
-    uint8_t payload[32];
-    uint8_t len;
-    bool res = cmd_get(&cmd, payload, &len);
+uint8_t cmd;
+uint8_t payload[32];
+uint8_t len;
 
-    if (res && (cmd == MBRIDGE_CMD_TX_LINK_STATS) && (len >= sizeof(tMBridgeLinkStats))) {
-      set_linkstats((tMBridgeLinkStats*)payload);
-    }
+  if (!mBridgeRxFifo_cmd.size()) return;
 
+  if (!cmd_get(&cmd, payload, &len)) return;
+
+  if ((cmd == MBRIDGE_CMD_TX_LINK_STATS) && (len >= sizeof(tMBridgeLinkStats))) {
+    set_linkstats((tMBridgeLinkStats*)payload);
   }
 }
-
 
 void MBridge::set_linkstats(tMBridgeLinkStats* ls)
 {
@@ -79,7 +73,6 @@ void MBridge::set_linkstats(tMBridgeLinkStats* ls)
   link_stats.LQ_received = ls->LQ_received;
   link_stats.LQ_valid_received = ls->LQ_valid_received;
 }
-
 
 void MBridge::send_serialpacket(void)
 {
