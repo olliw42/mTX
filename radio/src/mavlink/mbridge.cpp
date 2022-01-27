@@ -76,20 +76,32 @@ uint8_t len;
 
 void MBridge::set_linkstats(tMBridgeLinkStats* ls)
 {
-  link_stats.rssi = ls->rssi;
   link_stats.LQ = ls->LQ;
-  link_stats.snr = ls->snr;
-  link_stats.rssi2 = ls->rssi2;
+  link_stats.rssi_instantaneous = ls->rssi_instantaneous;
+  link_stats.snr_instantaneous = ls->snr_instantaneous;
+  link_stats.rssi2_instantaneous = ls->rssi2_instantaneous;
   link_stats.ant_no = ls->ant_no;
-  link_stats.receiver_rssi = ls->receiver_rssi;
-  link_stats.receiver_LQ = ls->receiver_LQ;
-  link_stats.receiver_snr = ls->receiver_snr;
-  link_stats.receiver_rssi2 = ls->receiver_rssi2;
-  link_stats.receiver_ant_no = ls->receiver_ant_no;
+  link_stats.rssi_filtered = ls->rssi_filtered;
+  link_stats.snr_filtered = ls->snr_filtered;
+  link_stats.rssi2_filtered = ls->rssi2_filtered;
 
-  link_stats.LQ_frames_received = ls->LQ_frames_received;
-  link_stats.LQ_received = ls->LQ_received;
+  link_stats.receiver_LQ = ls->receiver_LQ;
+  link_stats.receiver_LQ_serial = ls->receiver_LQ_serial;
+  link_stats.receiver_rssi_instantaneous = ls->receiver_rssi_instantaneous;
+  link_stats.receiver_snr_instantaneous = ls->receiver_snr_instantaneous;
+  link_stats.receiver_rssi2_instantaneous = ls->receiver_rssi2_instantaneous;
+  link_stats.receiver_ant_no = ls->receiver_ant_no;
+  link_stats.receiver_rssi_filtered = ls->receiver_rssi_filtered;
+  link_stats.receiver_snr_filtered = ls->receiver_snr_filtered;
+  link_stats.receiver_rssi2_filtered = ls->receiver_rssi2_filtered;
+
+  link_stats.LQ_fresh_serial_packets_transmitted = ls->LQ_fresh_serial_packets_transmitted;
+  link_stats.bytes_per_sec_transmitted = ls->bytes_per_sec_transmitted;
   link_stats.LQ_valid_received = ls->LQ_valid_received;
+  link_stats.LQ_fresh_serial_packets_received = ls->LQ_fresh_serial_packets_received;
+  link_stats.bytes_per_sec_received = ls->bytes_per_sec_received;
+
+  link_stats.LQ_received = ls->LQ_received;
 }
 
 
