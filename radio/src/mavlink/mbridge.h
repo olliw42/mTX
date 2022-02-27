@@ -48,39 +48,40 @@ typedef struct
 {
   // transmitter side of things
   uint8_t LQ;
-  int8_t rssi_instantaneous;
-  int8_t snr_instantaneous; // invalid = INT8_MAX
+  int8_t rssi1_instantaneous; // invalid = INT8_MAX
   int8_t rssi2_instantaneous; // invalid = INT8_MAX
+  int8_t snr_instantaneous;
 
-  int8_t rssi_filtered;
-  int8_t snr_filtered;
+  int8_t rssi1_filtered;
   int8_t rssi2_filtered;
+  int8_t snr_filtered;
 
   // receiver side of things
   uint8_t receiver_LQ;
   uint8_t receiver_LQ_serial;
   int8_t receiver_rssi_instantaneous;
-  int8_t receiver_snr_instantaneous; // invalid = INT8_MAX
-  int8_t receiver_rssi2_instantaneous; // invalid = INT8_MAX
 
   int8_t receiver_rssi_filtered;
-  int8_t receiver_snr_filtered;
-  int8_t receiver_rssi2_filtered;
 
   // both
-  uint8_t ant_no : 1;
-  uint8_t receiver_ant_no : 1;
-  uint8_t spare_bits : 6;
+  uint8_t receive_antenna : 1;
+  uint8_t transmit_antenna : 1;
+  uint8_t receiver_receive_antenna : 1;
+  uint8_t receiver_transmit_antenna : 1;
+  uint8_t diversity : 1;
+  uint8_t receiver_diversity : 1;
+  uint8_t spare : 2;
 
   // further stats acquired on transmitter side
   uint8_t LQ_fresh_serial_packets_transmitted;
   uint8_t bytes_per_sec_transmitted;
-
-  uint8_t LQ_valid_received; // number of completely valid packets received per sec
+  uint8_t LQ_valid_received;  // number of completely valid packets received per sec
   uint8_t LQ_fresh_serial_packets_received;
   uint8_t bytes_per_sec_received;
 
   uint8_t LQ_received; // number of packets received per sec, not practically relevant
+
+  uint8_t spare2[4];
 }) tMBridgeLinkStats;
 
 
@@ -97,23 +98,25 @@ class MBridge
 
     struct LinkStats { // may not be exactly what is send in packet
       uint8_t LQ;
-      int8_t rssi_instantaneous;
-      int8_t snr_instantaneous; // invalid = INT8_MAX
+      int8_t rssi1_instantaneous; // invalid = INT8_MAX
       int8_t rssi2_instantaneous; // invalid = INT8_MAX
-      uint8_t ant_no;
-      int8_t rssi_filtered;
-      int8_t snr_filtered;
+      int8_t snr_instantaneous; // invalid = INT8_MAX
+      uint8_t receive_antenna;
+      uint8_t transmit_antenna;
+      uint8_t diversity;
       int8_t rssi2_filtered;
+      int8_t rssi1_filtered;
+      int8_t snr_filtered;
 
       uint8_t receiver_LQ;
       uint8_t receiver_LQ_serial;
       int8_t receiver_rssi_instantaneous;
       int8_t receiver_snr_instantaneous; // invalid = INT8_MAX
-      int8_t receiver_rssi2_instantaneous; // invalid = INT8_MAX
-      uint8_t receiver_ant_no;
+      uint8_t receiver_receive_antenna;
+      uint8_t receiver_transmit_antenna;
+      uint8_t receiver_diversity;
       int8_t receiver_rssi_filtered;
       int8_t receiver_snr_filtered;
-      int8_t receiver_rssi2_filtered;
 
       uint8_t LQ_fresh_serial_packets_transmitted;
       uint8_t bytes_per_sec_transmitted;

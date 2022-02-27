@@ -77,23 +77,23 @@ uint8_t len;
 void MBridge::set_linkstats(tMBridgeLinkStats* ls)
 {
   link_stats.LQ = ls->LQ;
-  link_stats.rssi_instantaneous = ls->rssi_instantaneous;
-  link_stats.snr_instantaneous = ls->snr_instantaneous;
+  link_stats.rssi1_instantaneous = ls->rssi1_instantaneous;
   link_stats.rssi2_instantaneous = ls->rssi2_instantaneous;
-  link_stats.ant_no = ls->ant_no;
-  link_stats.rssi_filtered = ls->rssi_filtered;
-  link_stats.snr_filtered = ls->snr_filtered;
+  link_stats.snr_instantaneous = ls->snr_instantaneous;
+  link_stats.receive_antenna = ls->receive_antenna;
+  link_stats.transmit_antenna = ls->transmit_antenna;
+  link_stats.diversity = ls->diversity;
+  link_stats.rssi1_filtered = ls->rssi1_filtered;
   link_stats.rssi2_filtered = ls->rssi2_filtered;
+  link_stats.snr_filtered = ls->snr_filtered;
 
   link_stats.receiver_LQ = ls->receiver_LQ;
   link_stats.receiver_LQ_serial = ls->receiver_LQ_serial;
   link_stats.receiver_rssi_instantaneous = ls->receiver_rssi_instantaneous;
-  link_stats.receiver_snr_instantaneous = ls->receiver_snr_instantaneous;
-  link_stats.receiver_rssi2_instantaneous = ls->receiver_rssi2_instantaneous;
-  link_stats.receiver_ant_no = ls->receiver_ant_no;
+  link_stats.receiver_receive_antenna = ls->receiver_receive_antenna;
+  link_stats.receiver_transmit_antenna = ls->receiver_transmit_antenna;
+  link_stats.receiver_diversity = ls->receiver_diversity;
   link_stats.receiver_rssi_filtered = ls->receiver_rssi_filtered;
-  link_stats.receiver_snr_filtered = ls->receiver_snr_filtered;
-  link_stats.receiver_rssi2_filtered = ls->receiver_rssi2_filtered;
 
   link_stats.LQ_fresh_serial_packets_transmitted = ls->LQ_fresh_serial_packets_transmitted;
   link_stats.bytes_per_sec_transmitted = ls->bytes_per_sec_transmitted;
