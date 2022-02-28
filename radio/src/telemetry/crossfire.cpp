@@ -20,6 +20,14 @@
 
 #include "opentx.h"
 
+//OW translate.py en.h.txt en.h en
+#define ZSTR_RX_RSSI_PERC              "\022\022\023\020"
+#define ZSTR_RX_RF_POWER               "\022\020\027\022"
+#define ZSTR_TX_RSSI_PERC              "\024\022\023\020"
+#define ZSTR_TX_RF_POWER               "\024\020\027\022"
+#define ZSTR_TX_FPS                    "\024\006\020\023"
+//OWEND
+
 const CrossfireSensor crossfireSensors[] = {
   {LINK_ID,        0, ZSTR_RX_RSSI1,      UNIT_DB,                0},
   {LINK_ID,        1, ZSTR_RX_RSSI2,      UNIT_DB,                0},
@@ -31,6 +39,13 @@ const CrossfireSensor crossfireSensors[] = {
   {LINK_ID,        7, ZSTR_TX_RSSI,       UNIT_DB,                0},
   {LINK_ID,        8, ZSTR_TX_QUALITY,    UNIT_PERCENT,           0},
   {LINK_ID,        9, ZSTR_TX_SNR,        UNIT_DB,                0},
+//OW
+  {LINK_RX_ID,     0, ZSTR_RX_RSSI_PERC,  UNIT_PERCENT,           0},
+  {LINK_RX_ID,     1, ZSTR_RX_RF_POWER,   UNIT_DB,                0}, // UNIT_DBM
+  {LINK_TX_ID,     0, ZSTR_TX_RSSI_PERC,  UNIT_PERCENT,           0},
+  {LINK_TX_ID,     1, ZSTR_TX_RF_POWER,   UNIT_DB,                0}, // UNIT_DBM
+  {LINK_TX_ID,     2, ZSTR_TX_FPS,        UNIT_HERTZ,             0},
+//OWEND
   {BATTERY_ID,     0, ZSTR_BATT,          UNIT_VOLTS,             1},
   {BATTERY_ID,     1, ZSTR_CURR,          UNIT_AMPS,              1},
   {BATTERY_ID,     2, ZSTR_CAPACITY,      UNIT_MAH,               0},
@@ -53,6 +68,12 @@ const CrossfireSensor & getCrossfireSensor(uint8_t id, uint8_t subId)
 {
   if (id == LINK_ID)
     return crossfireSensors[RX_RSSI1_INDEX+subId];
+//OW
+  else if (id == LINK_RX_ID)
+    return crossfireSensors[RX_RSSI_PERC_INDEX+subId];
+  else if (id == LINK_TX_ID)
+    return crossfireSensors[TX_RSSI_PERC_INDEX+subId];
+//OWEND
   else if (id == BATTERY_ID)
     return crossfireSensors[BATT_VOLTAGE_INDEX+subId];
   else if (id == GPS_ID)
@@ -154,7 +175,23 @@ void processCrossfireTelemetryFrame()
         }
       }
       break;
+//OW
+    case LINK_RX_ID:
+      if (getCrossfireTelemetryValue<1>(4, value))
+        processCrossfireTelemetryValue(RX_RSSI_PERC_INDEX, value);
+      if (getCrossfireTelemetryValue<1>(7, value))
+        processCrossfireTelemetryValue(TX_RF_POWER_INDEX, value);
+      break;
 
+    case LINK_TX_ID:
+      if (getCrossfireTelemetryValue<1>(4, value))
+        processCrossfireTelemetryValue(TX_RSSI_PERC_INDEX, value);
+      if (getCrossfireTelemetryValue<1>(7, value))
+        processCrossfireTelemetryValue(RX_RF_POWER_INDEX, value);
+      if (getCrossfireTelemetryValue<1>(8, value))
+        processCrossfireTelemetryValue(TX_FPS_INDEX, value * 10);
+      break;
+//OWEND
     case BATTERY_ID:
       if (getCrossfireTelemetryValue<2>(3, value))
         processCrossfireTelemetryValue(BATT_VOLTAGE_INDEX, value);
