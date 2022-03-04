@@ -184,10 +184,12 @@ typedef union {
 } tMBridgeChannelBuffer;
 
 
+// mBridge: 1...1024...2047 for +-120% range
 uint16_t CH11BIT(uint8_t i)
 {
-  int16_t v = channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER + 1024;
-  if (v < 0) return 0;
+  int16_t v = channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER;
+  v = (v * 5) / 6; // scale +-1023 for 100% down to +-852 for 100%
+  if (v < 1) return 1;
   if (v > 2047) return 2047;
   return v;
 }
@@ -196,9 +198,9 @@ uint16_t CH11BIT(uint8_t i)
 void MBridge::get_channels(uint8_t* _payload, uint8_t* len)
 {
   tMBridgeChannelBuffer* payload = (tMBridgeChannelBuffer*)_payload;
-  #define CH1BIT(i)  (uint16_t)( (channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER + 1024) >= 1536 ? 1 : 0 )
+  #define CH1BIT(i)  (uint16_t)( (channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER + 1024) >= 1536 ? 1 : 0 ) // > 50%
 
-  payload->channel0  = CH11BIT(0); // 11 bits, 0 .. 1024 .. 2047
+  payload->channel0  = CH11BIT(0); // 11 bits, 1 .. 1024 .. 2047
   payload->channel1  = CH11BIT(1);
   payload->channel2  = CH11BIT(2);
   payload->channel3  = CH11BIT(3);
