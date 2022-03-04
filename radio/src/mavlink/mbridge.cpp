@@ -187,8 +187,8 @@ typedef union {
 // mBridge: 1...1024...2047 for +-120% range
 uint16_t CH11BIT(uint8_t i)
 {
-  int16_t v = channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER;
-  v = (v * 5) / 6; // scale +-1023 for 100% down to +-852 for 100%
+  int32_t v = channelOutputs[i] + 2*PPM_CH_CENTER(i) - 2*PPM_CENTER;
+  v = (v * 5) / 6 + 1024; // scale +-1023 for 100% down to +-852 for 100%
   if (v < 1) return 1;
   if (v > 2047) return 2047;
   return v;
