@@ -728,8 +728,8 @@ extern DMAFifo<512> telemetryFifo;
 //OW
 //typedef DMAFifo<32> AuxSerialRxFifo;
 #if defined(TELEMETRY_MAVLINK)
-  typedef Fifo<uint8_t, 1024> AuxSerialTxFifo;
-  typedef DMAFifo<1024> AuxSerialRxFifo;
+  typedef Fifo<uint8_t, 4096> AuxSerialTxFifo; // MissionPlanner is rude
+  typedef DMAFifo<4096> AuxSerialRxFifo; // MissionPlanner is rude
 #else
   typedef Fifo<uint8_t, 512> AuxSerialTxFifo;
   typedef DMAFifo<32> AuxSerialRxFifo;

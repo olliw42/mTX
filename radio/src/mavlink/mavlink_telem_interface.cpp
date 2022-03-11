@@ -65,8 +65,8 @@ void mavlinkStart()
 // RXFifo is continuously filled in Rx ISR
 // if as command is detected, it is filled into RxFifo_cmd, prepended with 'OW'
 
-MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemExternalTxFifo;
-MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemExternalRxFifo;
+MAVLINK_RAM_SECTION Fifo<uint8_t, 4096> mavlinkTelemExternalTxFifo; // MissionPlanner is rude
+MAVLINK_RAM_SECTION Fifo<uint8_t, 4096> mavlinkTelemExternalRxFifo;
 
 void extmoduleMavlinkTelemStop(void)
 {
@@ -221,7 +221,7 @@ uint32_t mavlinkTelemAux2Baudrate(void)
 }
 
 #if defined(TELEMETRY_MAVLINK_USB_SERIAL)
-MAVLINK_RAM_SECTION Fifo<uint8_t, 1024> mavlinkTelemUsbRxFifo;
+MAVLINK_RAM_SECTION Fifo<uint8_t, 4096> mavlinkTelemUsbRxFifo; // MissionPlanner is rude
 #endif
 
 #if defined(AUX_SERIAL)

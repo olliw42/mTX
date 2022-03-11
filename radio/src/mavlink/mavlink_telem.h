@@ -21,7 +21,7 @@ uint32_t mavlinkTelemAuxBaudrate(void);
 uint32_t mavlinkTelemAux2Baudrate(void);
 
 #if defined(TELEMETRY_MAVLINK_USB_SERIAL)
-extern Fifo<uint8_t, 1024> mavlinkTelemUsbRxFifo;
+extern Fifo<uint8_t, 4096> mavlinkTelemUsbRxFifo; // MissionPlanner is rude
 #endif
 
 // even though we only allow 2 serial uart channels max, we need this

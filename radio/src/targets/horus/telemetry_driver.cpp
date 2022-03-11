@@ -30,8 +30,8 @@ uint8_t telemetryFifoMode;
 
 //OW
 #if defined(TELEMETRY_MAVLINK)
-extern Fifo<uint8_t, 32> mBridgeTxFifo_frame;
-extern Fifo<uint8_t, 1024> mavlinkTelemExternalRxFifo;
+extern Fifo<uint8_t, 4096> mavlinkTelemExternalRxFifo;
+extern Fifo<uint8_t, 256> mBridgeTxFifo_frame;
 extern Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
 volatile uint8_t mavlinkTelemExternal_rx_state = 0;
 #endif

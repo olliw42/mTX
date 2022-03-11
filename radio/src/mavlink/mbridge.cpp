@@ -8,9 +8,9 @@
 #include "opentx.h"
 
 
-extern Fifo<uint8_t, 1024> mavlinkTelemExternalTxFifo;
-MAVLINK_RAM_SECTION Fifo<uint8_t, 32> mBridgeTxFifo_frame;
-MAVLINK_RAM_SECTION Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
+extern Fifo<uint8_t, 4096> mavlinkTelemExternalTxFifo; // MissionPlanner is rude
+MAVLINK_RAM_SECTION Fifo<uint8_t, 256> mBridgeTxFifo_frame; // is filled every time with just one frame
+MAVLINK_RAM_SECTION Fifo<uint8_t, 256> mBridgeRxFifo_cmd; // is cleared every time so can just hold one frame
 
 
 MBridge mBridge;
