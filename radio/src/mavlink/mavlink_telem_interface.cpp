@@ -140,7 +140,7 @@ void extmoduleMavlinkTelemStart(void)
   USART_Cmd(TELEMETRY_USART, ENABLE);
   USART_ITConfig(TELEMETRY_USART, USART_IT_RXNE, ENABLE);
   USART_ITConfig(TELEMETRY_USART, USART_IT_TXE, DISABLE);
-  NVIC_SetPriority(TELEMETRY_USART_IRQn, 6);
+  NVIC_SetPriority(TELEMETRY_USART_IRQn, 5); // everything else seems to be 6,7,8,10,11 some are 0
   NVIC_EnableIRQ(TELEMETRY_USART_IRQn);
 }
 
