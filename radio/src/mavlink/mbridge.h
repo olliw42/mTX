@@ -95,6 +95,7 @@ class MBridge
     void read_in();
     void send_serialpacket(void);
     void send_channelpacket(void);
+    bool linkstats_updated(void);
 
     struct LinkStats { // may not be exactly what is send in packet
       uint8_t LQ;
@@ -127,6 +128,7 @@ class MBridge
       uint8_t LQ_received; // number of packets received per sec, not practically relevant
     };
     struct LinkStats link_stats;
+    bool _link_stats_updated = false;
 
   private:
     uint8_t cmd_payload_len(uint8_t cmd);

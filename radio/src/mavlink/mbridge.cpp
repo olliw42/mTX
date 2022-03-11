@@ -102,6 +102,18 @@ void MBridge::set_linkstats(tMBridgeLinkStats* ls)
   link_stats.bytes_per_sec_received = ls->bytes_per_sec_received;
 
   link_stats.LQ_received = ls->LQ_received;
+
+  _link_stats_updated = true;
+}
+
+
+bool MBridge::linkstats_updated(void)
+{
+   if (_link_stats_updated) {
+     _link_stats_updated = false;
+     return true;
+   }
+   return false;
 }
 
 

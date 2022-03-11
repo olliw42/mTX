@@ -173,6 +173,41 @@ void mavlinkTelemExternal_wakeup(void)
 
   slot_counter++;
   if (slot_counter >= 10) slot_counter = 0;
+
+  if (mBridge.linkstats_updated()) {
+    mavlinkTelem.mbridgestats.is_receiving_linkstats = MAVLINK_TELEM_RADIO_RECEIVING_TIMEOUT;
+    uint8_t rssi = 0;
+    int8_t rssi_i8 = mBridge.link_stats.receiver_rssi_instantaneous;
+    // convert -127 .. 0 to 0 ... 254
+    if (rssi_i8 == 127) {
+      rssi = UINT8_MAX;
+    }
+    else if (rssi_i8 > -50) {
+      rssi = 254;
+    }
+    else if (rssi_i8 < -120) {
+      rssi = 0;
+    } else {
+      int32_t r = (int32_t)rssi_i8 - (-120);
+      constexpr int32_t m = (int32_t)(-50) - (-120);
+      rssi = (r * 254 + m/2) / m;
+    }
+    mavlinkTelem.mbridgestats.receiver_rssi = rssi;
+
+    if (g_model.mavlinkRssiScale > 0) {
+      if (g_model.mavlinkRssiScale < 255) { //if not full range, respect  UINT8_MAX
+        if (rssi == UINT8_MAX) rssi = 0;
+      }
+      if (rssi > g_model.mavlinkRssiScale) rssi = g_model.mavlinkRssiScale; //constrain
+      rssi = (uint8_t)( ((uint16_t)rssi * 100) / g_model.mavlinkRssiScale); //scale to 0..100
+    }
+    else { //mavlink default
+      if (rssi == UINT8_MAX) rssi = 0;
+    }
+    mavlinkTelem.mbridgestats.receiver_rssi_scaled = rssi;
+
+    mavlinkTelem.mbridgestats.receiver_LQ = mBridge.link_stats.receiver_LQ;
+  }
 }
 
 uint32_t mavlinkTelemExternalAvailable(void)

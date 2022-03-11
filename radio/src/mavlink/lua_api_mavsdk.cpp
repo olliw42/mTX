@@ -549,7 +549,10 @@ static int luaMavsdkSendGlobalPositionInt(lua_State *L)
 static int luaMavsdkGetRadioRssiRaw(lua_State *L)
 {
   uint8_t rssi = UINT8_MAX;
-  if (mavlinkTelem.radio.is_receiving) {
+  if (mavlinkTelem.mbridgestats.is_receiving_linkstats) {
+    rssi = mavlinkTelem.mbridgestats.receiver_rssi;
+  }
+  else if (mavlinkTelem.radio.is_receiving) {
     rssi = mavlinkTelem.radio.remrssi; // let's report the rssi of the air side
   }
   else if (mavlinkTelem.radio.is_receiving65) {
@@ -569,7 +572,10 @@ static int luaMavsdkGetRadioRssiRaw(lua_State *L)
 
 static int luaMavsdkGetRadioRssiScaled(lua_State *L)
 {
-  if (mavlinkTelem.radio.is_receiving || mavlinkTelem.radio.is_receiving65 || mavlinkTelem.radio.is_receiving35) {
+  if (mavlinkTelem.mbridgestats.is_receiving_linkstats) {
+    lua_pushinteger(L, mavlinkTelem.mbridgestats.receiver_rssi_scaled);
+  }
+  else if (mavlinkTelem.radio.is_receiving || mavlinkTelem.radio.is_receiving65 || mavlinkTelem.radio.is_receiving35) {
     lua_pushinteger(L, mavlinkTelem.radio.rssi_scaled);
   }
   else {
@@ -595,6 +601,17 @@ static int luaMavsdkGetRadioStatus(lua_State *L)
     lua_pushtableinteger(L, "remrssi", mavlinkTelem.radio.remrssi);
     lua_pushtableinteger(L, "noise", mavlinkTelem.radio.noise);
     lua_pushtableinteger(L, "remnoise", mavlinkTelem.radio.remnoise);
+  }
+  else {
+    lua_pushnil(L);
+  }
+  return 1;
+}
+
+static int luaMavsdkGetRadioLQ(lua_State *L)
+{
+  if (mavlinkTelem.mbridgestats.is_receiving_linkstats) {
+    lua_pushinteger(L, mavlinkTelem.mbridgestats.receiver_LQ);
   }
   else {
     lua_pushnil(L);
@@ -1509,6 +1526,7 @@ const luaL_Reg mavsdkLib[] = {
   { "getRadioRssiRaw", luaMavsdkGetRadioRssiRaw },
   { "getRadioRssiScaled", luaMavsdkGetRadioRssiScaled },
   { "getRadioStatus", luaMavsdkGetRadioStatus },
+  { "getRadioLQ", luaMavsdkGetRadioLQ },
 
   { "getSystemStatusSensors", luaMavsdkGetSystemStatusSensors },
 

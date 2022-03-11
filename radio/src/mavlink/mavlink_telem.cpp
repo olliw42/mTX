@@ -777,6 +777,8 @@ void MavlinkTelem::tick10ms()
   check(gimbalmanager.is_receiving, _resetGimbalClient());
   check(camera.is_receiving, _resetCamera());
 
+  check(mbridgestats.is_receiving_linkstats, _resetMBridgeStats());
+
   // keep 10us timer updated
   getTime_10us();
 }
@@ -809,6 +811,13 @@ void MavlinkTelem::_resetRadio35(void)
   radio.rssi35 = UINT8_MAX;
 
   telemetryResetRssiValue();
+}
+
+void MavlinkTelem::_resetMBridgeStats(void)
+{
+  mbridgestats.is_receiving_linkstats = 0;
+  mbridgestats.receiver_LQ = 0;
+  mbridgestats.receiver_rssi = UINT8_MAX;
 }
 
 void MavlinkTelem::_reset(void)
@@ -845,6 +854,8 @@ void MavlinkTelem::_reset(void)
   radio.rssi_scaled = 0;
   radio.rssi_voice_critical_disabled = false;
   radio.rssi_voice_telemetryok_disabled = false;
+  _resetMBridgeStats();
+  mbridgestats.receiver_rssi_scaled = 0;
 
   _resetAutopilot();
   _resetGimbalAndGimbalClient();

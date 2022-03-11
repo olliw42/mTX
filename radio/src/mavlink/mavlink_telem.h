@@ -265,6 +265,16 @@ class MavlinkTelem
 
     void mavapiInit(void){};
 
+    // MAVSDK mBridge
+
+    struct MBridgeStats {
+      uint8_t receiver_LQ;
+      uint8_t receiver_rssi;
+      uint8_t receiver_rssi_scaled;
+      uint16_t is_receiving_linkstats;
+    };
+    struct MBridgeStats mbridgestats;
+
     // MAVSDK GENERAL
 
     bool isReceiving(void)
@@ -736,6 +746,7 @@ class MavlinkTelem
     void _resetRadio(void);
     void _resetRadio65(void);
     void _resetRadio35(void);
+    void _resetMBridgeStats(void);
     void _resetAutopilot(void);
     void _resetCamera(void);
     void _resetGimbalAndGimbalClient(void);
