@@ -45,11 +45,15 @@ typedef enum {
     MBRIDGE_CMD_PARAM_ITEM          = 0x07,
     MBRIDGE_CMD_PARAM_ITEM2         = 0x08,
     MBRIDGE_CMD_PARAM_ITEM3         = 0x09,
+    MBRIDGE_CMD_REQUEST_CMD         = 0x0A,
+    MBRIDGE_CMD_INFO                = 0x0B,
 } MBRIDGE_CMD_ENUM;
 
 #define MBRIDGE_CMD_TX_LINK_STATS_LEN         22
 #define MBRIDGE_CMD_DEVICE_ITEM_LEN           24
 #define MBRIDGE_CMD_PARAM_ITEM_LEN            24
+#define MBRIDGE_CMD_REQUEST_CMD_LEN           18
+#define MBRIDGE_CMD_INFO_LEN                  24
 
 
 // -- packets as exchanged over MBridge
@@ -101,7 +105,9 @@ typedef struct
   uint8_t fhss_curr_i;
   uint8_t fhss_cnt;
 
-  uint8_t spare2[2];
+  uint8_t vehicle_state : 2; // 0 = disarmed, 1 = armed 2 = flying, 3 = invalid/unknown
+
+  uint8_t spare;
 }) tMBridgeLinkStats;
 
 
