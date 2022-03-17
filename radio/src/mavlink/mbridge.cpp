@@ -16,10 +16,35 @@ MAVLINK_RAM_SECTION Fifo<uint8_t, 256> mBridgeRxFifo_cmd; // is cleared every ti
 MBridge mBridge;
 
 
+MBridge::MBridge()
+{
+  link_stats = {0};
+
+  for (uint8_t i = 0; i < MBRIDGE_RSSI_LIST_LEN; i++) {
+    link_stats.rssi1_list[i] = 127;
+    link_stats.rssi2_list[i] = 127;
+    link_stats.receiver_rssi_list[i] = 127;
+    link_stats.receiver_antenna_list[i] = 127;
+  }
+
+  _link_stats_updated = false;
+
+  tx_cmd_fifo.clear();
+  rx_cmd_fifo.clear();
+}
+
+
 uint8_t MBridge::cmd_payload_len(uint8_t cmd)
 {
   switch (cmd) {
   case MBRIDGE_CMD_TX_LINK_STATS: return MBRIDGE_CMD_TX_LINK_STATS_LEN;
+  case MBRIDGE_CMD_DEVICE_REQUEST_ITEM: return 0;
+  case MBRIDGE_CMD_DEVICE_ITEM_TX: return MBRIDGE_CMD_DEVICE_ITEM_LEN;
+  case MBRIDGE_CMD_DEVICE_ITEM_RX: return MBRIDGE_CMD_DEVICE_ITEM_LEN;
+  case MBRIDGE_CMD_PARAM_REQUEST_LIST: return 0;
+  case MBRIDGE_CMD_PARAM_ITEM: return MBRIDGE_CMD_PARAM_ITEM_LEN;
+  case MBRIDGE_CMD_PARAM_ITEM2: return MBRIDGE_CMD_PARAM_ITEM_LEN;
+  case MBRIDGE_CMD_PARAM_ITEM3: return MBRIDGE_CMD_PARAM_ITEM_LEN;
   }
   return 0;
 }
@@ -56,29 +81,94 @@ bool MBridge::cmd_get(uint8_t* cmd, uint8_t* payload, uint8_t* len)
 }
 
 
-void MBridge::read_in()
+// called in mavlinkTelemExternal_wakeup()
+void MBridge::read_packet()
 {
-uint8_t cmd;
-uint8_t payload[MBRIDGE_M2R_COMMAND_PAYLOAD_LEN_MAX];
-uint8_t len;
+struct CmdPacket pkt;
 
   if (!mBridgeRxFifo_cmd.size()) return; // nothing received
 
-  if (!cmd_get(&cmd, payload, &len)) return; // received frame doesn't match
+  if (!cmd_get(&pkt.cmd, pkt.payload, &pkt.len)) return; // received data doesn't (yet) match
 
-  switch (cmd) {
+  switch (pkt.cmd) {
   case MBRIDGE_CMD_TX_LINK_STATS:
-    set_linkstats((tMBridgeLinkStats*)payload);
+    set_linkstats((tMBridgeLinkStats*)pkt.payload);
+    break;
+  default:
+    rx_cmd_fifo.push(pkt);
     break;
   }
+}
+
+
+// called in mavlinkTelemExternal_wakeup()
+void MBridge::send_serialpacket(void)
+{
+  uint32_t count = mavlinkTelemExternalTxFifo.size();
+  if (count > MBRIDGE_R2M_SERIAL_PAYLOAD_LEN_MAX) count = MBRIDGE_R2M_SERIAL_PAYLOAD_LEN_MAX;
+
+  // always send header, this synchronizes slave
+  mBridgeTxFifo_frame.push(MBRIDGE_STX1);
+  mBridgeTxFifo_frame.push(MBRIDGE_STX2);
+  mBridgeTxFifo_frame.push((uint8_t)count);
+
+  // send payload
+  for (uint16_t i = 0; i < count; i++) {
+    uint8_t c = '\0';
+    mavlinkTelemExternalTxFifo.pop(c);
+    mBridgeTxFifo_frame.push(c);
+  }
+}
+
+
+// called in mavlinkTelemExternal_wakeup()
+void MBridge::send_channelpacket(void)
+{
+uint8_t payload[MBRIDGE_CHANNELPACKET_SIZE];
+uint8_t len;
+
+  get_channels(payload, &len);
+
+  // always send header, this synchronizes slave
+  mBridgeTxFifo_frame.push(MBRIDGE_STX1);
+  mBridgeTxFifo_frame.push(MBRIDGE_STX2);
+  mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_CHANNELPACKET_STX); // marker for channel packet
+
+  // send payload
+  for (uint16_t i = 0; i < MBRIDGE_CHANNELPACKET_SIZE; i++) {
+    mBridgeTxFifo_frame.push(payload[i]);
+  }
+}
+
+
+// called in mavlinkTelemExternal_wakeup()
+bool MBridge::send_cmdpacket(void)
+{
+  struct MBridge::CmdPacket pkt;
+  if (!tx_cmd_fifo.pop(pkt)) return false;
+
+  pkt.cmd &=~  MBRIDGE_COMMANDPACKET_MASK;
+
+  // always send header, this synchronizes slave
+  mBridgeTxFifo_frame.push(MBRIDGE_STX1);
+  mBridgeTxFifo_frame.push(MBRIDGE_STX2);
+  mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_COMMANDPACKET_STX + pkt.cmd);
+
+  // send payload
+  uint8_t payload_len = cmd_payload_len(pkt.cmd);
+  for (uint16_t i = 0; i < payload_len; i++) {
+    mBridgeTxFifo_frame.push((i < pkt.len) ? pkt.payload[i] : 0);
+  }
+
+  return true;
 }
 
 
 void MBridge::set_linkstats(tMBridgeLinkStats* ls)
 {
   link_stats.LQ = ls->LQ;
-  link_stats.rssi1_instantaneous = ls->rssi1_instantaneous;
-  link_stats.rssi2_instantaneous = ls->rssi2_instantaneous;
+  link_stats.rssi1_instantaneous = (ls->receive_antenna == 0) ? ls->rssi1_instantaneous : -127;
+  link_stats.rssi2_instantaneous = (ls->receive_antenna == 1) ? ls->rssi2_instantaneous : -127;
   link_stats.snr_instantaneous = ls->snr_instantaneous;
   link_stats.receive_antenna = ls->receive_antenna;
   link_stats.transmit_antenna = ls->transmit_antenna;
@@ -103,6 +193,16 @@ void MBridge::set_linkstats(tMBridgeLinkStats* ls)
 
   link_stats.LQ_received = ls->LQ_received;
 
+  link_stats.rx1_valid = ls->rx1_valid;
+  link_stats.rx2_valid = ls->rx2_valid;
+  link_stats.fhss_curr_i = ls->fhss_curr_i;
+  link_stats.fhss_cnt = ls->fhss_cnt;
+
+  link_stats.rssi1_list[ls->fhss_curr_i] = (ls->rx1_valid) ? ls->rssi1_instantaneous : 127;
+  link_stats.rssi2_list[ls->fhss_curr_i] = (ls->rx2_valid) ? ls->rssi2_instantaneous : 127;
+  link_stats.receiver_rssi_list[ls->fhss_curr_i] = ls->receiver_rssi_instantaneous;
+  link_stats.receiver_antenna_list[ls->fhss_curr_i] = ls->receiver_receive_antenna;
+
   _link_stats_updated = true;
 }
 
@@ -115,60 +215,6 @@ bool MBridge::linkstats_updated(void)
    }
    return false;
 }
-
-
-void MBridge::send_serialpacket(void)
-{
-  uint32_t count = mavlinkTelemExternalTxFifo.size();
-  if (count > MBRIDGE_R2M_SERIAL_PAYLOAD_LEN_MAX) count = MBRIDGE_R2M_SERIAL_PAYLOAD_LEN_MAX;
-
-  // always send header, this synchronizes slave
-  mBridgeTxFifo_frame.push(MBRIDGE_STX1);
-  mBridgeTxFifo_frame.push(MBRIDGE_STX2);
-  mBridgeTxFifo_frame.push((uint8_t)count);
-
-  // send payload
-  for (uint16_t i = 0; i < count; i++) {
-    uint8_t c = '\0';
-    mavlinkTelemExternalTxFifo.pop(c);
-    mBridgeTxFifo_frame.push(c);
-  }
-}
-
-
-void MBridge::send_channelpacket(void)
-{
- uint8_t payload[MBRIDGE_CHANNELPACKET_SIZE];
- uint8_t len;
-
-  get_channels(payload, &len);
-
-  // always send header, this synchronizes slave
-  mBridgeTxFifo_frame.push(MBRIDGE_STX1);
-  mBridgeTxFifo_frame.push(MBRIDGE_STX2);
-  mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_CHANNELPACKET_STX); // marker for channel packet
-
-  // send payload
-  for (uint16_t i = 0; i < MBRIDGE_CHANNELPACKET_SIZE; i++) {
-    mBridgeTxFifo_frame.push(payload[i]);
-  }
-}
-
-
-/* not yet used
-void MBridge::send_cmdpacket(uint8_t cmd, uint8_t* payload, uint8_t len)
-{
-  // always send header, this synchronizes slave
-  mBridgeTxFifo_frame.push('O');
-  mBridgeTxFifo_frame.push('W');
-  mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_COMMANDPACKET_STX + (cmd &~ MBRIDGE_COMMANDPACKET_STX_MASK));
-
-  // send payload
-  for (uint16_t i = 0; i < MBRIDGE_R2M_COMMAND_PAYLOAD_LEN; i++) {
-    mBridgeTxFifo_frame.push((i < len) ? payload[i] : 0);
-  }
-}
-*/
 
 
 typedef union {

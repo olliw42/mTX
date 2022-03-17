@@ -157,23 +157,28 @@ void mavlinkTelemExternal_wakeup(void)
 {
   static uint8_t slot_counter = 0;
 
-  mBridge.read_in();
+  mBridge.read_packet();
 
   // we do it at the beginning, so it gives few cycles before TX is enabled
   TELEMETRY_DIR_GPIO->BSRRL = TELEMETRY_DIR_GPIO_PIN; // enable output
   TELEMETRY_USART->CR1 &= ~USART_CR1_RE; // turn off receiver
 
   // every 10th slot we send a channel packet
-  if (slot_counter == 0)
+  if (slot_counter == 0) {
     mBridge.send_channelpacket();
-  else
+  } else
+  if ((slot_counter == 1) || (slot_counter == 5)) {
+    if (!mBridge.send_cmdpacket()) mBridge.send_serialpacket(); // if we have a cmd packet, send it, else send a serial packet
+  } else {
     mBridge.send_serialpacket();
+  }
 
   USART_ITConfig(TELEMETRY_USART, USART_IT_TXE, ENABLE); // enable TX interrupt, starts sending
 
   slot_counter++;
   if (slot_counter >= 10) slot_counter = 0;
 
+  // we received a linkstats cmd packet
   if (mBridge.linkstats_updated()) {
     mavlinkTelem.mbridgestats.is_receiving_linkstats = MAVLINK_TELEM_RADIO_RECEIVING_TIMEOUT;
     uint8_t rssi = 0;

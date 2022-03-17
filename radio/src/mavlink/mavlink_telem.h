@@ -275,6 +275,8 @@ class MavlinkTelem
     };
     struct MBridgeStats mbridgestats;
 
+    bool externalEnabled(void) { return moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK; }
+
     // MAVSDK GENERAL
 
     bool isReceiving(void)
