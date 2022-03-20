@@ -1097,6 +1097,17 @@ static int luaLcdDrawHudRectangle(lua_State *L)
   lcdDrawHudRectangle(pitch, roll, xmin, xmax, ymin, ymax, flags);
   return 0;
 }
+
+static int luaLcdGetTextWidth(lua_State *L)
+{
+  if (!luaLcdAllowed) return 0;
+  const char* s = luaL_checkstring(L, 1);
+  int len = luaL_checkinteger(L, 2);
+  LcdFlags flags = luaL_checkunsigned(L, 3);
+  int tw = getTextWidth(s, len, flags);
+  lua_pushinteger(L, tw);
+  return 1;
+}
 //OWEND
 
 const luaL_Reg lcdLib[] = {
@@ -1116,6 +1127,8 @@ const luaL_Reg lcdLib[] = {
   { "drawAnnulus", luaLcdDrawAnnulus },
   { "drawLineWithClipping", luaLcdDrawLineWithClipping },
   { "drawHudRectangle", luaLcdDrawHudRectangle },
+
+  { "getTextWidth", luaLcdGetTextWidth },
 //OWEND
   { "refresh", luaLcdRefresh },
   { "clear", luaLcdClear },
