@@ -37,16 +37,18 @@ typedef enum {
 
 
 typedef enum {
-    MBRIDGE_CMD_TX_LINK_STATS       = 0x02,
-    MBRIDGE_CMD_DEVICE_REQUEST_ITEM = 0x03, // len = 0
-    MBRIDGE_CMD_DEVICE_ITEM_TX      = 0x04,
-    MBRIDGE_CMD_DEVICE_ITEM_RX      = 0x05,
-    MBRIDGE_CMD_PARAM_REQUEST_LIST  = 0x06, // len = 0
-    MBRIDGE_CMD_PARAM_ITEM          = 0x07,
-    MBRIDGE_CMD_PARAM_ITEM2         = 0x08,
-    MBRIDGE_CMD_PARAM_ITEM3         = 0x09,
-    MBRIDGE_CMD_REQUEST_CMD         = 0x0A,
-    MBRIDGE_CMD_INFO                = 0x0B,
+    MBRIDGE_CMD_TX_LINK_STATS         = 2,
+    MBRIDGE_CMD_DEVICE_REQUEST_ITEM   = 3, // len = 0
+    MBRIDGE_CMD_DEVICE_ITEM_TX        = 4,
+    MBRIDGE_CMD_DEVICE_ITEM_RX        = 5,
+    MBRIDGE_CMD_PARAM_REQUEST_LIST    = 6, // len = 0
+    MBRIDGE_CMD_PARAM_ITEM            = 7,
+    MBRIDGE_CMD_PARAM_ITEM2           = 8,
+    MBRIDGE_CMD_PARAM_ITEM3           = 9,
+    MBRIDGE_CMD_REQUEST_CMD           = 10,
+    MBRIDGE_CMD_INFO                  = 11,
+
+    MBRIDGE_CMD_SET_PARAM             = 12,
 } MBRIDGE_CMD_ENUM;
 
 #define MBRIDGE_CMD_TX_LINK_STATS_LEN         22
@@ -54,6 +56,7 @@ typedef enum {
 #define MBRIDGE_CMD_PARAM_ITEM_LEN            24
 #define MBRIDGE_CMD_REQUEST_CMD_LEN           18
 #define MBRIDGE_CMD_INFO_LEN                  24
+#define MBRIDGE_CMD_SET_PARAM_LEN             7
 
 
 // -- packets as exchanged over MBridge
