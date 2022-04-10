@@ -92,7 +92,7 @@ struct CmdPacket pkt;
 
   if (!mBridgeRxFifo_cmd.size()) return; // nothing received
 
-  if (!cmd_get(&pkt.cmd, pkt.payload, &pkt.len)) return; // received data doesn't (yet) match
+  if (!cmd_get(&pkt.cmd, pkt.payload, &pkt.len)) return; // received data doesn't match
 
   switch (pkt.cmd) {
   case MBRIDGE_CMD_TX_LINK_STATS:

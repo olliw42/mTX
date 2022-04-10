@@ -12,6 +12,12 @@
 
 //-- mbridge api --
 
+static int luaMBridgeEnabled(lua_State * L)
+{
+  lua_pushboolean(L, (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK));
+  return 1;
+}
+
 static int luaMBridgeGetLinkStats(lua_State * L)
 {
   lua_newtable(L);
@@ -150,6 +156,7 @@ static int luaMBridgeCmdPush(lua_State * L)
 //------------------------------------------------------------
 
 const luaL_Reg mbridgeLib[] = {
+  { "enabled", luaMBridgeEnabled },
   { "getLinkStats", luaMBridgeGetLinkStats },
   { "getRssiLists", luaMBridgeGetRssiTables },
   { "cmdPop", luaMBridgeCmdPop },
