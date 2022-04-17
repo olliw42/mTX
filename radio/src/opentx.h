@@ -19,7 +19,7 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v33-rc3"
+#define OWVERSIONSTR  "v33-rc4"
 #define OWVERSION     3300 // used by mavlink/mbridge.cpp Telemetry alarms disabled TR_NO_RSSIALARM
 //OWEND
 

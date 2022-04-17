@@ -49,6 +49,7 @@ uint8_t MBridge::cmd_payload_len(uint8_t cmd)
   case MBRIDGE_CMD_INFO: return MBRIDGE_CMD_INFO_LEN;
   case MBRIDGE_CMD_PARAM_SET: return MBRIDGE_CMD_PARAM_SET_LEN; break;
   case MBRIDGE_CMD_PARAM_STORE: return 0;
+  case MBRIDGE_CMD_BIND: return 0;
   }
   return 0;
 }

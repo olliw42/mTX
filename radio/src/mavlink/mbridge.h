@@ -49,6 +49,7 @@ typedef enum {
     MBRIDGE_CMD_INFO                  = 11,
     MBRIDGE_CMD_PARAM_SET             = 12,
     MBRIDGE_CMD_PARAM_STORE           = 13,
+    MBRIDGE_CMD_BIND                  = 14,
 } MBRIDGE_CMD_ENUM;
 
 #define MBRIDGE_CMD_TX_LINK_STATS_LEN         22
