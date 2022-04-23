@@ -450,14 +450,7 @@ bool isAux2ModeAvailable(int mode)
 //OW
 bool isUsbModeAvailable(int mode)
 {
-  if (mode == USB_SERIAL_MODE) {
-#if defined(USB_SERIAL)
-    return true;
-#else
-    return false;
-#endif
-  }
-
+#if !defined(DEBUG)
   if (mode == USB_MAVLINK_MODE) {
 #if defined(TELEMETRY_MAVLINK_USB_SERIAL)
     return true;
@@ -465,6 +458,7 @@ bool isUsbModeAvailable(int mode)
     return false;
 #endif
   }
+#endif
 
   return true;
 }
@@ -866,7 +860,7 @@ bool isTrainerModeAvailable(int mode)
 {
 #if defined(TRAINER_SPORT_SBUS)
   if (mode == TRAINER_MODE_MASTER_SBUS_SPORT)
-    return g_model.moduleData[EXTERNAL_MODULE].type == MODULE_TYPE_NONE;
+    return g_model.moduleData[EXTERNAL_MODULE].getType() == MODULE_TYPE_NONE;
 #endif
 
 #if defined(RADIO_FAMILY_TBS)

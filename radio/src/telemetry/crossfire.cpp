@@ -25,14 +25,6 @@ uint8_t intTelemetryRxBuffer[TELEMETRY_RX_PACKET_SIZE];
 uint8_t intTelemetryRxBufferCount;
 #endif
 
-//OW translate.py en.h.txt en.h en
-#define ZSTR_RX_RSSI_PERC              "\022\022\023\020"
-#define ZSTR_RX_RF_POWER               "\022\020\027\022"
-#define ZSTR_TX_RSSI_PERC              "\024\022\023\020"
-#define ZSTR_TX_RF_POWER               "\024\020\027\022"
-#define ZSTR_TX_FPS                    "\024\006\020\023"
-//OWEND
-
 const CrossfireSensor crossfireSensors[] = {
   {LINK_ID,        0, ZSTR_RX_RSSI1,      UNIT_DB,                0},
   {LINK_ID,        1, ZSTR_RX_RSSI2,      UNIT_DB,                0},
@@ -205,9 +197,9 @@ void processCrossfireTelemetryFrame(uint8_t module)
       break;
 
     case LINK_RX_ID:
-      if (getCrossfireTelemetryValue<1>(4, value))
+      if (getCrossfireTelemetryValue<1>(4, value, module))
         processCrossfireTelemetryValue(RX_RSSI_PERC_INDEX, value);
-      if (getCrossfireTelemetryValue<1>(7, value))
+      if (getCrossfireTelemetryValue<1>(7, value, module))
         processCrossfireTelemetryValue(TX_RF_POWER_INDEX, value);
       break;
 

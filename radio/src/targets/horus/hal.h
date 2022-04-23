@@ -726,7 +726,7 @@
 #define I2C_GPIO_AF                     GPIO_AF_I2C3
 #define I2C_SCL_GPIO_PinSource          GPIO_PinSource7
 #define I2C_SDA_GPIO_PinSource          GPIO_PinSource8
-#define I2C_SPEED                       400000
+#define I2C_CLK_RATE                    400000
 #else
 #define I2C_RCC_AHB1Periph              RCC_AHB1Periph_GPIOB
 #define I2C_RCC_APB1Periph              RCC_APB1Periph_I2C1
@@ -737,7 +737,7 @@
 #define I2C_GPIO_AF                     GPIO_AF_I2C1
 #define I2C_SCL_GPIO_PinSource          GPIO_PinSource8
 #define I2C_SDA_GPIO_PinSource          GPIO_PinSource9
-#define I2C_SPEED                       400000
+#define I2C_CLK_RATE                    400000
 #endif
 
 // Haptic

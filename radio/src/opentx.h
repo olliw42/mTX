@@ -19,7 +19,7 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v33-rc4"
+#define OWVERSIONSTR  "v33-rc5"
 #define OWVERSION     3300 // used by mavlink/mbridge.cpp Telemetry alarms disabled TR_NO_RSSIALARM
 //OWEND
 
@@ -29,8 +29,9 @@ TODO:
 - is_receiving handling should be improved such as to distinguish between a momentary connection lost and a reset of a component
 
 type to getType() changes not marked with //OW
-support of hardware encoder also not marked with //OW
 
+
+upgraded to otx2.3.15 as base
 mBridge
 v31 2021-11-21
 new gps driver, all ubx, adjustable rate, up to 5Hz, makes huge difference, more gps data SERIAL_GPS

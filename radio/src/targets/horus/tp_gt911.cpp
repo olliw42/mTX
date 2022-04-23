@@ -493,7 +493,7 @@ void I2C_Init_Radio(void)
   TRACE("I2C Init");
 
   hi2c1.Instance = I2C;
-  hi2c1.Init.ClockSpeed = I2C_CLK_RATE;
+  hi2c1.Init.ClockSpeed = I2C_CLK_RATE; // rename I2C_SPEED to I2C_CLK_RATE, since HAL defines its own, so avoid conflict
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_16_9;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -559,6 +559,7 @@ bool I2C_GT911_ReadRegister(uint16_t reg, uint8_t * buf, uint8_t len)
     return true;
 }
 
+/* //OW out-commented as nowhere used
 static void dumpGT911Config(void)
 {
   uint8_t current[sizeof(TOUCH_GT911_Cfg)];
@@ -567,14 +568,14 @@ static void dumpGT911Config(void)
   DUMP(current, sizeof(TOUCH_GT911_Cfg));
   TRACE("\r\n");
   RTOS_WAIT_MS(50);
-}
+} */
 
 bool I2C_GT911_SendConfig(uint8_t mode)
 {
   uint8_t buf[2];
   uint8_t i = 0;
   buf[0] = 0;
-  buf[1] = 1;
+  buf[1] = mode;
   bool bResult = true;
 
   for (i = 0; i < sizeof(TOUCH_GT911_Cfg); i++)
@@ -652,7 +653,7 @@ bool touchPanelInit(void)
       if (tmp[0] < GT911_CFG_NUMER)  //Config ver
       {
         TRACE("Sending new config %d", GT911_CFG_NUMER);
-        if (!I2C_GT911_SendConfig())
+        if (!I2C_GT911_SendConfig(1))
         {
           TRACE("GT911 ERROR: sending configration failed");
         }

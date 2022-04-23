@@ -35,7 +35,6 @@ void onUSBConnectMenu(const char *result)
   else if (result == STR_USB_JOYSTICK) {
     setSelectedUsbMode(USB_JOYSTICK_MODE);
   }
-<<<<<<< HEAD
 
 #if defined(RADIO_FAMILY_TBS)
   else if (result == STR_USB_AGENT) {
@@ -53,14 +52,6 @@ void onUSBConnectMenu(const char *result)
   else if (result == STR_USB_TELEMETRY) {
     setSelectedUsbMode(USB_TELEMETRY_MIRROR_MODE);
   }
-#endif
-=======
-//OW
-//  else if (result == STR_USB_SERIAL) {
-  else if (result == STR_USB_SERIAL_OW) {
-//OWEND
-    setSelectedUsbMode(USB_SERIAL_MODE);
-  }
 //OW
 #if defined(TELEMETRY_MAVLINK_USB_SERIAL)
   else if (result == STR_USB_MAVLINK) {
@@ -68,7 +59,7 @@ void onUSBConnectMenu(const char *result)
   }
 #endif
 //OWEND
->>>>>>> mavtelem-dev
+#endif
 }
 #endif
 
@@ -94,32 +85,22 @@ void handleUsbConnection()
 #endif
           POPUP_MENU_ADD_ITEM(STR_USB_MASS_STORAGE);
 #if defined(DEBUG)
-<<<<<<< HEAD
           POPUP_MENU_ADD_ITEM(STR_USB_SERIAL);
 #endif
 #if defined(USB_SERIAL)
-        POPUP_MENU_ADD_ITEM(STR_USB_TELEMETRY);
+          POPUP_MENU_ADD_ITEM(STR_USB_TELEMETRY);
 #endif
+//OW
+#if defined(TELEMETRY_MAVLINK_USB_SERIAL)
+          POPUP_MENU_ADD_ITEM(STR_USB_MAVLINK);
+#endif
+//OWEND
           POPUP_MENU_TITLE(STR_SELECT_MODE);
           POPUP_MENU_START(onUSBConnectMenu);
         }
         else {
           setSelectedUsbMode(g_eeGeneral.USBMode);
         }
-=======
-//OW
-//        POPUP_MENU_ADD_ITEM(STR_USB_SERIAL);
-        POPUP_MENU_ADD_ITEM(STR_USB_SERIAL_OW);
-//OWEND
-#endif
-//OW
-#if defined(TELEMETRY_MAVLINK_USB_SERIAL)
-        POPUP_MENU_ADD_ITEM(STR_USB_MAVLINK);
-#endif
-//OWEND
-        POPUP_MENU_TITLE(STR_SELECT_MODE);
-        POPUP_MENU_START(onUSBConnectMenu);
->>>>>>> mavtelem-dev
       }
 
       if (getSelectedUsbMode() != USB_UNSELECTED_MODE) {

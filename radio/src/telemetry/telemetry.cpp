@@ -190,7 +190,12 @@ static void pollExtTelemetry()
 void telemetryWakeup()
 {
   uint8_t requiredTelemetryProtocol = modelTelemetryProtocol();
+//OW
+//  uint8_t data;
+#if (defined(INTERNAL_MODULE_CRSF) && !defined(SIMU)) || defined(PCBSKY9X)
   uint8_t data;
+#endif
+//OWEND
 
 #if defined(REVX)
   uint8_t requiredSerialInversion = g_model.moduleData[EXTERNAL_MODULE].invertedSerial;

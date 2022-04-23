@@ -110,7 +110,7 @@
 #define LEN_EXTERNAL_MODULE_PROTOCOLS  "\014"
 //OW
 //#define TR_EXTERNAL_MODULE_PROTOCOLS   "OFF\0        ""PPM\0        ""XJT\0        ""ISRM\0       ""DSM2\0       ""CRSF\0       ""MULTI\0      ""R9M\0        ""R9M ACCESS\0 " TR_MODULE_R9M_LITE "R9ML ACCESS\0""GHST\0       ""R9MLP ACCESS""SBUS\0       ""XJT Lite\0   ""AFHDS3\0  "
-#define TR_EXTERNAL_MODULE_PROTOCOLS   "OFF\0        ""PPM\0        ""XJT\0        ""ISRM\0       ""DSM2\0       ""CRSF\0       ""MULTI\0      ""R9M\0        ""R9M ACCESS\0 " TR_MODULE_R9M_LITE "R9ML ACCESS\0""GHST\0       ""R9MLP ACCESS""SBUS\0       ""XJT Lite\0   ""AFHDS3\0     ""Mavlink\0    "
+#define TR_EXTERNAL_MODULE_PROTOCOLS   "OFF\0        ""PPM\0        ""XJT\0        ""ISRM\0       ""DSM2\0       ""CRSF\0       ""MULTI\0      ""R9M\0        ""R9M ACCESS\0 " TR_MODULE_R9M_LITE "R9ML ACCESS\0""GHST\0       ""R9MLP ACCESS""SBUS\0       ""XJT Lite\0   ""AFHDS3\0     ""mBridge\0    "
 //OWEND
 
 #define LEN_INTERNAL_MODULE_PROTOCOLS  LEN_EXTERNAL_MODULE_PROTOCOLS
@@ -188,13 +188,16 @@
 #define TR_USB_MAVLINK                 "USB Mavlink (VCP)"
 
 #define TR_SERIAL_LABEL                "Serials"
-#define LEN_USBMODES_OW                "\010"
-#define TR_USBMODES_OW                 "Ask\0    ""Joystick""Storage\0""Serial\0 ""Mavlink\0"
+#define LEN_USBMODES_OW                TR("\006", "\010")
+#if defined(DEBUG)
+#define TR_USBMODES_OW                 TR("Ask\0  ""Joyst\0""SDCard""Serial", "Ask\0    ""Joystick""Storage\0""Serial\0 ")
+#else
+#define TR_USBMODES_OW                 TR("Ask\0  ""Joyst\0""SDCard""Telem\0""Mavlnk", "Ask\0    ""Joystick""Storage\0""SerTelem""Mavlink\0")
+#endif
 #define LEN_AUX_SERIAL_MODES_OW        "\015"
 #if defined(CLI) || defined(DEBUG)
 #define TR_AUX_SERIAL_MODES_OW         "Debug\0       ""Telem Mirror\0""Telemetry In\0""SBUS Trainer\0""LUA\0         ""Mavlink\0     ""GPS\0         "
 #else
 #define TR_AUX_SERIAL_MODES_OW         "OFF\0         ""Telem Mirror\0""Telemetry In\0""SBUS Trainer\0""LUA\0         ""Mavlink\0     ""GPS\0         "
 #endif
-#define TR_USB_SERIAL_OW               "USB Serial (VCP)"
 //OWEND

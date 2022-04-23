@@ -32,17 +32,21 @@ enum usbMode {
   USB_CHARGING_MODE,
 #endif
   USB_MASS_STORAGE_MODE,
-//OW
-  USB_MAVLINK_MODE,
-  USB_MAX_MODE=USB_MAVLINK_MODE
-//#if defined(DEBUG)
-//  USB_SERIAL_MODE,
-//  USB_MAX_MODE=USB_SERIAL_MODE
-//#else
-//  USB_TELEMETRY_MIRROR_MODE,                  // Todo : increase EEprom storage to allow more mode
+#if defined(DEBUG)
+  USB_SERIAL_MODE,
+  USB_MAX_MODE=USB_SERIAL_MODE
+#else
+  USB_TELEMETRY_MIRROR_MODE,                  // Todo : increase EEprom storage to allow more mode
+//OW comment: I've increase RadioData UsbMode to 3 bits = 8 modes
 //  USB_MAX_MODE=USB_TELEMETRY_MIRROR_MODE
-//#endif
+  USB_MAVLINK_MODE,
+#if !defined(TELEMETRY_MAVLINK_USB_SERIAL)
+  USB_MAX_MODE=USB_TELEMETRY_MIRROR_MODE
+#else
+  USB_MAX_MODE=USB_MAVLINK_MODE
+#endif
 //OWEND
+#endif
 };
 
 int usbPlugged();

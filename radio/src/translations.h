@@ -1030,7 +1030,6 @@ extern const char STR_USB_MAVLINK[];
 extern const char STR_SERIAL_LABEL[];
 extern const char STR_USBMODES_OW[];
 extern const char STR_AUX_SERIAL_MODES_OW[];
-extern const char STR_USB_SERIAL_OW[];
 #endif
 //OWEND
 
