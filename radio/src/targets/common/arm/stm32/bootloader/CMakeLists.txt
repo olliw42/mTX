@@ -154,6 +154,10 @@ remove_definitions(-DCLI)
 remove_definitions(-DSEMIHOSTING)
 remove_definitions(-DUSB_SERIAL)
 remove_definitions(-DWATCHDOG)
+# //OW
+remove_definitions(-DTELEMETRY_MAVLINK)
+remove_definitions(-DTELEMETRY_MAVLINK_USB_SERIAL)
+# //OWEND
 
 add_definitions(-DBOOT)
 

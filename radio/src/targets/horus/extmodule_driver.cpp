@@ -24,6 +24,15 @@ void extmoduleStop()
 {
   EXTERNAL_MODULE_OFF();
   
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) {
+    extmoduleMavlinkTelemStop();
+    return;
+  }
+#endif
+//OWEND
+
   NVIC_DisableIRQ(EXTMODULE_TIMER_DMA_STREAM_IRQn);
   NVIC_DisableIRQ(EXTMODULE_TIMER_CC_IRQn);
 

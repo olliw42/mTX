@@ -32,6 +32,8 @@ if(SPLASH STREQUAL OFF)
   message(FATAL_ERROR "Option SPLASH=OFF not supported on Horus")
 endif()
 
+add_definitions(-DPCBFRSKY)
+
 if (PCB STREQUAL X10)
   set(PCBREV "STD" CACHE STRING "PCB Revision")
   add_definitions(-DPCBX10)
@@ -63,6 +65,18 @@ if (PCB STREQUAL X10)
     option(INTERNAL_MODULE_MULTI "Support for MULTI internal module" OFF)
     option(BLUETOOTH "Support for bluetooth module" OFF)
     add_definitions(-DMANUFACTURER_JUMPER)
+# //OW
+    if (TELEMETRY_MAVLINK)
+      set(AUX_SERIAL ON)
+      if (NOT BLUETOOTH AND NOT INTERNAL_GPS)
+        set(AUX2_SERIAL ON)
+      endif()
+      if (NOT INTERNAL_GPS)
+        set(SERIAL_GPS ON)
+      endif()  
+      set(INTERNAL_GPS_BAUDRATE "9600" CACHE STRING "Baud rate for internal GPS")
+    endif()  
+# //OWEND    
   elseif (PCBREV STREQUAL TX16S)
     set(FLAVOUR tx16s)
     set(LUA_EXPORT lua_export_t16)
@@ -80,6 +94,16 @@ if (PCB STREQUAL X10)
     if (NOT BLUETOOTH AND NOT INTERNAL_GPS)
       set(AUX2_SERIAL ON)
     endif()
+# //OW    
+    if (TELEMETRY_MAVLINK)
+      if (NOT BLUETOOTH AND NOT INTERNAL_GPS)
+        set(AUX2_SERIAL ON)
+      endif()
+      if (NOT INTERNAL_GPS)
+        set(SERIAL_GPS ON)
+      endif()  
+    endif()
+# //OWEND
     set(INTERNAL_GPS_BAUDRATE "9600" CACHE STRING "Baud rate for internal GPS")
   elseif (PCBREV STREQUAL T18)
     set(FLAVOUR t18)
@@ -90,6 +114,18 @@ if (PCB STREQUAL X10)
     option(BLUETOOTH "Support for bluetooth module" OFF)
     add_definitions(-DMANUFACTURER_JUMPER)
     set(HARDWARE_TOUCH YES)
+# //OW
+    if (TELEMETRY_MAVLINK)
+      set(AUX_SERIAL ON)
+      if (NOT BLUETOOTH AND NOT INTERNAL_GPS)
+        set(AUX2_SERIAL ON)
+      endif()
+      if (NOT INTERNAL_GPS)
+        set(SERIAL_GPS ON)
+      endif()  
+      set(INTERNAL_GPS_BAUDRATE "9600" CACHE STRING "Baud rate for internal GPS")
+    endif()
+# //OWEND
   else()
     set(FLAVOUR x10)
     option(INTERNAL_MODULE_PXX1 "Support for PXX1 internal module" ON)
@@ -101,7 +137,10 @@ elseif (PCB STREQUAL X12S)
   option(INTERNAL_MODULE_PXX1 "Support for PXX1 internal module" ON)
   option(INTERNAL_MODULE_PXX2 "Support for PXX2 internal module" OFF)
   set(FLAVOUR x12s)
-  set(BLUETOOTH ON)
+# //OW  
+#  set(BLUETOOTH ON)
+   option(BLUETOOTH "Support for bluetooth module" ON)
+# //OWEND  
   set(PCBREV "13" CACHE STRING "PCB Revision")
   if(${PCBREV} GREATER 10)
     option(INTERNAL_GPS "Internal GPS installed" YES)
@@ -123,6 +162,14 @@ elseif (PCB STREQUAL X12S)
   set(LCD_DRIVER lcd_driver.cpp)
   set(LUA_EXPORT lua_export_x12s)
   add_definitions(-DMANUFACTURER_FRSKY)
+# //OW
+  if (TELEMETRY_MAVLINK)
+    set(AUX_SERIAL ON)
+    if (NOT BLUETOOTH)
+      set(AUX2_SERIAL ON)
+    endif()
+  endif()
+# //OWEND
 endif()
 
 add_definitions(-DPCBREV=${PCBREV})
@@ -249,6 +296,16 @@ if(INTERNAL_GPS)
   message("Horus: Internal GPS enabled")
 endif()
 
+# //OW
+if(SERIAL_GPS)
+#  set(SRC ${SRC} gps.cpp)
+  set(SRC ${SRC} mavlink/gps2.cpp)
+  set(TARGET_SRC ${TARGET_SRC} gps_driver.cpp)
+  add_definitions(-DSERIAL_GPS)
+  add_definitions(-DINTERNAL_GPS)
+endif()
+# //OWEND
+
 set(GVAR_SCREEN model_gvars.cpp)
 
 set(TARGET_SRC
@@ -266,6 +323,7 @@ set(TARGET_SRC
 if(HARDWARE_TOUCH)
   set(TARGET_SRC ${TARGET_SRC}
     tp_gt911.cpp
+    i2c_driver.cpp
     )
   add_definitions(-DHARDWARE_TOUCH)
 endif()
@@ -298,6 +356,29 @@ if (SBUS_TRAINER)
     sbus.cpp
     )
 endif()
+
+# //OW
+if (TELEMETRY_MAVLINK)
+  set(SRC ${SRC} 
+    mavlink/mavlink_telem.cpp
+    mavlink/mavlink_telem_interface.cpp
+    mavlink/mavlink_telem_mavapi.cpp
+    mavlink/mavlink_telem_autopilot.cpp 
+    mavlink/mavlink_telem_gcs_and_alike.cpp
+    mavlink/mavlink_telem_camera.cpp
+    mavlink/mavlink_telem_gimbal.cpp 
+    mavlink/mavlink_telem_qshot.cpp
+    mavlink/mbridge.cpp
+    )
+  if (NOT LUA STREQUAL NO)
+    set(SRC ${SRC} 
+      mavlink/lua_api_mavlink.cpp 
+      mavlink/lua_api_mavsdk.cpp
+      mavlink/lua_api_mbridge.cpp 
+      )
+  endif()
+endif()
+# //OWEND
 
 set(FIRMWARE_TARGET_SRC
   ${FIRMWARE_TARGET_SRC}

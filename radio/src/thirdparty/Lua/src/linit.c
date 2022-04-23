@@ -48,6 +48,13 @@ const luaR_table lua_rotable[] =
   {"__opentx", opentxLib, opentxConstants},
   {"lcd", lcdLib, NULL},
   {"model", modelLib, NULL},
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  {"mavlink", mavlinkLib, mavlinkConstants},
+  {"mavsdk", mavsdkLib, mavsdkConstants},
+  {"mbridge", mbridgeLib, mbridgeConstants},
+#endif
+//OWEND
   {"__baselib", baselib, NULL},
   {LUA_IOLIBNAME, iolib, NULL},
   {LUA_STRLIBNAME, strlib, NULL},

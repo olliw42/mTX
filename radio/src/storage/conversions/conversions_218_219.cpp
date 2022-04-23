@@ -243,15 +243,15 @@ void convertModelData_218_to_219(ModelData &model)
   for (int i=0; i<NUM_MODULES; i++) {
     memcpy(&newModel.moduleData[i], &oldModel.moduleData[i], 4);
     memcpy(((uint8_t *)&newModel.moduleData[i]) + 4, ((uint8_t *)&oldModel.moduleData[i]) + 64 + 4, 2);
-    if (newModel.moduleData[i].type >= MODULE_TYPE_ISRM_PXX2)
-      newModel.moduleData[i].type += 1;
-    if (newModel.moduleData[i].type >= MODULE_TYPE_R9M_PXX2)
-      newModel.moduleData[i].type += 4;
-    if (newModel.moduleData[i].type == MODULE_TYPE_XJT_PXX1) {
+    if (newModel.moduleData[i].getType() >= MODULE_TYPE_ISRM_PXX2)
+      newModel.moduleData[i].setType(newModel.moduleData[i].getType()+1);
+    if (newModel.moduleData[i].getType() >= MODULE_TYPE_R9M_PXX2)
+      newModel.moduleData[i].setType(newModel.moduleData[i].getType()+4);
+    if (newModel.moduleData[i].getType() == MODULE_TYPE_XJT_PXX1) {
       newModel.moduleData[i].subType = newModel.moduleData[i].rfProtocol;
 #if defined(RADIO_X9DP2019)
       if (i == INTERNAL_MODULE) {
-        newModel.moduleData[i].type = MODULE_TYPE_ISRM_PXX2;
+        newModel.moduleData[i].getType() = MODULE_TYPE_ISRM_PXX2;
         newModel.moduleData[i].subType = MODULE_SUBTYPE_ISRM_PXX2_ACCST_D16;
       }
 #endif
@@ -259,7 +259,7 @@ void convertModelData_218_to_219(ModelData &model)
   }
 
 #if defined(RADIO_T12)
-  newModel.moduleData[INTERNAL_MODULE].type = MODULE_TYPE_NONE; // Early t12 firmware had unused INT settings that need to be cleared
+  newModel.moduleData[INTERNAL_MODULE].getType() = MODULE_TYPE_NONE; // Early t12 firmware had unused INT settings that need to be cleared
 #endif
 
   for (uint8_t module=0; module<2; module++) {

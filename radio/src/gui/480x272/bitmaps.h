@@ -25,6 +25,9 @@
 extern const uint8_t LBM_DOT[];
 
 // Main view icons
+//OW
+extern const uint8_t LBM_TOPMENU_GPS[];
+//OWEND
 extern const uint8_t LBM_TOPMENU_USB[];
 extern const uint8_t LBM_TOPMENU_ANTENNA[];
 extern const uint8_t LBM_TOPMENU_VOLUME_0[];

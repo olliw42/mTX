@@ -32,13 +32,17 @@ enum usbMode {
   USB_CHARGING_MODE,
 #endif
   USB_MASS_STORAGE_MODE,
-#if defined(DEBUG)
-  USB_SERIAL_MODE,
-  USB_MAX_MODE=USB_SERIAL_MODE
-#else
-  USB_TELEMETRY_MIRROR_MODE,                  // Todo : increase EEprom storage to allow more mode
-  USB_MAX_MODE=USB_TELEMETRY_MIRROR_MODE
-#endif
+//OW
+  USB_MAVLINK_MODE,
+  USB_MAX_MODE=USB_MAVLINK_MODE
+//#if defined(DEBUG)
+//  USB_SERIAL_MODE,
+//  USB_MAX_MODE=USB_SERIAL_MODE
+//#else
+//  USB_TELEMETRY_MIRROR_MODE,                  // Todo : increase EEprom storage to allow more mode
+//  USB_MAX_MODE=USB_TELEMETRY_MIRROR_MODE
+//#endif
+//OWEND
 };
 
 int usbPlugged();

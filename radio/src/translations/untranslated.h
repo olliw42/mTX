@@ -108,7 +108,10 @@
 #endif
 
 #define LEN_EXTERNAL_MODULE_PROTOCOLS  "\014"
-#define TR_EXTERNAL_MODULE_PROTOCOLS   "OFF\0        ""PPM\0        ""XJT\0        ""ISRM\0       ""DSM2\0       ""CRSF\0       ""MULTI\0      ""R9M\0        ""R9M ACCESS\0 " TR_MODULE_R9M_LITE "R9ML ACCESS\0""GHST\0       ""R9MLP ACCESS""SBUS\0       ""XJT Lite\0   ""AFHDS3\0  "
+//OW
+//#define TR_EXTERNAL_MODULE_PROTOCOLS   "OFF\0        ""PPM\0        ""XJT\0        ""ISRM\0       ""DSM2\0       ""CRSF\0       ""MULTI\0      ""R9M\0        ""R9M ACCESS\0 " TR_MODULE_R9M_LITE "R9ML ACCESS\0""GHST\0       ""R9MLP ACCESS""SBUS\0       ""XJT Lite\0   ""AFHDS3\0  "
+#define TR_EXTERNAL_MODULE_PROTOCOLS   "OFF\0        ""PPM\0        ""XJT\0        ""ISRM\0       ""DSM2\0       ""CRSF\0       ""MULTI\0      ""R9M\0        ""R9M ACCESS\0 " TR_MODULE_R9M_LITE "R9ML ACCESS\0""GHST\0       ""R9MLP ACCESS""SBUS\0       ""XJT Lite\0   ""AFHDS3\0     ""Mavlink\0    "
+//OWEND
 
 #define LEN_INTERNAL_MODULE_PROTOCOLS  LEN_EXTERNAL_MODULE_PROTOCOLS
 #define TR_INTERNAL_MODULE_PROTOCOLS   TR_EXTERNAL_MODULE_PROTOCOLS
@@ -168,3 +171,30 @@
 
 #define LEN_FSGROUPS                    "\001"
 #define TR_FSGROUPS                     "-""1""2""3"
+
+//OW
+#define TR_MAVLINK                     "Mavlink"
+#define TR_MAVLINK_RSSI                "Rssi"
+#define TR_MAVLINK_RSSI_SCALE          "Rssi Scale"
+#define TR_MAVLINK_SENSOR_MIMICRY      "Sensor Mimicry"
+#define TR_MAVLINK_RC_OVERRIDE         "RC Override"
+#define LEN_MAVLINK_RC_OVERRIDE_FREQUENCIES "\006"
+#define TR_MAVLINK_RC_OVERRIDE_FREQUENCIES  "OFF\0  ""1Hz\0  ""2Hz\0  ""3Hz\0  ""4Hz\0  ""5Hz\0  ""7.7Hz\0""10Hz\0 ""12.5Hz""14.3Hz""16.7Hz""20Hz\0 ""25Hz\0 ""33.3Hz""50Hz\0 "
+#define TR_MAVLINK_SEND_POSITION        "Send Position"
+#define LEN_MAVLINK_SEND_POSITION_FREQUENCIES "\003"
+#define TR_MAVLINK_SEND_POSITION_FREQUENCIES  "OFF""1Hz""2Hz""3Hz""4Hz""5Hz"
+#define LEN_MAVLINK_AUX_BAUDRATES      "\006"
+#define TR_MAVLINK_AUX_BAUDRATES       "57600\0""115200""38400\0""19200\0"
+#define TR_USB_MAVLINK                 "USB Mavlink (VCP)"
+
+#define TR_SERIAL_LABEL                "Serials"
+#define LEN_USBMODES_OW                "\010"
+#define TR_USBMODES_OW                 "Ask\0    ""Joystick""Storage\0""Serial\0 ""Mavlink\0"
+#define LEN_AUX_SERIAL_MODES_OW        "\015"
+#if defined(CLI) || defined(DEBUG)
+#define TR_AUX_SERIAL_MODES_OW         "Debug\0       ""Telem Mirror\0""Telemetry In\0""SBUS Trainer\0""LUA\0         ""Mavlink\0     ""GPS\0         "
+#else
+#define TR_AUX_SERIAL_MODES_OW         "OFF\0         ""Telem Mirror\0""Telemetry In\0""SBUS Trainer\0""LUA\0         ""Mavlink\0     ""GPS\0         "
+#endif
+#define TR_USB_SERIAL_OW               "USB Serial (VCP)"
+//OWEND

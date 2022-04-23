@@ -38,6 +38,11 @@ enum ModuleType {
   MODULE_TYPE_SBUS,
   MODULE_TYPE_XJT_LITE_PXX2,
   MODULE_TYPE_AFHDS3, //no more protocols possible because of 4 bits value
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  MODULE_TYPE_MAVLINK, //size of type field has been extended, so more than 4 bits value possible
+#endif
+//OWEND
   MODULE_TYPE_COUNT,
   MODULE_TYPE_MAX = MODULE_TYPE_COUNT - 1
 };

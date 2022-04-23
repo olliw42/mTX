@@ -703,6 +703,11 @@ int cliStackInfo(const char ** argv)
   serialPrint("[MENUS] %d available / %d bytes", menusStack.available()*4, menusStack.size());
   serialPrint("[MIXER] %d available / %d bytes", mixerStack.available()*4, mixerStack.size());
   serialPrint("[AUDIO] %d available / %d bytes", audioStack.available()*4, audioStack.size());
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  serialPrint("[MAVLINK] %d available / %d bytes", mavlinkStack.available()*4, mavlinkStack.size());
+#endif
+//OW
   serialPrint("[CLI] %d available / %d bytes", cliStack.available()*4, cliStack.size());
   return 0;
 }
@@ -864,6 +869,13 @@ void printTaskSwitchLog()
       serialPrint("%d: system", n);
     }
 #endif
+//OW
+#if defined(TELEMETRY_MAVLINK)
+    else if (mavlinkTaskId == n) {
+      serialPrint("%d: mavlink", n);
+    }
+#endif
+//OWEND
   }
   serialCrlf();
 

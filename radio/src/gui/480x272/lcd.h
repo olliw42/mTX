@@ -261,4 +261,31 @@ inline void lcdDrawBitmapPattern(coord_t x, coord_t y, const uint8_t * img, LcdF
   #define SLOW_BLINK_ON_PHASE          (g_blinkTmr10ms & (1<<7))
 #endif
 
+//OW
+//THANKS to Adafruit and its GFX library !
+//https://learn.adafruit.com/adafruit-gfx-graphics-library
+
+void lcdDrawCircleQuarterADA(coord_t x0, coord_t y0, int16_t r, uint8_t corners, LcdFlags flags=0);
+void lcdFillCircleQuarterADA(coord_t x0, coord_t y0, int16_t r, uint8_t corners, LcdFlags flags=0);
+inline void lcdDrawCircleADA(coord_t x0, coord_t y0, int16_t r, LcdFlags flags=0)
+{
+  lcdDrawCircleQuarterADA(x0, y0, r, 15, flags);
+}
+inline void lcdFillCircleADA(coord_t x0, coord_t y0, int16_t r, LcdFlags flags=0)
+{
+  lcdFillCircleQuarterADA(x0, y0, r, 3, flags);
+}
+
+void lcdDrawCircleLOUI(coord_t x0, coord_t y0, coord_t r, LcdFlags flags=0);
+void lcdDrawFilledCircleLOUI(coord_t x0, coord_t y0, coord_t r, LcdFlags flags=0);
+
+void lcdDrawFilledTriangle(coord_t x0, coord_t y0, coord_t x1, coord_t y1, coord_t x2, coord_t y2, LcdFlags flags=0);
+
+void lcdDrawAnnulusSector(coord_t x, coord_t y, coord_t internalRadius, coord_t externalRadius, int startAngle, int endAngle, LcdFlags flags=0);
+
+void lcdDrawLineWithClipping(coord_t x0, coord_t y0, coord_t x1, coord_t y1, coord_t xmin, coord_t xmax, coord_t ymin, coord_t ymax, uint8_t pat=SOLID, LcdFlags flags=0);
+
+void lcdDrawHudRectangle(float pitch, float roll, coord_t xmin, coord_t xmax, coord_t ymin, coord_t ymax, LcdFlags flags=0);
+//OWEND
+
 #endif // _LCD_H_

@@ -23,7 +23,10 @@
 #include "pulses/afhds3.h"
 #include "mixer_scheduler.h"
 
-uint8_t telemetryStreaming = 0;
+//OW
+//uint8_t telemetryStreaming = 0;
+uint16_t telemetryStreaming = 0;
+//OWEND
 uint8_t telemetryRxBuffer[TELEMETRY_RX_PACKET_SIZE];   // Receive buffer. 9 bytes (full packet), worst case 18 bytes with byte-stuffing (+1)
 uint8_t telemetryRxBufferCount = 0;
 
@@ -295,7 +298,14 @@ void telemetryWakeup()
 #endif
 
     if (!g_model.rssiAlarms.disabled) {
+//OW
+//      if (TELEMETRY_STREAMING()) {
+#if defined(TELEMETRY_MAVLINK)
+      if (TELEMETRY_STREAMING() && !mavlinkTelem.telemetryVoiceCriticalDisabled()) {
+#else
       if (TELEMETRY_STREAMING()) {
+#endif
+//OWEND
         if (TELEMETRY_RSSI() < g_model.rssiAlarms.getCriticalRssi() ) {
           AUDIO_RSSI_RED();
           SCHEDULE_NEXT_ALARMS_CHECK(10/*seconds*/);
@@ -308,7 +318,14 @@ void telemetryWakeup()
 
       if (TELEMETRY_STREAMING()) {
         if (telemetryState == TELEMETRY_KO) {
+//OW
+//          AUDIO_TELEMETRY_BACK();
+#if defined(TELEMETRY_MAVLINK)
+          if (!mavlinkTelem.telemetryVoiceTelemetryOkDisabled()) { AUDIO_TELEMETRY_BACK(); }
+#else
           AUDIO_TELEMETRY_BACK();
+#endif
+//OWEND
 #if defined(CROSSFIRE)
           if (isModuleCrossfire(EXTERNAL_MODULE)) {
             moduleState[EXTERNAL_MODULE].counter = CRSF_FRAME_MODELID;
@@ -320,7 +337,14 @@ void telemetryWakeup()
       else if (telemetryState == TELEMETRY_OK) {
         telemetryState = TELEMETRY_KO;
         if (!isModuleInBeepMode()) {
+//OW
+//          AUDIO_TELEMETRY_LOST();
+#if defined(TELEMETRY_MAVLINK)
+          if (!mavlinkTelem.telemetryVoiceTelemetryOkDisabled()) { AUDIO_TELEMETRY_LOST(); }
+#else
           AUDIO_TELEMETRY_LOST();
+#endif
+//OWEND
         }
       }
     }

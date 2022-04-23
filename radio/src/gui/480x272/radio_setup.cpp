@@ -77,12 +77,30 @@ enum menuRadioSetupItems {
   CASE_GPS(ITEM_SETUP_TIMEZONE)
   CASE_GPS(ITEM_SETUP_ADJUST_RTC)
   CASE_GPS(ITEM_SETUP_GPSFORMAT)
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  ITEM_SETUP_LABEL_SERIALS,
+  ITEM_SETUP_USB_MODE,
+#if defined(AUX_SERIAL)
+  ITEM_SETUP_AUX_SERIAL_MODE,
+#endif
+#if defined(AUX2_SERIAL)
+  ITEM_SETUP_AUX2_SERIAL_MODE,
+#endif
+#endif
+//OWEND
   CASE_PXX1(ITEM_SETUP_COUNTRYCODE)
   ITEM_SETUP_LANGUAGE,
   ITEM_SETUP_IMPERIAL,
   IF_FAI_CHOICE(ITEM_SETUP_FAI)
   ITEM_SETUP_SWITCHES_DELAY,
+//OW
+#if !defined(TELEMETRY_MAVLINK)
+//OWEND
   ITEM_SETUP_USB_MODE,
+//OW
+#endif
+//OWEND
   ITEM_SETUP_RX_CHANNEL_ORD,
   CASE_ROTARY_ENCODER(ITEM_RADIO_SETUP_ROTARY_INVERSE)
   ITEM_SETUP_STICK_MODE,
@@ -133,12 +151,30 @@ bool menuRadioSetup(event_t event)
       CASE_GPS(0) // timezone
       CASE_GPS(0) // adjust RTC
       CASE_GPS(0) // GPS format
+//OW
+#if defined(TELEMETRY_MAVLINK)
+    LABEL(SERIALS),
+      0,
+#if defined(AUX_SERIAL)
+      1,
+#endif
+#if defined(AUX2_SERIAL)
+      1,
+#endif
+#endif
+//OWEND
     CASE_PXX1(0) // country code
     0, // voice language
     0, // imperial
     FAI_CHOICE_ROW
     0, // switches delay
+//OW
+#if !defined(TELEMETRY_MAVLINK)
+//OWEND
     0, // USB mode
+//OW
+#endif
+//OWEND
     0, // RX channels order
     CASE_ROTARY_ENCODER(0)  // Invert rotary encoder
     0, // sticks mode
@@ -449,6 +485,49 @@ bool menuRadioSetup(event_t event)
         g_eeGeneral.gpsFormat = editChoice(RADIO_SETUP_2ND_COLUMN, y, STR_GPSFORMAT, g_eeGeneral.gpsFormat, 0, 1, attr, event);
         break;
 
+//OW
+#if defined(TELEMETRY_MAVLINK)
+      case ITEM_SETUP_LABEL_SERIALS:
+        lcdDrawText(MENUS_MARGIN_LEFT, y, STR_SERIAL_LABEL);
+        break;
+
+      case ITEM_SETUP_USB_MODE:
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_USBMODE);
+        g_eeGeneral.USBMode = editChoice(RADIO_SETUP_2ND_COLUMN, y, STR_USBMODES_OW, g_eeGeneral.USBMode, USB_UNSELECTED_MODE, USB_MAX_MODE, attr, event, isUsbModeAvailable);
+        break;
+
+#if defined(AUX_SERIAL)
+      case ITEM_SETUP_AUX_SERIAL_MODE:
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_AUX_SERIAL_MODE);
+        lcdDrawText(lcdNextPos, y, " (TTL)");
+        g_eeGeneral.auxSerialMode = editChoice(RADIO_SETUP_2ND_COLUMN, y, STR_AUX_SERIAL_MODES_OW, g_eeGeneral.auxSerialMode, 0, UART_MODE_MAX,
+                menuHorizontalPosition == 0 ? attr : 0, event, isAux1ModeAvailable);
+        g_eeGeneral.mavlinkBaudrate = editChoice(RADIO_SETUP_2ND_COLUMN + 120, y, STR_MAVLINK_AUX_BAUDRATES, g_eeGeneral.mavlinkBaudrate, 0, 3,
+                menuHorizontalPosition == 1 ? attr : 0, event);
+        if (attr && checkIncDec_Ret) {
+          // it's the same for both menuHorizontalPosition = 0,1, so no switch case needed
+          auxSerialInit(g_eeGeneral.auxSerialMode, modelTelemetryProtocol());
+        }
+        break;
+#endif
+
+#if defined(AUX2_SERIAL)
+      case ITEM_SETUP_AUX2_SERIAL_MODE:
+        lcdDrawText(MENUS_MARGIN_LEFT + INDENT_WIDTH, y, STR_AUX2_SERIAL_MODE);
+        lcdDrawText(lcdNextPos, y, " (TTL)");
+        g_eeGeneral.aux2SerialMode = editChoice(RADIO_SETUP_2ND_COLUMN, y, STR_AUX_SERIAL_MODES_OW, g_eeGeneral.aux2SerialMode, 0, UART_MODE_MAX,
+                menuHorizontalPosition == 0 ? attr : 0, event, isAux2ModeAvailable);
+        g_eeGeneral.mavlinkBaudrate2 = editChoice(RADIO_SETUP_2ND_COLUMN + 120, y, STR_MAVLINK_AUX_BAUDRATES, g_eeGeneral.mavlinkBaudrate2, 0, 3,
+                menuHorizontalPosition == 1 ? attr : 0, event);
+        if (attr && checkIncDec_Ret) {
+          // it's the same for both menuHorizontalPosition = 0,1, so no switch case needed
+          aux2SerialInit(g_eeGeneral.aux2SerialMode, modelTelemetryProtocol());
+        }
+        break;
+#endif
+#endif
+//OWEND
+
 #if defined(PXX1)
       case ITEM_SETUP_COUNTRYCODE:
         lcdDrawText(MENUS_MARGIN_LEFT, y, STR_COUNTRYCODE);
@@ -489,17 +568,22 @@ bool menuRadioSetup(event_t event)
         break;
 #endif
 
-
       case ITEM_SETUP_SWITCHES_DELAY:
         lcdDrawText(MENUS_MARGIN_LEFT, y, STR_SWITCHES_DELAY);
         lcdDrawNumber(RADIO_SETUP_2ND_COLUMN, y, 10*SWITCHES_DELAY(), attr|LEFT, 0, NULL, STR_MS);
         if (attr) CHECK_INCDEC_GENVAR(event, g_eeGeneral.switchesDelay, -15, 100-15);
         break;
 
+//OW
+#if !defined(TELEMETRY_MAVLINK)
+//OWEND
       case ITEM_SETUP_USB_MODE:
         lcdDrawText(MENUS_MARGIN_LEFT, y, STR_USBMODE);
         g_eeGeneral.USBMode = editChoice(RADIO_SETUP_2ND_COLUMN, y, STR_USBMODES, g_eeGeneral.USBMode, USB_UNSELECTED_MODE, USB_MAX_MODE, attr, event);
         break;
+//OW
+#endif
+//OWEND
 
       case ITEM_SETUP_RX_CHANNEL_ORD:
       {

@@ -28,6 +28,15 @@ DMAFifo<TELEMETRY_FIFO_SIZE> telemetryDMAFifo __DMA (TELEMETRY_DMA_Stream_RX);
 uint8_t telemetryFifoMode;
 #endif
 
+//OW
+#if defined(TELEMETRY_MAVLINK)
+extern Fifo<uint8_t, 4096> mavlinkTelemExternalRxFifo;
+extern Fifo<uint8_t, 256> mBridgeTxFifo_frame;
+extern Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
+volatile uint8_t mavlinkTelemExternal_rx_state = 0;
+#endif
+//OWEND
+
 static void telemetryInitDirPin()
 {
   GPIO_InitTypeDef GPIO_InitStructure;
@@ -42,6 +51,12 @@ static void telemetryInitDirPin()
 
 void telemetryPortInit(uint32_t baudrate, uint8_t mode)
 {
+//OW
+#if defined(TELEMETRY_MAVLINK)
+//it seems it works without, but I'm not sure, so keep
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+#endif
+//OWEND
   if (baudrate == 0) {
     USART_DeInit(TELEMETRY_USART);
     return;
@@ -154,6 +169,11 @@ static uint16_t probeTimeFromStartBit;
 
 void telemetryPortInvertedInit(uint32_t baudrate)
 {
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+#endif
+//OWEND
   if (baudrate == 0) {
     NVIC_DisableIRQ(TELEMETRY_EXTI_IRQn);
     NVIC_DisableIRQ(TELEMETRY_TIMER_IRQn);
@@ -251,6 +271,11 @@ void telemetryPortInvertedRxBit()
 
 void telemetryPortSetDirectionOutput()
 {
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+#endif
+//OWEND
 #if defined(GHOST) && SPORT_MAX_BAUDRATE < 400000
   if (isModuleGhost(EXTERNAL_MODULE)) {
     TELEMETRY_USART->BRR = BRR_400K;
@@ -267,6 +292,11 @@ void sportWaitTransmissionComplete()
 
 void telemetryPortSetDirectionInput()
 {
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+#endif
+//OWEND
   sportWaitTransmissionComplete();
 #if defined(GHOST) && SPORT_MAX_BAUDRATE < 400000
   if (isModuleGhost(EXTERNAL_MODULE) && g_eeGeneral.telemetryBaudrate == GHST_TELEMETRY_RATE_115K) {
@@ -279,6 +309,11 @@ void telemetryPortSetDirectionInput()
 
 void sportSendByte(uint8_t byte)
 {
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+#endif
+//OWEND
   telemetryPortSetDirectionOutput();
 
   while (!(TELEMETRY_USART->SR & USART_SR_TXE));
@@ -287,6 +322,11 @@ void sportSendByte(uint8_t byte)
 
 void sportSendByteLoop(uint8_t byte)
 {
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+#endif
+//OWEND
   telemetryPortSetDirectionOutput();
 
   outputTelemetryBuffer.data[0] = byte;
@@ -315,6 +355,11 @@ void sportSendByteLoop(uint8_t byte)
 
 void sportSendBuffer(const uint8_t * buffer, uint32_t count)
 {
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+#endif
+//OWEND
   telemetryPortSetDirectionOutput();
 
   DMA_InitTypeDef DMA_InitStructure;
@@ -362,6 +407,63 @@ extern "C" void TELEMETRY_DMA_TX_IRQHandler(void)
 extern "C" void TELEMETRY_USART_IRQHandler(void)
 {
   DEBUG_INTERRUPT(INT_TELEM_USART);
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) {
+
+    if (USART_GetITStatus(TELEMETRY_USART, USART_IT_TXE) != RESET) {
+      uint8_t txchar;
+      if (mBridgeTxFifo_frame.pop(txchar)) {
+        USART_SendData(TELEMETRY_USART, txchar);
+      }
+      else {
+        USART_ITConfig(TELEMETRY_USART, USART_IT_TXE, DISABLE);
+        // the uart send register is double buffered
+        // hence, the last byte is still send when we disable TXE
+        // hence, we can't switch to output here since this would kill the last byte
+        // so we enable TC interrupt and do it when
+        USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_TC);
+        USART_ITConfig(TELEMETRY_USART, USART_IT_TC, ENABLE);
+      }
+      mavlinkTelemExternal_rx_state = 0;
+    }
+    else if (USART_GetITStatus(TELEMETRY_USART, USART_IT_TC) != RESET) {
+      USART_ITConfig(TELEMETRY_USART, USART_IT_TC, DISABLE);
+      USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_TC);
+      TELEMETRY_DIR_GPIO->BSRRH = TELEMETRY_DIR_GPIO_PIN; // output disable
+      USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_RXNE);
+      TELEMETRY_USART->CR1 |= USART_CR1_RE; // turn on receiver
+      mavlinkTelemExternal_rx_state = 1;
+      mBridgeRxFifo_cmd.clear();
+    }
+
+    if (USART_GetITStatus(TELEMETRY_USART, USART_IT_RXNE) != RESET) {
+      USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_RXNE);
+      uint8_t c = USART_ReceiveData(TELEMETRY_USART);
+      if (mavlinkTelemExternal_rx_state == 2) {
+        mavlinkTelemExternalRxFifo.push(c); // receive serial data
+      } else
+      if (mavlinkTelemExternal_rx_state == 1) {
+        if ((c & MBRIDGE_COMMANDPACKET_MASK) == MBRIDGE_COMMANDPACKET_STX) {
+          mBridgeRxFifo_cmd.push(MBRIDGE_STX1);
+          mBridgeRxFifo_cmd.push(MBRIDGE_STX2);
+          mBridgeRxFifo_cmd.push(c);
+          mavlinkTelemExternal_rx_state = 3; // switch to receive command
+        } else {
+          mavlinkTelemExternal_rx_state = 2; // switch to receive serial data
+        }
+      } else
+      if (mavlinkTelemExternal_rx_state == 3) {
+          mBridgeRxFifo_cmd.push(c); // receive command
+      }
+    }
+
+    return;
+  }
+#endif
+//OWEND
+
   uint32_t status = TELEMETRY_USART->SR;
 
   if ((status & USART_SR_TC) && (TELEMETRY_USART->CR1 & USART_CR1_TCIE)) {

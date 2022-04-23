@@ -67,12 +67,18 @@ enum MenuRadioHardwareItems {
   ITEM_RADIO_HARDWARE_EXTERNAL_ANTENNA,
 #endif
 
+//OW
+#if !defined(TELEMETRY_MAVLINK)
+//OWEND
 #if defined(AUX_SERIAL)
   ITEM_RADIO_HARDWARE_AUX_SERIAL_MODE,
 #endif
 #if defined(AUX2_SERIAL)
   ITEM_RADIO_HARDWARE_AUX2_SERIAL_MODE,
 #endif
+//OW
+#endif
+//OWEND
   ITEM_RADIO_HARDWARE_JITTER_FILTER,
   ITEM_RADIO_HARDWARE_RAS,
 
@@ -165,8 +171,15 @@ bool menuRadioHardware(event_t event)
 
     EXTERNAL_ANTENNA_ROW
 
+//OW
+#if !defined(TELEMETRY_MAVLINK)
+//OWEND
     AUX_SERIAL_ROW /* aux serial mode */
     AUX2_SERIAL_ROW /* aux2 serial mode */
+//OW
+#endif
+//OWEND
+
     0, /* ADC filter */
     READONLY_ROW /* RAS */,
     SPORT_POWER_ROWS
@@ -366,6 +379,9 @@ bool menuRadioHardware(event_t event)
         break;
 #endif
 
+//OW
+#if !defined(TELEMETRY_MAVLINK)
+//OWEND
 #if defined(AUX_SERIAL)
       case ITEM_RADIO_HARDWARE_AUX_SERIAL_MODE:
         lcdDrawText(MENUS_MARGIN_LEFT, y, STR_AUX_SERIAL_MODE);
@@ -391,6 +407,9 @@ bool menuRadioHardware(event_t event)
         }
         break;
 #endif
+//OW
+#endif
+//OWEND
 
       case ITEM_RADIO_HARDWARE_JITTER_FILTER:
       {

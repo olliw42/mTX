@@ -32,7 +32,7 @@ struct gpsdata_t
   uint8_t numSat;
   uint32_t packetCount;
   uint32_t errorCount;
-  uint16_t altitude;              // altitude in 0.1m
+  uint16_t altitude;              // altitude in 0.1m //OW NOTE: incorrect, is in m! lua description also incorrect!
   uint16_t speed;                 // speed in 0.1m/s
   uint16_t groundCourse;          // degrees * 10
   uint16_t hdop;
@@ -42,5 +42,27 @@ extern gpsdata_t gpsData;
 void gpsWakeup();
 
 void gpsSendFrame(const char * frame);
+
+//OW
+// extension to OpenTx's gpsdata_t structure
+typedef struct {
+  uint8_t fix;          // 0: no fix, 2: 2D fix, 3: 3D fix
+  uint16_t vdop;        // scaling 1e-2, 100 = 1.0
+  int32_t lat_1e7;      // in 1e7 deg, 1e7 = 1°
+  int32_t lon_1e7;      // in 1e7 deg, 1e7 = 1°
+  int32_t alt_mm;       // in mm, 1000 = 1 m, is above sea level in m
+  int32_t speed_mms;    // in mm/s, 1000 = 1 m/s
+  uint16_t cog_cdeg;    // in cdeg, 100 = 1°
+  int32_t velN_mms;     // in mm/s
+  int32_t velE_mms;     // in mm/s
+  int32_t velD_mms;     // in mm/s
+  // auxiliary
+  bool has_pos_fix;
+} gpsdata2_t;
+
+extern tmr10ms_t gps_msg_received_tlast;
+extern gpsdata2_t gpsData2;
+void gpsClear(void);
+//OWEND
 
 #endif // _GPS_H_

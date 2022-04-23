@@ -32,6 +32,12 @@ const uint8_t LBM_DOT[] = {
  * Main view bitmaps
  */
 
+//OW
+const uint8_t LBM_TOPMENU_GPS[] = {
+#include "mask_topmenu_gps_18.lbm"
+};
+//OWEND
+
 const uint8_t LBM_TOPMENU_USB[] = {
 #include "mask_topmenu_usb.lbm"
 };

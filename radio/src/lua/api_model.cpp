@@ -136,9 +136,9 @@ static int luaModelGetModule(lua_State *L)
     lua_pushtableinteger(L, "modelId", g_model.header.modelId[idx]);
     lua_pushtableinteger(L, "firstChannel", module.channelsStart);
     lua_pushtableinteger(L, "channelsCount", module.getChannelsCount());
-    lua_pushtableinteger(L, "Type", module.type);
+    lua_pushtableinteger(L, "Type", module.getType());
 #if defined(MULTIMODULE)
-    if (module.type == MODULE_TYPE_MULTIMODULE) {
+    if (module.getType() == MODULE_TYPE_MULTIMODULE) {
       int protocol = g_model.moduleData[idx].getMultiProtocol() + 1;
       int subprotocol = g_model.moduleData[idx].subType;
       convertOtxProtocolToMulti(&protocol, &subprotocol); // Special treatment for the FrSky entry...

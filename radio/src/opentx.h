@@ -18,6 +18,205 @@
  * GNU General Public License for more details.
  */
 
+//OW
+#define OWVERSIONSTR  "v33-rc4"
+#define OWVERSION     3300 // used by mavlink/mbridge.cpp Telemetry alarms disabled TR_NO_RSSIALARM
+//OWEND
+
+/*
+TODO:
+- is velocity for send GLOBAL_POSITION_INT correct ? is velocity needed for follow to work
+- is_receiving handling should be improved such as to distinguish between a momentary connection lost and a reset of a component
+
+type to getType() changes not marked with //OW
+support of hardware encoder also not marked with //OW
+
+mBridge
+v31 2021-11-21
+new gps driver, all ubx, adjustable rate, up to 5Hz, makes huge difference, more gps data SERIAL_GPS
+router timeout
+tx bay send channels
+rssi voice
+my parameters
+send global position int
+aux serial cleanify
+gps hot enable, gps improvements
+x12s
+mavapi: get lib_constants generator correct
+mavapi, params, other small improvements
+mavapi, 1 indexed, subtable check
+v30 2021-07-24 again
+bug with serial2 only   M_MAG_CAL_REPORT
+v30 2021-07-24
+upgraded to otx2.3.14 as base
+prevent installation of widget on page 1
+basic touch, for tx16s
+new keys
+serials moved from hardware to radio setup
+usb serial revamped
+upgraded to otx2.3.13 as base
+v28 2021-06-18
+module mavlink handling even further improved
+upgraded to otx2.3.12 as base
+v27 2021-06-10
+ext rf module mavlink, poweron/off sorted
+backport of some good stuff from etx2.4 pr
+update mavlink, fastmavlink, have invalid attr
+correct power handling for SPort bidirectional
+SPort bidirectional
+mavMsgOut w fifo
+mavMsgOut
+mavMsgList
+v26 2021-03-21
+fastMavlink v003, prearm checks
+v25 2021-03-07
+fastMavlink
+v24 2021-02-11
+v22 2021-02-5:
+mavlink submodule changed to main git repo, 600xx storm32
+v20 2021-01-23:
+mavlink submodule changed to main git repo, file generator updated
+uart totally revised, uses now AUX_SERIAL and AUX2_SERIAL
+v18 2020-12-07:
+mavlink storm32.xml, qshots
+v17 2020-10-15:
+mavlink submodule changed to main git repo, file generator added
+one needs to run mavgenerate_dialect.py to generate the mavlink c code files
+modified files in radio/src/
+
+    cli.cpp:          2x
+    CMakeList.txt:    1x
+    dataconstants.h:  3x
+    datastructs.h:    7x
+    keys.cpp:         2x
+    keys.h:           1x
+    main.cpp:         5x
+    opentx.cpp:       1x
+    opentx.h:         2x
+    options.h:        1x
+    tasks.cpp:        3x
+    tasks.h:          1x
+    translations.cpp: 1x
+    translations.h:   1x
+    gui/480x272/bitmap.cpp:          1x
+    gui/480x272/bitmap.h:            1x
+    gui/480x272/lcd.cpp:             1x
+    gui/480x272/lcd.h:               1x
+    gui/480x272/menus.h:             1x
+    gui/480x272/model_setup.cpp:     3x
+    gui/480x272/radio_diaganas.cpp:  2x
+    gui/480x272/radio_hardware.cpp:  6x
+    gui/480x272/topbar.cpp:          2x
+    gui/gui_common.cpp:              2x
+    gui/gui_common.h:                1x
+    lua/api_general.cpp:             4x
+    lua/api_lcd.cpp:                 2x
+    lua/widgets.cpp:                 4x
+    pulses/modules_constants.h:      1x
+    pulses/modules_helpers.h:        1x
+    pulses/pulses.cpp:               2x
+    pulses/pulses.h:                 1x
+    targets/common/arm/stm32/aux_serial_driver.cpp:  8x
+    targets/common/arm/stm32/CMakeLists.txt:         3x
+    targets/common/arm/stm32/usb_driver.cpp:         1x
+    targets/common/arm/stm32/usb_driver.h:           1x
+    targets/common/arm/stm32/usbd_cdc.cpp:           1x
+    targets/common/arm/stm32/usbd_dec.cpp:           4x
+    targets/horus/board.cpp:                         1x
+    targets/horus/board.h:                           2x
+    targets/horus/CMakeList.txt:                     3x
+    targets/horus/extmodule_driver.cpp:              1x
+    targets/horus/hal.h:                             1x
+    targets/horus/telemetry_driver.cpp:              9x
+    targets/horus/tp_gt911.cpp:                      2x
+    targets/horus/tp_gt911.h:                        1x
+    telemetry/telemetry.cpp:         2x
+    telemetry/telemetry.h:           1x
+    thirdparty/Lua/src/lauxlib.h:    1x
+    thirdparty/Lua/src/linit.c:      1x
+    thirdparty/Lua/src/lrotable.h:   1x
+    translations/untranslated.h:     2x
+
+added files
+    mavlink/mavlink_telem_autopilot.cpp
+    mavlink/mavlink_telem_camera.cpp
+    mavlink/mavlink_telem_gimbal.cpp
+    mavlink/mavlink_telem_interface.cpp
+    mavlink/mavlink_telem_mavapi.cpp
+    mavlink/mavlink_telem_qshot.cpp
+    mavlink/mavlink_telem.cpp
+    mavlink/mavlink_telem.h
+    mavlink/lua_api_mavlink.cpp
+    mavlink/lua_api_mavsdk.cpp
+    thirdparty/Mavlink/
+
+
+TODO:
+- TELEMETRY_USART_IRQHandler: optimize, USART_xxx() functions are not very efficient
+- mavlink router: wipeout&reassign when link changes? wipeout after timeout?
+- mavlink api: add helpers str2tab() and tab2str()??
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+#endif
+//OWEND
+
+
+idea:
+support LEFT, RIGHT CENTER also for drawFilledRectangle, drawRectangle, or better LEFT,RIGHT,XCENTER,TOP,BOTTOM,YCENTER
+
+----
+
+TASK_FUNCTION(menusTask) -> perMain() -> handleUsbConnection()
+g_eeGeneral.USBMode
+USB_UNSELECTED_MODE
+USB_JOYSTICK_MODE
+USB_MASS_STORAGE_MODE
+USB_SERIAL_MODE   if defined(USB_SERIAL) usbd_cdc_core  TR_USBMODES   error
+
+----
+
+STR_AUX_SERIAL_MODES
+MAVLINK_AUX_SERIAL_MODES
+INTERNAL_GPS MIXSRC_TX_GPS
+BLUETOOTH
+TELEMETRY_MAVLINK   TELEMETRY_MAVLINK_USB_SERIAL  USB_SERIAL  DEBUG  AUX_SERIAL  AUX2_SERIAL  CLI
+T16 TX16S T18 X10
+
+external
+problem is: the moduleData.type is only 4 bits, and there are already 16 modules, so one can't go the native way
+the "simplest" would be to just increase but this would break storage format
+thus, idea: add some more bits somewhere else so as to not break storage compatibility
+the type is then made up by fusing the 4 original bits with the new bits, effectively extending size
++ add setter getter to struct and ensure that the type is never used directly but only through the
+I now see: this kind of trick was in fact used before for rfProtocolExtra LOL
+
+moduleData[idx].type
+MULTIMODULE
+ITEM_MODEL_SETUP_EXTERNAL_MODULE_TYPE
+STR_EXTERNAL_MODULE_PROTOCOLS
+TelemetryProtocol
+setModuleType(uint8_t moduleIdx, uint8_t moduleType)
+EXTERNAL_MODULE
+
+enablePulsesExternalModule()
+extmoduleSerialStart()
+extmoduleStop()
+
+rssi
+telemetryData.rssi
+telemetryData.clear()
+class TelemetryData
+TelemetryFilterDecorator
+TELEMETRY_RSSI()
+TELEMETRY_STREAMING()
+MODEL_TELEMETRY_STREAMING()
+telemetryWakeup()
+telemetryItems[index].setValue(g_model.telemetrySensors[index], value, unit, prec);
+sportProcessTelemetryPacket
+
+*/
+
 #pragma once
 
 #include <stdlib.h>
@@ -1074,6 +1273,12 @@ constexpr uint8_t SD_SCREEN_FILE_LENGTH = 64;
 #if defined(BLUETOOTH)
 #include "bluetooth.h"
 #endif
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+#include "mavlink/mavlink_telem.h"
+#endif
+//OWEND
 
 constexpr uint8_t TEXT_FILENAME_MAXLEN = 40;
 
