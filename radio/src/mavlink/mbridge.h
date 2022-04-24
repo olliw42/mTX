@@ -38,7 +38,7 @@ typedef enum {
 
 typedef enum {
     MBRIDGE_CMD_TX_LINK_STATS         = 2,
-    MBRIDGE_CMD_DEVICE_REQUEST_ITEM   = 3, // len = 0
+    MBRIDGE_CMD_REQUEST_INFO          = 3, // len = 0
     MBRIDGE_CMD_DEVICE_ITEM_TX        = 4,
     MBRIDGE_CMD_DEVICE_ITEM_RX        = 5,
     MBRIDGE_CMD_PARAM_REQUEST_LIST    = 6, // len = 0
@@ -48,8 +48,8 @@ typedef enum {
     MBRIDGE_CMD_REQUEST_CMD           = 10,
     MBRIDGE_CMD_INFO                  = 11,
     MBRIDGE_CMD_PARAM_SET             = 12,
-    MBRIDGE_CMD_PARAM_STORE           = 13,
-    MBRIDGE_CMD_BIND                  = 14,
+    MBRIDGE_CMD_PARAM_STORE           = 13, // len = 0
+    MBRIDGE_CMD_BIND                  = 14, // len = 0
 } MBRIDGE_CMD_ENUM;
 
 #define MBRIDGE_CMD_TX_LINK_STATS_LEN         22

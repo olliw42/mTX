@@ -38,7 +38,7 @@ uint8_t MBridge::cmd_payload_len(uint8_t cmd)
 {
   switch (cmd) {
   case MBRIDGE_CMD_TX_LINK_STATS: return MBRIDGE_CMD_TX_LINK_STATS_LEN;
-  case MBRIDGE_CMD_DEVICE_REQUEST_ITEM: return 0;
+  case MBRIDGE_CMD_REQUEST_INFO: return 0;
   case MBRIDGE_CMD_DEVICE_ITEM_TX: return MBRIDGE_CMD_DEVICE_ITEM_LEN;
   case MBRIDGE_CMD_DEVICE_ITEM_RX: return MBRIDGE_CMD_DEVICE_ITEM_LEN;
   case MBRIDGE_CMD_PARAM_REQUEST_LIST: return 0;
