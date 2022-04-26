@@ -33,19 +33,24 @@
 #define GHST_ADDR_5G_TWRSCAN            0x85
 #define GHST_ADDR_5G_RLY                0x86
 
-#define GHST_UL_RC_CHANS_HS4_5TO8	0x10	// High Speed 4 channel (12 bits), plus CH5-8 (8 bits)
-#define GHST_UL_RC_CHANS_HS4_9TO12	0x11	// High Speed 4 channel (12 bits), plus CH9-12 (8 bits)
-#define GHST_UL_RC_CHANS_HS4_13TO16	0x12	// High Speed 4 channel (12 bits), plus CH13-16 (8 bits)
+#define GHST_UL_RC_CHANS_HS4_5TO8       0x10	// High Speed 4 channel (12 bit legacy), plus CH5-8 (8 bit legacy)
+#define GHST_UL_RC_CHANS_HS4_9TO12      0x11	// High Speed 4 channel (12 bit legacy), plus CH9-12 (8 bit legacy)
+#define GHST_UL_RC_CHANS_HS4_13TO16     0x12	// High Speed 4 channel (12 bit legacy), plus CH13-16 (8 bit legacy)
 #define GHST_UL_RC_CHANS_SIZE           12      // 1 (type) + 10 (data) + 1 (crc)
 #define GHST_UL_MENU_CTRL               0x13
+#define GHST_UL_RC_CHANS_HS4_12_5TO8    0x30	// High Speed 4 channel (12 bit raw), plus CH5-8 (8 bit raw)
+#define GHST_UL_RC_CHANS_HS4_12_9TO12   0x31	// High Speed 4 channel (12 bit raw), plus CH9-12 (8 bit raw)
+#define GHST_UL_RC_CHANS_HS4_12_13TO16  0x32	// High Speed 4 channel (12 bit raw), plus CH13-16 (8 bit raw)
 
-#define GHST_DL_OPENTX_SYNC		0x20
+#define GHST_DL_OPENTX_SYNC             0x20
 #define GHST_DL_LINK_STAT               0x21
 #define GHST_DL_VTX_STAT                0x22
 #define GHST_DL_PACK_STAT               0x23
 #define GHST_DL_MENU_DESC               0x24
 #define GHST_DL_GPS_PRIMARY             0x25
 #define GHST_DL_GPS_SECONDARY           0x26
+#define GHST_DL_MAGBARO                 0x27
+#define GHST_DL_MSP_RESP                0x28
 
 #define GHST_RC_CTR_VAL_12BIT		0x7C0   // 0x3e0 << 1
 #define GHST_RC_CTR_VAL_8BIT		0x7C
@@ -102,6 +107,7 @@ enum GhstVtxBand
 
 void processGhostTelemetryData(uint8_t data);
 void ghostSetDefault(int index, uint8_t id, uint8_t subId);
+uint8_t getGhostModuleAddr();
 
 #if SPORT_MAX_BAUDRATE < 400000
 // For radios which can't support telemetry at high rates, offer baud rate choices

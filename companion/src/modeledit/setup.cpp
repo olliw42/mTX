@@ -22,6 +22,7 @@
 #include "ui_setup.h"
 #include "ui_setup_timer.h"
 #include "ui_setup_module.h"
+#include "ui_setup_function_switches.h"
 #include "appdata.h"
 #include "modelprinter.h"
 #include "multiprotocols.h"
@@ -964,6 +965,210 @@ void ModulePanel::onClearAccessRxClicked()
 }
 
 /******************************************************************************/
+FunctionSwitchesPanel::FunctionSwitchesPanel(QWidget * parent, ModelData & model, GeneralSettings & generalSettings, Firmware * firmware):
+  ModelPanel(parent, model, generalSettings, firmware),
+  ui(new Ui::FunctionSwitches)
+{
+  ui->setupUi(this);
+
+  AbstractStaticItemModel *fsConfig = ModelData::funcSwitchConfigItemModel();
+  AbstractStaticItemModel *fsStart = ModelData::funcSwitchStartItemModel();
+
+  lock = true;
+
+  QRegExp rx(CHAR_FOR_NAMES_REGEX);
+
+  switchcnt = Boards::getCapability(firmware->getBoard(), Board::FunctionSwitches);
+
+  for (int i = 0; i < switchcnt; i++) {
+    QLabel * lblSwitchId = new QLabel(this);
+    lblSwitchId->setText(tr("SW%1").arg(i + 1));
+
+    AutoLineEdit * aleName = new AutoLineEdit(this);
+    aleName->setProperty("index", i);
+    aleName->setValidator(new QRegExpValidator(rx, this));
+    aleName->setField((char *)model.functionSwitchNames[i], 3);
+
+    QComboBox * cboConfig = new QComboBox(this);
+    cboConfig->setProperty("index", i);
+    cboConfig->setModel(fsConfig);
+
+    QComboBox * cboStartPosn = new QComboBox(this);
+    cboStartPosn->setProperty("index", i);
+    cboStartPosn->setModel(fsStart);
+
+    QSpinBox * sbGroup = new QSpinBox(this);
+    sbGroup->setProperty("index", i);
+    sbGroup->setMaximum(3);
+    sbGroup->setSpecialValueText("-");
+
+    QCheckBox * cbAlwaysOnGroup = new QCheckBox(this);
+    cbAlwaysOnGroup->setProperty("index", i);
+
+    int row = 0;
+    int coloffset = 1;
+    ui->gridSwitches->addWidget(lblSwitchId, row++, i + coloffset);
+    ui->gridSwitches->addWidget(aleName, row++, i + coloffset);
+    ui->gridSwitches->addWidget(cboConfig, row++, i + coloffset);
+    ui->gridSwitches->addWidget(cboStartPosn, row++, i + coloffset);
+    ui->gridSwitches->addWidget(sbGroup, row++, i + coloffset);
+    ui->gridSwitches->addWidget(cbAlwaysOnGroup, row++, i + coloffset);
+
+    connect(aleName, &AutoLineEdit::currentDataChanged, this, &FunctionSwitchesPanel::on_nameEditingFinished);
+    connect(cboConfig, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &FunctionSwitchesPanel::on_configCurrentIndexChanged);
+    connect(cboStartPosn, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &FunctionSwitchesPanel::on_startPosnCurrentIndexChanged);
+    connect(sbGroup, QOverload<int>::of(&QSpinBox::valueChanged), this, &FunctionSwitchesPanel::on_groupChanged);
+    connect(cbAlwaysOnGroup, &QCheckBox::toggled, this, &FunctionSwitchesPanel::on_alwaysOnGroupChanged);
+
+    aleNames << aleName;
+    cboConfigs << cboConfig;
+    cboStartupPosns << cboStartPosn;
+    sbGroups << sbGroup;
+    cbAlwaysOnGroups << cbAlwaysOnGroup;
+  }
+
+  update();
+
+  lock = false;
+}
+
+FunctionSwitchesPanel::~FunctionSwitchesPanel()
+{
+  delete ui;
+}
+
+void FunctionSwitchesPanel::update()
+{
+  for (int i = 0; i < switchcnt; i++) {
+    update(i);
+  }
+}
+
+void FunctionSwitchesPanel::update(int index)
+{
+  lock = true;
+
+  for (int i = 0; i < switchcnt; i++) {
+    aleNames[i]->update();
+    cboConfigs[i]->setCurrentIndex(model->getFuncSwitchConfig(i));
+    cboStartupPosns[i]->setCurrentIndex(model->getFuncSwitchStart(i));
+    unsigned int grp = model->getFuncSwitchGroup(i);
+    sbGroups[i]->setValue(grp);
+    cbAlwaysOnGroups[i]->setChecked(model->getFuncSwitchAlwaysOnGroup(i));
+
+    if (cboConfigs[i]->currentIndex() < 2)
+      cboStartupPosns[i]->setEnabled(false);
+    else
+      cboStartupPosns[i]->setEnabled(true);
+
+    if (cboConfigs[i]->currentIndex() < 1)
+      sbGroups[i]->setEnabled(false);
+    else
+      sbGroups[i]->setEnabled(true);
+
+    if (!(sbGroups[i]->isEnabled()) || grp < 1)
+      cbAlwaysOnGroups[i]->setEnabled(false);
+    else
+      cbAlwaysOnGroups[i]->setEnabled(true);
+  }
+
+  lock = false;
+}
+
+void FunctionSwitchesPanel::on_nameEditingFinished()
+{
+  emit updateDataModels();
+}
+
+void FunctionSwitchesPanel::on_configCurrentIndexChanged(int index)
+{
+  if (!sender())
+    return;
+
+  QComboBox * cb = qobject_cast<QComboBox *>(sender());
+
+  if (cb && !lock) {
+    lock = true;
+    bool ok = false;
+    unsigned int i = sender()->property("index").toInt(&ok);
+    if (ok && model->getFuncSwitchConfig(i) != (unsigned int)index) {
+      model->setFuncSwitchConfig(i, index);
+      if (index < 2)
+        model->setFuncSwitchStart(i, ModelData::FUNC_SWITCH_START_INACTIVE);
+      if (index < 1)
+        model->setFuncSwitchGroup(i, 0);
+      update(i);
+      emit modified();
+      emit updateDataModels();
+    }
+    lock = false;
+  }
+}
+
+void FunctionSwitchesPanel::on_startPosnCurrentIndexChanged(int index)
+{
+  if (!sender())
+    return;
+
+  QComboBox * cb = qobject_cast<QComboBox *>(sender());
+
+  if (cb && !lock) {
+    lock = true;
+    bool ok = false;
+    unsigned int i = sender()->property("index").toInt(&ok);
+    if (ok && model->getFuncSwitchStart(i) != (unsigned int)index) {
+      model->setFuncSwitchStart(i, index);
+      emit modified();
+    }
+    lock = false;
+  }
+}
+
+void FunctionSwitchesPanel::on_groupChanged(int value)
+{
+  if (!sender())
+    return;
+
+  QSpinBox * sb = qobject_cast<QSpinBox *>(sender());
+
+  if (sb && !lock) {
+    lock = true;
+    bool ok = false;
+    int i = sender()->property("index").toInt(&ok);
+
+    if (ok && model->getFuncSwitchGroup(i) != (unsigned int)value) {
+      model->setFuncSwitchGroup(i, (unsigned int)value);
+      update(i);
+      emit modified();
+    }
+
+    lock = false;
+  }
+}
+
+void FunctionSwitchesPanel::on_alwaysOnGroupChanged(int value)
+{
+  if (!sender())
+    return;
+
+  QCheckBox * cb = qobject_cast<QCheckBox *>(sender());
+
+  if (cb && !lock) {
+    lock = true;
+    bool ok = false;
+    int i = sender()->property("index").toInt(&ok);
+
+    if (ok) {
+      model->setFuncSwitchAlwaysOnGroup(i, (unsigned int)value);
+      update();
+      emit modified();
+    }
+
+    lock = false;
+  }
+}
+
+/******************************************************************************/
 
 SetupPanel::SetupPanel(QWidget * parent, ModelData & model, GeneralSettings & generalSettings, Firmware * firmware,
                        CompoundItemModelFactory * sharedItemModels) :
@@ -1000,62 +1205,51 @@ SetupPanel::SetupPanel(QWidget * parent, ModelData & model, GeneralSettings & ge
   ui->name->setValidator(new QRegExpValidator(rx, this));
   ui->name->setMaxLength(firmware->getCapability(ModelName));
 
-  if (firmware->getCapability(ModelImage)) {
+  if (firmware->getCapability(HasModelImage)) {
+    if (Boards::getCapability(board, Board::HasColorLcd)) {
+      ui->imagePreview->setFixedSize(QSize(192, 114));
+    }
+    else {
+      ui->imagePreview->setFixedSize(QSize(64, 32));
+    }
     QStringList items;
     items.append("");
     QString path = g.profile[g.id()].sdPath();
     path.append("/IMAGES/");
     QDir qd(path);
     if (qd.exists()) {
-      QStringList filters;
-      if(IS_FAMILY_HORUS_OR_T16(board)) {
-        filters << "*.bmp" << "*.jpg" << "*.png";
-        foreach ( QString file, qd.entryList(filters, QDir::Files) ) {
-          QFileInfo fi(file);
-          QString temp = fi.fileName();
-          if (!items.contains(temp) && temp.length() <= 6 + 4) {
-            items.append(temp);
-          }
-        }
-      }
-      else {
-        filters << "*.bmp";
-        foreach (QString file, qd.entryList(filters, QDir::Files)) {
-          QFileInfo fi(file);
-          QString temp = fi.completeBaseName();
-          if (!items.contains(temp) && temp.length() <= 10 + 4) {
-            items.append(temp);
-          }
-        }
+      QStringList filters = firmware->getCapabilityStr(ModelImageFilters).split("|");
+      foreach ( QString file, qd.entryList(filters, QDir::Files) ) {
+        QFileInfo fi(file);
+        QString temp;
+        if (firmware->getCapability(ModelImageKeepExtn))
+          temp = fi.fileName();
+        else
+          temp = fi.completeBaseName();
+        if (!items.contains(temp) && temp.length() <= firmware->getCapability(ModelImageNameLen))
+          items.append(temp);
       }
     }
     if (!items.contains(model.bitmap)) {
       items.append(model.bitmap);
     }
-    items.sort();
+    items.sort(Qt::CaseInsensitive);
     foreach (QString file, items) {
       ui->image->addItem(file);
       if (file == model.bitmap) {
         ui->image->setCurrentIndex(ui->image->count() - 1);
-        QString fileName = path;
-        fileName.append(model.bitmap);
-        if (!IS_FAMILY_HORUS_OR_T16(board))
-          fileName.append(".bmp");
-        QImage image(fileName);
-        if (image.isNull() && !IS_FAMILY_HORUS_OR_T16(board)) {
-          fileName = path;
+        if (!file.isEmpty()) {
+          QString fileName = path;
           fileName.append(model.bitmap);
-          fileName.append(".BMP");
-          image.load(fileName);
-        }
-        if (!image.isNull()) {
-          if (IS_FAMILY_HORUS_OR_T16(board)) {
-            ui->imagePreview->setFixedSize(QSize(192, 114));
-            ui->imagePreview->setPixmap(QPixmap::fromImage(image.scaled(192, 114)));
+          if (!firmware->getCapability(ModelImageKeepExtn)) {
+            QString extn = firmware->getCapabilityStr(ModelImageFilters);
+            if (extn.size() > 0)
+              extn.remove(0, 1);  //  remove *
+            fileName.append(extn);
           }
-          else {
-            ui->imagePreview->setFixedSize(QSize(64, 32));
-            ui->imagePreview->setPixmap(QPixmap::fromImage(image.scaled(64, 32)));
+          QImage image(fileName);
+          if (!image.isNull()) {
+            ui->imagePreview->setPixmap(QPixmap::fromImage(image.scaled(ui->imagePreview->size())));
           }
         }
       }
@@ -1213,6 +1407,13 @@ SetupPanel::SetupPanel(QWidget * parent, ModelData & model, GeneralSettings & ge
 
   ui->trimsDisplay->setField(model.trimsDisplay, this);
 
+  if (Boards::getCapability(firmware->getBoard(), Board::FunctionSwitches) > 0) {
+    funcswitches = new FunctionSwitchesPanel(this, model, generalSettings, firmware);
+    ui->functionSwitchesLayout->addWidget(funcswitches);
+    connect(funcswitches, &FunctionSwitchesPanel::modified, this, &SetupPanel::modified);
+    connect(funcswitches, &FunctionSwitchesPanel::updateDataModels, this, &SetupPanel::onFunctionSwitchesUpdateItemModels);
+  }
+
   for (int i = firmware->getCapability(NumFirstUsableModule); i < firmware->getCapability(NumModules); i++) {
     modules[i] = new ModulePanel(this, model, model.moduleData[i], generalSettings, firmware, i);
     ui->modulesLayout->addWidget(modules[i]);
@@ -1298,36 +1499,23 @@ void SetupPanel::on_name_editingFinished()
 void SetupPanel::on_image_currentIndexChanged(int index)
 {
   if (!lock) {
-    Board::Type board = firmware->getBoard();
-    strncpy(model->bitmap, ui->image->currentText().toLatin1(), 10);
-    QString path = g.profile[g.id()].sdPath();
-    path.append("/IMAGES/");
-    QDir qd(path);
-    if (qd.exists()) {
-      QString fileName=path;
-      fileName.append(model->bitmap);
-      if (!IS_FAMILY_HORUS_OR_T16(board))
-        fileName.append(".bmp");
-      QImage image(fileName);
-      if (image.isNull() && !IS_FAMILY_HORUS_OR_T16(board)) {
-        fileName=path;
-        fileName.append(model->bitmap);
-        fileName.append(".BMP");
-        image.load(fileName);
+    memset(model->bitmap, 0, CPN_MAX_BITMAP_LEN);
+    strncpy(model->bitmap, ui->image->currentText().toLatin1(), CPN_MAX_BITMAP_LEN);
+    if (model->bitmap[0] != '\0') {
+      QString path = g.profile[g.id()].sdPath();
+      path.append("/IMAGES/");
+      path.append(model->bitmap);
+      if (!firmware->getCapability(ModelImageKeepExtn)) {
+        QString extn = firmware->getCapabilityStr(ModelImageFilters);
+        if (extn.size() > 0)
+          extn.remove(0, 1);  //  remove *
+        path.append(extn);
       }
-      if (!image.isNull()) {
-        if (IS_FAMILY_HORUS_OR_T16(board)) {
-          ui->imagePreview->setFixedSize(QSize(192, 114));
-          ui->imagePreview->setPixmap(QPixmap::fromImage(image.scaled(192, 114)));
-        }
-        else {
-          ui->imagePreview->setFixedSize(QSize(64, 32));
-          ui->imagePreview->setPixmap(QPixmap::fromImage(image.scaled(64, 32)));
-        }
-      }
-      else {
+      QImage image(path);
+      if (!image.isNull())
+        ui->imagePreview->setPixmap(QPixmap::fromImage(image.scaled(ui->imagePreview->size())));
+      else
         ui->imagePreview->clear();
-      }
     }
     else {
       ui->imagePreview->clear();
@@ -1740,4 +1928,9 @@ void SetupPanel::updateItemModels()
 void SetupPanel::onModuleUpdateItemModels()
 {
   sharedItemModels->update(AbstractItemModel::IMUE_Modules);
+}
+
+void SetupPanel::onFunctionSwitchesUpdateItemModels()
+{
+  sharedItemModels->update(AbstractItemModel::IMUE_FunctionSwitches);
 }

@@ -909,10 +909,6 @@ Returns a 5/6/5 rgb color code, that can be used with lcd.setColor
 */
 static int luaRGB(lua_State *L)
 {
-//OW
-//  if (!luaLcdAllowed)
-//    return 0;
-//OWEND
   int r = luaL_checkinteger(L, 1);
   int g = luaL_checkinteger(L, 2);
   int b = luaL_checkinteger(L, 3);

@@ -31,7 +31,10 @@ namespace Ui {
   class Setup;
   class Timer;
   class Module;
+  class FunctionSwitches;
 }
+
+class AutoLineEdit;
 
 class TimerPanel : public ModelPanel
 {
@@ -127,6 +130,37 @@ class ModulePanel : public ModelPanel
     void updateFailsafeUI(unsigned channel, quint8 updtSb);
 };
 
+class FunctionSwitchesPanel : public ModelPanel
+{
+    Q_OBJECT
+
+  public:
+    FunctionSwitchesPanel(QWidget * parent, ModelData & model, GeneralSettings & generalSettings, Firmware * firmware);
+    virtual ~FunctionSwitchesPanel();
+
+    virtual void update();
+    void update(int index);
+
+  signals:
+    void updateDataModels();
+
+  private slots:
+    void on_nameEditingFinished();
+    void on_configCurrentIndexChanged(int index);
+    void on_startPosnCurrentIndexChanged(int index);
+    void on_groupChanged(int value);
+    void on_alwaysOnGroupChanged(int value);
+
+  private:
+    Ui::FunctionSwitches * ui;
+    QVector<AutoLineEdit *> aleNames;
+    QVector<QComboBox *> cboConfigs;
+    QVector<QComboBox *> cboStartupPosns;
+    QVector<QSpinBox *> sbGroups;
+    QVector<QCheckBox *> cbAlwaysOnGroups;
+    int switchcnt;
+};
+
 class SetupPanel : public ModelPanel
 {
     Q_OBJECT
@@ -173,6 +207,7 @@ class SetupPanel : public ModelPanel
     void onItemModelAboutToBeUpdated();
     void onItemModelUpdateComplete();
     void onModuleUpdateItemModels();
+    void onFunctionSwitchesUpdateItemModels();
 
   private:
     Ui::Setup *ui;
@@ -182,6 +217,8 @@ class SetupPanel : public ModelPanel
     QVector<QCheckBox *> centerBeepCheckboxes;
     ModulePanel * modules[CPN_MAX_MODULES + 1];
     TimerPanel * timers[CPN_MAX_TIMERS];
+    FunctionSwitchesPanel * funcswitches;
+
     void updateStartupSwitches();
     void updatePotWarnings();
     void updateBeepCenter();

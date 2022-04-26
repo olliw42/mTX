@@ -27,17 +27,26 @@
 enum usbMode {
   USB_UNSELECTED_MODE,
   USB_JOYSTICK_MODE,
+#if defined(RADIO_FAMILY_TBS)
+  USB_AGENT_MODE,
+  USB_CHARGING_MODE,
+#endif
   USB_MASS_STORAGE_MODE,
-  USB_SERIAL_MODE, //OW: this is quite a misnomer, it can be USB_DEBUG_MODE or USB_LUA_MODE
-//OW
+#if defined(DEBUG)
+  USB_SERIAL_MODE,
+  USB_MAX_MODE=USB_SERIAL_MODE
+#else
+  USB_TELEMETRY_MIRROR_MODE,                  // Todo : increase EEprom storage to allow more mode
+//OW comment: I've increase RadioData UsbMode to 3 bits = 8 modes
+//  USB_MAX_MODE=USB_TELEMETRY_MIRROR_MODE
   USB_MAVLINK_MODE,
+#if !defined(TELEMETRY_MAVLINK_USB_SERIAL)
+  USB_MAX_MODE=USB_TELEMETRY_MIRROR_MODE
+#else
   USB_MAX_MODE=USB_MAVLINK_MODE
-//#if defined(USB_SERIAL)
-//  USB_MAX_MODE=USB_SERIAL_MODE
-//#else
-//  USB_MAX_MODE=USB_MASS_STORAGE_MODE
-//#endif
+#endif
 //OWEND
+#endif
 };
 
 int usbPlugged();
@@ -49,6 +58,10 @@ int getSelectedUsbMode();
 void setSelectedUsbMode(int mode);
 
 void usbSerialPutc(uint8_t c);
+
+#if defined(RADIO_FAMILY_TBS)
+void agentHandler();
+#endif
 
 // Used in view_statistics.cpp
 #if defined(DEBUG) && !defined(BOOT)

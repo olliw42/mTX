@@ -19,7 +19,7 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v33-rc5"
+#define OWVERSIONSTR  "v33-rc6"
 #define OWVERSION     3300 // used by mavlink/mbridge.cpp Telemetry alarms disabled TR_NO_RSSIALARM
 //OWEND
 
@@ -29,8 +29,9 @@ TODO:
 - is_receiving handling should be improved such as to distinguish between a momentary connection lost and a reset of a component
 
 type to getType() changes not marked with //OW
-support of hardware encoder also not marked with //OW
 
+
+upgraded to otx2.3.15 as base
 mBridge
 v31 2021-11-21
 new gps driver, all ubx, adjustable rate, up to 5Hz, makes huge difference, more gps data SERIAL_GPS
@@ -86,16 +87,20 @@ modified files in radio/src/
 
     cli.cpp:          2x
     CMakeList.txt:    1x
-    dataconstants.h:  3x
+    dataconstants.h:  1x
     datastructs.h:    7x
+    debug.cpp:        1x
+    gps.cpp:          1x
+    gps.h:            2x
     keys.cpp:         2x
     keys.h:           1x
-    main.cpp:         5x
-    opentx.cpp:       1x
+    main.cpp:         3x
+    opentx.cpp:       2x
     opentx.h:         2x
     options.h:        1x
     tasks.cpp:        3x
     tasks.h:          1x
+    touch.h:          2x
     translations.cpp: 1x
     translations.h:   1x
     gui/480x272/bitmap.cpp:          1x
@@ -107,10 +112,10 @@ modified files in radio/src/
     gui/480x272/radio_diaganas.cpp:  2x
     gui/480x272/radio_hardware.cpp:  6x
     gui/480x272/topbar.cpp:          2x
-    gui/gui_common.cpp:              2x
-    gui/gui_common.h:                1x
+    gui/gui_common.cpp:              4x
+    gui/gui_common.h:                2x
     lua/api_general.cpp:             4x
-    lua/api_lcd.cpp:                 2x
+    lua/api_lcd.cpp:                 4x
     lua/widgets.cpp:                 4x
     pulses/modules_constants.h:      1x
     pulses/modules_helpers.h:        1x
@@ -118,19 +123,20 @@ modified files in radio/src/
     pulses/pulses.h:                 1x
     targets/common/arm/stm32/aux_serial_driver.cpp:  8x
     targets/common/arm/stm32/CMakeLists.txt:         3x
-    targets/common/arm/stm32/usb_driver.cpp:         1x
+    targets/common/arm/stm32/usb_driver.cpp:         2x
     targets/common/arm/stm32/usb_driver.h:           1x
     targets/common/arm/stm32/usbd_cdc.cpp:           1x
     targets/common/arm/stm32/usbd_dec.cpp:           4x
     targets/horus/board.cpp:                         1x
-    targets/horus/board.h:                           2x
-    targets/horus/CMakeList.txt:                     3x
+    targets/horus/board.h:                           3x
+    targets/horus/CMakeList.txt:                     7x
     targets/horus/extmodule_driver.cpp:              1x
-    targets/horus/hal.h:                             1x
+    targets/horus/gps_driver.cpp:                    2x
+    targets/horus/hal.h:                             4x
     targets/horus/telemetry_driver.cpp:              9x
     targets/horus/tp_gt911.cpp:                      2x
     targets/horus/tp_gt911.h:                        1x
-    telemetry/telemetry.cpp:         2x
+    telemetry/telemetry.cpp:         5x
     telemetry/telemetry.h:           1x
     thirdparty/Lua/src/lauxlib.h:    1x
     thirdparty/Lua/src/linit.c:      1x
@@ -138,16 +144,23 @@ modified files in radio/src/
     translations/untranslated.h:     2x
 
 added files
+    gps2.cpp
+    gps-nmea.h
+    gps-ubx.h
+    mavlink/lua_api_mavlink.cpp
+    mavlink/lua_api_mavsdk.cpp
+    mavlink/lua_api_mbridge.cpp
     mavlink/mavlink_telem_autopilot.cpp
     mavlink/mavlink_telem_camera.cpp
+    mavlink/mavlink_telem_gcs_and_alike.cpp
     mavlink/mavlink_telem_gimbal.cpp
     mavlink/mavlink_telem_interface.cpp
     mavlink/mavlink_telem_mavapi.cpp
     mavlink/mavlink_telem_qshot.cpp
     mavlink/mavlink_telem.cpp
     mavlink/mavlink_telem.h
-    mavlink/lua_api_mavlink.cpp
-    mavlink/lua_api_mavsdk.cpp
+    mavlink/mbridge.cpp
+    mavlink/mbridge.h
     thirdparty/Mavlink/
 
 
@@ -459,7 +472,14 @@ sportProcessTelemetryPacket
 
 void memswap(void * a, void * b, uint8_t size);
 
-#if defined(PCBX9D) || defined(PCBX9DP) || defined(PCBX9E) || defined(PCBHORUS)
+#if NUM_POTS == 0
+  #define POT_CONFIG(x)                (false)
+  #define IS_POT_MULTIPOS(x)           (false)
+  #define IS_POT_WITHOUT_DETENT(x)     (false)
+  #define IS_POT_AVAILABLE(x)          (false)
+  #define IS_POT_SLIDER_AVAILABLE(x)   (false)
+  #define IS_MULTIPOS_CALIBRATED(cal)  (false)
+#elif defined(PCBX9D) || defined(PCBX9DP) || defined(PCBX9E) || defined(PCBHORUS)
   #define POT_CONFIG(x)                ((g_eeGeneral.potsConfig >> (2*((x)-POT1)))&0x03)
   #define IS_POT_MULTIPOS(x)           (IS_POT(x) && POT_CONFIG(x)==POT_MULTIPOS_SWITCH)
   #define IS_POT_WITHOUT_DETENT(x)     (IS_POT(x) && POT_CONFIG(x)==POT_WITHOUT_DETENT)
@@ -491,6 +511,12 @@ void memswap(void * a, void * b, uint8_t size);
   #define pwrOffPressed()              pwrPressed()
 #else
   #define pwrOffPressed()              (!pwrPressed())
+#endif
+
+#if defined(RADIO_FAMILY_TBS)
+  #define PWR_PRESS_SHUTDOWN_THRESHOD  300 // 3s
+#else
+  #define PWR_PRESS_SHUTDOWN_THRESHOD  0   // 0s
 #endif
 
 #define GET_LOWRES_POT_POSITION(i)     (getValue(MIXSRC_FIRST_POT+(i)) >> 4)
@@ -581,6 +607,13 @@ inline bool SPLASH_NEEDED()
   #define SPLASH_TIMEOUT               (g_eeGeneral.splashMode == -4 ? 1500 : (g_eeGeneral.splashMode <= 0 ? (400-g_eeGeneral.splashMode * 200) : (400 - g_eeGeneral.splashMode * 100)))
 #else
   #define SPLASH_TIMEOUT               (4 * 100)  // 4 seconds
+#endif
+
+
+#if defined(ROTARY_ENCODER_NAVIGATION)
+  #define CASE_ROTARY_ENCODER(x) x,
+#else
+  #define CASE_ROTARY_ENCODER(x)
 #endif
 
 #if defined(ROTARY_ENCODER_NAVIGATION)
@@ -757,6 +790,8 @@ bool setTrimValue(uint8_t phase, uint8_t idx, int trim);
 
 #if defined(PCBSKY9X)
   #define ROTARY_ENCODER_GRANULARITY (2 << g_eeGeneral.rotarySteps)
+#elif defined(RADIO_FAMILY_TBS)
+  #define ROTARY_ENCODER_GRANULARITY (1)
 #else
   #define ROTARY_ENCODER_GRANULARITY (2)
 #endif
@@ -856,6 +891,8 @@ void modelDefault(uint8_t id);
 #if defined(EEPROM)
 void checkModelIdUnique(uint8_t index, uint8_t module);
 uint8_t findNextUnusedModelId(uint8_t index, uint8_t module);
+#elif defined(EEPROM_SDCARD)
+void checkModelIdUnique(uint8_t module);
 #endif
 
 uint32_t hash(const void * ptr, uint32_t size);
@@ -1133,6 +1170,17 @@ enum AUDIO_SOUNDS {
   AU_STICK2_MIDDLE,
   AU_STICK3_MIDDLE,
   AU_STICK4_MIDDLE,
+#if !defined(HARDWARE_TRIMS)
+  AU_AILERON_TRIM,
+  AU_ELEVATOR_TRIM,
+  AU_THROTTLE_TRIM,
+  AU_RUDDER_TRIME,
+  AU_MAIN_MENU,
+#endif
+#if defined(RADIO_FAMILY_TBS)
+  AU_CATEGORY_ENABLED,
+  AU_CATEGORY_DISABLED,
+#endif
 #if defined(PCBTARANIS) || defined(PCBHORUS)
   AU_POT1_MIDDLE,
   AU_POT2_MIDDLE,
@@ -1459,6 +1507,13 @@ inline bool IS_TXBATT_WARNING()
   return g_vbat100mV <= g_eeGeneral.vBatWarn;
 }
 
+#if defined(BATT_CRITICAL_SHUTDOWN)
+inline bool IS_TXBATT_CRITICAL()
+{
+  return g_vbat100mV <= BATTERY_CRITICAL;
+}
+#endif
+
 enum TelemetryViews {
   TELEMETRY_CUSTOM_SCREEN_1,
   TELEMETRY_CUSTOM_SCREEN_2,
@@ -1490,6 +1545,12 @@ void usbPluggedIn();
 #endif
 
 #include "lua/lua_api.h"
+
+#if defined(LUA)
+#define LUA_DEFINED() true
+#else
+#define LUA_DEFINED() false
+#endif
 
 #if defined(SDCARD)
 enum ClipboardType {
@@ -1566,7 +1627,29 @@ inline bool isAsteriskDisplayed()
   return globalData.unexpectedShutdown;
 }
 
+#if defined(INTERNAL_MODULE_CRSF)
+#include "./io/crsf/crsf_write.h"
+#include "./io/crsf/crsf_utilities.h"
+#include "./io/crsf/crossfire.h"
+#endif
+
 #if defined(ACCESS_LIB)
 #include "thirdparty/libACCESS/libAccess.h"
+#endif
+
+#define VBAT_MIN_OFFSET 90
+#define VBAT_MAX_OFFSET 120
+#define VBAT_MIN_DELTA (VBAT_MAX_OFFSET - VBAT_MIN_OFFSET - 1)
+
+#if defined(BATTERY_TYPE_FIXED)
+#define VBAT_MIN_ALLOWED  BATTERY_MIN
+#define VBAT_MAX_ALLOWED  BATTERY_MAX
+#define VBAT_WARNING_MIN_ALLOWED  BATTERY_MIN
+#define VBAT_WARNING_MAX_ALLOWED  (BATTERY_MIN + 5)
+#else
+#define VBAT_WARNING_MIN_ALLOWED  30  // 3.0v
+  #define VBAT_WARNING_MAX_ALLOWED  120 // 12v
+  #define VBAT_MIN_ALLOWED  30  // 3.0v
+  #define VBAT_MAX_ALLOWED  160 // 16v
 #endif
 

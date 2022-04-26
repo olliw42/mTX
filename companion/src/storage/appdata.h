@@ -64,7 +64,7 @@
 #define CPN_URL_DOWNLOAD_CUR_RC    CPN_URL_DOWNLOAD_CUR_VERS "rc/"
 #define CPN_URL_DOWNLOAD_CUR_UNST  CPN_URL_DOWNLOAD_CUR_VERS "nightlies/"
 
-#define MAX_PROFILES 15
+#define MAX_PROFILES 20
 #define MAX_JOYSTICKS 8
 
 // It important that these function names are consistent everywhere.
@@ -592,6 +592,9 @@ class AppData: public CompStoreObj
     PROPERTY(int, backLight,       0)
     PROPERTY(int, simuLastProfId, -1)
     PROPERTY(bool, simuSW,      true)
+
+    // Message box confirmations
+    PROPERTY(bool, confirmWriteModelsAndSettings, true)
 
     bool firstUse;
     QString upgradeFromVersion;

@@ -33,12 +33,11 @@
 #define GPS_ID                         0x02
 #define CF_VARIO_ID                    0x07
 #define BATTERY_ID                     0x08
+#define BARO_ALT_ID                    0x09
 #define LINK_ID                        0x14
 #define CHANNELS_ID                    0x16
-//OW
 #define LINK_RX_ID                     0x1C
 #define LINK_TX_ID                     0x1D
-//OWEND
 #define ATTITUDE_ID                    0x1E
 #define FLIGHT_MODE_ID                 0x21
 #define PING_DEVICES_ID                0x28
@@ -70,13 +69,11 @@ enum CrossfireSensorIndexes {
   TX_RSSI_INDEX,
   TX_QUALITY_INDEX,
   TX_SNR_INDEX,
-//OW
   RX_RSSI_PERC_INDEX,
   RX_RF_POWER_INDEX,
   TX_RSSI_PERC_INDEX,
   TX_RF_POWER_INDEX,
   TX_FPS_INDEX,
-//OWEND
   BATT_VOLTAGE_INDEX,
   BATT_CURRENT_INDEX,
   BATT_CAPACITY_INDEX,
@@ -92,6 +89,7 @@ enum CrossfireSensorIndexes {
   ATTITUDE_YAW_INDEX,
   FLIGHT_MODE_INDEX,
   VERTICAL_SPEED_INDEX,
+  BARO_ALTITUDE_INDEX,
   UNKNOWN_INDEX,
 };
 
@@ -101,26 +99,34 @@ enum CrossfireFrames{
   CRSF_FRAME_MODELID_SENT
 };
 
-void processCrossfireTelemetryData(uint8_t data);
+void processCrossfireTelemetryData(uint8_t data, uint8_t module);
 void crossfireSetDefault(int index, uint8_t id, uint8_t subId);
 uint8_t createCrossfireModelIDFrame(uint8_t * frame);
 
 const uint32_t CROSSFIRE_BAUDRATES[] = {
   400000,
   115200,
+  921600,
+  1870000,
+  3750000,
+  5250000,
 };
 const uint8_t CROSSFIRE_PERIODS[] = {
    4,
   16,
+   4,
+   4,
+   4,
+   4,
 };
-#if SPORT_MAX_BAUDRATE < 400000 || defined(DEBUG)
+
 #define CROSSFIRE_BAUDRATE    CROSSFIRE_BAUDRATES[g_eeGeneral.telemetryBaudrate]
 #define CROSSFIRE_PERIOD      (CROSSFIRE_PERIODS[g_eeGeneral.telemetryBaudrate] * 1000)
-#else
-#define CROSSFIRE_BAUDRATE       400000
-#define CROSSFIRE_PERIOD         4000 /* us; 250 Hz */
-#endif
 
+#if defined(DEBUG)
+#define CROSSFIRE_TELEM_MIRROR_BAUDRATE   DEBUG_BAUDRATE
+#else
 #define CROSSFIRE_TELEM_MIRROR_BAUDRATE   115200
+#endif
 
 #endif // _CROSSFIRE_H_

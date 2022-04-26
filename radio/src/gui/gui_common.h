@@ -123,6 +123,7 @@ swsrc_t checkIncDecMovedSwitch(swsrc_t val);
 void drawCurveRef(coord_t x, coord_t y, CurveRef & curve, LcdFlags flags=0);
 void drawDate(coord_t x, coord_t y, TelemetryItem & telemetryItem, LcdFlags flags=0);
 void drawTelemScreenDate(coord_t x, coord_t y, source_t sensor, LcdFlags flags=0);
+void drawGPSCoord(coord_t x, coord_t y, int32_t value, const char * direction, LcdFlags att, bool seconds=true);
 void drawGPSPosition(coord_t x, coord_t y, int32_t longitude, int32_t latitude, LcdFlags flags=0);
 void drawGPSSensorValue(coord_t x, coord_t y, TelemetryItem & telemetryItem, LcdFlags flags=0);
 void drawSensorCustomValue(coord_t x, coord_t y, uint8_t sensor, int32_t value, LcdFlags flags=0);
@@ -135,6 +136,9 @@ int convertMultiToOtx(int type);
 void drawStringWithIndex(coord_t x, coord_t y, const char * str, int idx, LcdFlags flags=0, const char * prefix=nullptr, const char * suffix=nullptr);
 uint8_t editCheckBox(uint8_t value, coord_t x, coord_t y, LcdFlags flags, event_t event);
 swsrc_t editSwitch(coord_t x, coord_t y, swsrc_t value, LcdFlags flags, event_t event);
+#endif
+
+#if !defined(EEPROM)
 void drawFatalErrorScreen(const char * message);
 void runFatalErrorScreen(const char * message);
 #endif
@@ -147,7 +151,7 @@ void runFatalErrorScreen(const char * message);
 inline uint8_t MODULE_BIND_ROWS(int moduleIdx)
 {
   if (isModuleCrossfire(moduleIdx))
-    return 0;
+    return 1;
 
   if (isModuleMultimodule(moduleIdx)) {
     if (IS_RX_MULTI(moduleIdx))
@@ -192,6 +196,15 @@ inline uint8_t MODULE_CHANNELS_ROWS(int moduleIdx)
   else {
     return 1;
   }
+}
+
+inline uint8_t MODULE_CROSSFIRE_ROWS(int moduleIdx)
+{
+  if (!IS_MODULE_ENABLED(moduleIdx)) {
+    return HIDDEN_ROW;
+  }
+  else
+    return 0;
 }
 
 #if defined(PXX2)
@@ -320,7 +333,7 @@ inline uint8_t MULTIMODULE_HASOPTIONS(uint8_t moduleIdx)
 #define MULTIMODULE_MODE_ROWS(moduleIdx)        (g_model.moduleData[moduleIdx].multi.customProto) ? (uint8_t) 3 : MULTIMODULE_HAS_SUBTYPE(moduleIdx) ? (uint8_t)2 : (uint8_t)1
 #define MULTIMODULE_TYPE_ROWS(moduleIdx)        isModuleMultimodule(moduleIdx) ? (uint8_t) 0 : HIDDEN_ROW,
 #define MULTIMODULE_SUBTYPE_ROWS(moduleIdx)     isModuleMultimodule(moduleIdx) ? MULTIMODULE_RFPROTO_COLUMNS(moduleIdx) : HIDDEN_ROW,
-#define MULTIMODULE_OPTIONS_ROW(moduleIdx)      (isModuleMultimodule(moduleIdx) && MULTIMODULE_HASOPTIONS(moduleIdx)) ? (uint8_t) 0: HIDDEN_ROW
+#define MULTIMODULE_OPTIONS_ROW(moduleIdx)      ((isModuleMultimodule(moduleIdx) && MULTIMODULE_HASOPTIONS(moduleIdx)) || isModuleGhost(moduleIdx)) ? (uint8_t) 0: HIDDEN_ROW
 #define MODULE_POWER_ROW(moduleIdx)            (MULTIMODULE_PROTOCOL_KNOWN(moduleIdx) || isModuleR9MNonAccess(moduleIdx) || isModuleAFHDS3(moduleIdx)) ? (isModuleR9MLiteNonPro(moduleIdx) ? (isModuleR9M_FCC_VARIANT(moduleIdx) ? READONLY_ROW : (uint8_t)0) : (uint8_t)0) : HIDDEN_ROW
 
 #else
@@ -357,6 +370,8 @@ inline uint8_t MODULE_OPTION_ROW(uint8_t moduleIdx) {
 
 void editStickHardwareSettings(coord_t x, coord_t y, int idx, event_t event, LcdFlags flags);
 const char * getMultiOptionTitle(uint8_t moduleIdx);
+void displayTelemetryBaudrate(coord_t x, coord_t y, uint8_t baudrateIndex, LcdFlags flags);
+void displayTelemetryBaudrate(coord_t x, coord_t y, uint32_t baudrate, LcdFlags flags);
 
 const char * writeScreenshot();
 

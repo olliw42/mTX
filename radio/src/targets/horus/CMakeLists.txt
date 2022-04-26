@@ -22,6 +22,7 @@ set(PPM_LIMITS_SYMETRICAL YES)
 set(USB_SERIAL ON CACHE BOOL "Enable USB serial (CDC)")
 set(ROTARY_ENCODER YES)
 set(EXTERNAL_MODULE YES)
+add_definitions(-DHARDWARE_TRIMS)
 
 # for size report script
 set(CPU_TYPE_FULL STM32F429xI)
@@ -112,6 +113,7 @@ if (PCB STREQUAL X10)
     option(INTERNAL_MODULE_MULTI "Support for MULTI internal module" ON)
     option(BLUETOOTH "Support for bluetooth module" OFF)
     add_definitions(-DMANUFACTURER_JUMPER)
+    set(HARDWARE_TOUCH YES)
 # //OW
     if (TELEMETRY_MAVLINK)
       set(AUX_SERIAL ON)
@@ -216,9 +218,17 @@ if(INTERNAL_MODULE_PXX2)
   endif()
 endif()
 
+if(INTERNAL_MODULE_ELRS)
+  add_definitions(-DHARDWARE_INTERNAL_MODULE)
+  add_definitions(-DINTERNAL_MODULE_ELRS)
+  add_definitions(-DINTERNAL_MODULE_SERIAL_TELEMETRY)
+  set(INTERNAL_MODULE_MULTI NO)
+endif()
+
 if(INTERNAL_MODULE_MULTI)
   add_definitions(-DHARDWARE_INTERNAL_MODULE)
   add_definitions(-DINTERNAL_MODULE_MULTI)
+  add_definitions(-DTRAINER_SPORT_SBUS)
 endif()
 
 if(EXTERNAL_MODULE)
@@ -395,6 +405,7 @@ set(STM32LIB_SRC
   STM32F4xx_StdPeriph_Driver/src/stm32f4xx_ltdc.c
   STM32F4xx_StdPeriph_Driver/src/stm32f4xx_tim.c
   STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dma2d.c
+  STM32F4xx_StdPeriph_Driver/src/stm32f4xx_flash.c
   )
 
 MACRO(GET_GCC_INCLUDE_PATH gcc_include_path)

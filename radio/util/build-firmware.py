@@ -143,6 +143,11 @@ def main():
         cmake_options["PCBREV"] = "TLITE"
         firmware_options = options_jumper_tlite
         maxsize = 65536 * 8
+    elif board_name == "tpro":
+        cmake_options["PCB"] = "X7"
+        cmake_options["PCBREV"] = "TPRO"
+        firmware_options = options_jumper_tpro
+        maxsize = 65536 * 8
     elif board_name == "t12":
         cmake_options["PCB"] = "X7"
         cmake_options["PCBREV"] = "T12"
@@ -152,6 +157,11 @@ def main():
         cmake_options["PCB"] = "X7"
         cmake_options["PCBREV"] = "TX12"
         firmware_options = options_radiomaster_tx12
+        maxsize = 65536 * 8
+    elif board_name == "zorro":
+        cmake_options["PCB"] = "X7"
+        cmake_options["PCBREV"] = "ZORRO"
+        firmware_options = options_radiomaster_zorro
         maxsize = 65536 * 8
     elif board_name == "t8":
         cmake_options["PCB"] = "X7"

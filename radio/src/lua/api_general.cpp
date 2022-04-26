@@ -45,10 +45,18 @@
   #include "lua/lua_exports_t12.inc"
 #elif defined(RADIO_TLITE)
   #include "lua/lua_exports_tlite.inc"
+#elif defined(RADIO_TPRO)
+  #include "lua/lua_exports_tpro.inc"
 #elif defined(RADIO_TX12)
   #include "lua/lua_exports_tx12.inc"
+#elif defined(RADIO_ZORRO)
+  #include "lua/lua_exports_zorro.inc"
 #elif defined(RADIO_T8)
   #include "lua/lua_exports_t8.inc"
+#elif defined(RADIO_TANGO)
+  #include "lua/lua_exports_tango.inc"
+#elif defined(RADIO_MAMBO)
+  #include "lua/lua_exports_mambo.inc"
 #elif defined(PCBX9LITES)
   #include "lua/lua_exports_x9lites.inc"
 #elif defined(PCBX9LITE)
@@ -69,6 +77,8 @@
   #define RADIO_VERSION FLAVOUR
 #endif
 
+#define VERSION_OSNAME "OpenTX"
+
 #define FIND_FIELD_DESC  0x01
 
 #define KEY_EVENTS(xxx, yyy)  \
@@ -88,15 +98,16 @@ Return OpenTX version
 
 @retval string OpenTX version (ie "2.1.5")
 
-@retval multiple (available since 2.1.7) returns 5 values:
+@retval multiple (available since 2.1.7) returns 6 values:
  * (string) OpenTX version (ie "2.1.5")
  * (string) radio type: `x12s`, `x10`, `x9e`, `x9d+`, `x9d` or `x7`.
 If running in simulator the "-simu" is added
  * (number) major version (ie 2 if version 2.1.5)
  * (number) minor version (ie 1 if version 2.1.5)
  * (number) revision number (ie 5 if version 2.1.5)
+ * (string) OS name (ie "OpenTX" if OpenTX)
 
-@status current Introduced in 2.0.0, expanded in 2.1.7, radio type strings changed in 2.2.0
+@status current Introduced in 2.0.0, expanded in 2.1.7, radio type strings changed in 2.2.0, OS name added in 2.3.14
 
 ### Example
 
@@ -104,12 +115,13 @@ This example also runs in OpenTX versions where the function returned only one v
 
 ```lua
 local function run(event)
-  local ver, radio, maj, minor, rev = getVersion()
+  local ver, radio, maj, minor, rev, osname = getVersion()
   print("version: "..ver)
   if radio then print ("radio: "..radio) end
   if maj then print ("maj: "..maj) end
   if minor then print ("minor: "..minor) end
   if rev then print ("rev: "..rev) end
+  if osname then print ("osname: "..osname) end
   return 1
 end
 
@@ -117,11 +129,12 @@ return {  run=run }
 ```
 Output of the above script in simulator:
 ```
-version: 2.1.7
+version: 2.3.14
 radio: taranis-simu
 maj: 2
-minor: 1
-rev: 7
+minor: 3
+rev: 14
+osname: OpenTX
 ```
 */
 static int luaGetVersion(lua_State * L)
@@ -131,7 +144,8 @@ static int luaGetVersion(lua_State * L)
   lua_pushnumber(L, VERSION_MAJOR);
   lua_pushnumber(L, VERSION_MINOR);
   lua_pushnumber(L, VERSION_REVISION);
-  return 5;
+  lua_pushstring(L, VERSION_OSNAME);
+  return 6;
 }
 
 /*luadoc
@@ -482,7 +496,8 @@ When called without parameters, it will only return the status of the output buf
 
 static int luaSportTelemetryPush(lua_State * L)
 {
-  if (!IS_FRSKY_SPORT_PROTOCOL()) {
+  // dirty hack until 2 simultanous protocols are supported
+  if (isModuleCrossfire(INTERNAL_MODULE) || !IS_FRSKY_SPORT_PROTOCOL()) {
     lua_pushnil(L);
     return 1;
   }
@@ -684,11 +699,44 @@ When called without parameters, it will only return the status of the output buf
 */
 static int luaCrossfireTelemetryPush(lua_State * L)
 {
-  if (telemetryProtocol != PROTOCOL_TELEMETRY_CROSSFIRE) {
+#if defined(RADIO_FAMILY_TBS)
+  if (IS_INTERNAL_MODULE_ENABLED()) {
+    if (lua_gettop(L) == 0) {
+      lua_pushboolean(L, outputTelemetryBuffer.isAvailable());
+    }
+    else if (outputTelemetryBuffer.isAvailable()) {
+      uint8_t command = luaL_checkunsigned(L, 1);
+      luaL_checktype(L, 2, LUA_TTABLE);
+      uint8_t length = luaL_len(L, 2);
+      outputTelemetryBuffer.pushByte(MODULE_ADDRESS);
+      outputTelemetryBuffer.pushByte(2 + length); // 1(COMMAND) + data length + 1(CRC)
+      outputTelemetryBuffer.pushByte(command); // COMMAND
+      for (int i = 0; i < length; i++) {
+        lua_rawgeti(L, 2, i + 1);
+        outputTelemetryBuffer.pushByte(luaL_checkunsigned(L, -1));
+      }
+      outputTelemetryBuffer.pushByte(crc8(outputTelemetryBuffer.data + 2, 1 + length));
+      telemetryOutputSetTrigger(command);
+#if !defined(SIMU)
+      libCrsfRouting(DEVICE_INTERNAL, outputTelemetryBuffer.data);
+      outputTelemetryBuffer.reset();
+      outputTelemetryBufferTrigger = 0x00;
+#endif
+      lua_pushboolean(L, true);
+    }
+    else {
+      lua_pushboolean(L, false);
+    }
+    return 1;
+  }
+#endif
+  bool sport = (telemetryProtocol == PROTOCOL_TELEMETRY_CROSSFIRE);
+  bool internal = (moduleState[INTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_CROSSFIRE);
+
+  if (!internal && !sport) {
     lua_pushnil(L);
     return 1;
   }
-
   if (lua_gettop(L) == 0) {
     lua_pushboolean(L, outputTelemetryBuffer.isAvailable());
   }
@@ -707,13 +755,123 @@ static int luaCrossfireTelemetryPush(lua_State * L)
       lua_rawgeti(L, 2, i+1);
       outputTelemetryBuffer.pushByte(luaL_checkunsigned(L, -1));
     }
-    outputTelemetryBuffer.pushByte(crc8(outputTelemetryBuffer.data+2, 1 + length));
+    outputTelemetryBuffer.pushByte(crc8(outputTelemetryBuffer.data + 2, 1 + length));
+    outputTelemetryBuffer.setDestination(internal ? 0 : TELEMETRY_ENDPOINT_SPORT);
+    lua_pushboolean(L, true);
+  }
+  else {
+    lua_pushboolean(L, false);
+  }
+  return 1;
+}
+#endif
+
+#if defined(GHOST)
+/*luadoc
+@function ghostTelemetryPop()
+Pops a received Ghost Telemetry packet from the queue.
+@retval nil queue does not contain any (or enough) bytes to form a whole packet
+@retval multiple returns 2 values:
+ * type (number)
+ * packet (table) data bytes
+@status current Introduced in 2.3.15
+*/
+static int luaGhostTelemetryPop(lua_State * L)
+{
+  if (!luaInputTelemetryFifo) {
+    luaInputTelemetryFifo = new Fifo<uint8_t, LUA_TELEMETRY_INPUT_FIFO_SIZE>();
+    if (!luaInputTelemetryFifo) {
+      return 0;
+    }
+  }
+
+  uint8_t length = 0, data = 0;
+  if (luaInputTelemetryFifo->probe(length) && luaInputTelemetryFifo->size() >= uint32_t(length)) {
+    // length value includes type(1B), payload, crc(1B)
+    luaInputTelemetryFifo->pop(length);
+    luaInputTelemetryFifo->pop(data); // type
+    lua_pushnumber(L, data);          // return type
+    lua_newtable(L);
+    for (uint8_t i=0; i<length-2; i++) {
+      luaInputTelemetryFifo->pop(data);
+      lua_pushinteger(L, i+1);
+      lua_pushinteger(L, data);
+      lua_settable(L, -3);
+    }
+    return 2;
+  }
+
+  return 0;
+}
+
+/*luadoc
+@function ghostTelemetryPush()
+This functions allows for sending telemetry data toward the Ghost link.
+When called without parameters, it will only return the status of the output buffer without sending anything.
+@param command command
+@param data table of data bytes
+@retval boolean  data queued in output buffer or not.
+@retval nil      incorrect telemetry protocol.
+@status current Introduced in 2.3.15
+*/
+static int luaGhostTelemetryPush(lua_State * L)
+{
+  bool sport = (telemetryProtocol == PROTOCOL_TELEMETRY_GHOST);
+
+  if (!sport) {
+    lua_pushnil(L);
+    return 1;
+  }
+
+  if (lua_gettop(L) == 0) {
+    lua_pushboolean(L, outputTelemetryBuffer.isAvailable());
+  }
+  else if (lua_gettop(L) > TELEMETRY_OUTPUT_BUFFER_SIZE ) {
+    lua_pushboolean(L, false);
+    return 1;
+  }
+  else if (outputTelemetryBuffer.isAvailable()) {
+    uint8_t type = luaL_checkunsigned(L, 1);
+    luaL_checktype(L, 2, LUA_TTABLE);
+    uint8_t length = luaL_len(L, 2);              // payload length
+
+    if( length > 10 ) {                           // max 10B payload
+      lua_pushboolean(L, false);
+      return 1;
+    }
+
+    // Ghost frames are fixed 14B
+    outputTelemetryBuffer.pushByte(getGhostModuleAddr());         // addr (1B)
+    outputTelemetryBuffer.pushByte(12);           // len = payload length(10B) + type(1B) + crc(1B)
+    outputTelemetryBuffer.pushByte(type);         // type (1B)
+    for (int i=0; i<length; i++) {                // data, max 10B
+      lua_rawgeti(L, 2, i+1);
+      outputTelemetryBuffer.pushByte(luaL_checkunsigned(L, -1));
+    }
+    for (int i=0; i<10-length; i++) {             // fill zeroes to frame size
+      outputTelemetryBuffer.pushByte(0);
+    }
+    outputTelemetryBuffer.pushByte(crc8(outputTelemetryBuffer.data + 2, 11 ));  // Start at type, CRC over type (1B) + payload (10B)
     outputTelemetryBuffer.setDestination(TELEMETRY_ENDPOINT_SPORT);
     lua_pushboolean(L, true);
   }
   else {
     lua_pushboolean(L, false);
   }
+  return 1;
+}
+#endif
+
+#if defined(RADIO_FAMILY_TBS)
+static uint8_t devId = 0;
+int luaSetDevId(lua_State* L){
+  devId = lua_tointeger(L, -1);
+  lua_pop(L, 1);
+  return 1;
+}
+
+int luaGetDevId(lua_State* L){
+  lua_pushnumber(L, devId);
   return 1;
 }
 #endif
@@ -1400,6 +1558,19 @@ static int luaDefaultChannel(lua_State * L)
 }
 
 /*luadoc
+@function flushAudio()
+
+flushes audio queue
+
+@status experimental
+*/
+static int luaFlushAudio(lua_State * L)
+{
+  audioQueue.flush();
+  return 0;
+}
+
+/*luadoc
 @function getRSSI()
 
 Get RSSI value as well as low and critical RSSI alarm levels (in dB)
@@ -1667,7 +1838,11 @@ static int luaSerialWrite(lua_State * L)
     return 0;
 
 #if defined(USB_SERIAL)
+#if defined(DEBUG)
   if (getSelectedUsbMode() == USB_SERIAL_MODE) {
+#else
+  if (getSelectedUsbMode() == USB_TELEMETRY_MIRROR_MODE) {
+#endif
     size_t wr_len = len;
     const char* p = str;
     while(wr_len--) usbSerialPutc(*p++);
@@ -1787,6 +1962,7 @@ const luaL_Reg opentxLib[] = {
   { "playDuration", luaPlayDuration },
   { "playTone", luaPlayTone },
   { "playHaptic", luaPlayHaptic },
+  { "flushAudio", luaFlushAudio },
   // { "popupInput", luaPopupInput },
   { "popupWarning", luaPopupWarning },
   { "popupConfirmation", luaPopupConfirmation },
@@ -1811,6 +1987,14 @@ const luaL_Reg opentxLib[] = {
 #if defined(CROSSFIRE)
   { "crossfireTelemetryPop", luaCrossfireTelemetryPop },
   { "crossfireTelemetryPush", luaCrossfireTelemetryPush },
+#endif
+#if defined(GHOST)
+  { "ghostTelemetryPop", luaGhostTelemetryPop },
+  { "ghostTelemetryPush", luaGhostTelemetryPush },
+#endif
+#if defined(RADIO_FAMILY_TBS)
+  { "SetDevId", luaSetDevId },
+  { "GetDevId", luaGetDevId },
 #endif
 #if defined(MULTIMODULE)
   { "multiBuffer", luaMultiBuffer },
@@ -1851,12 +2035,14 @@ const luaR_value_entry opentxConstants[] = {
   { "MIXSRC_SB", MIXSRC_SB },
   { "MIXSRC_SC", MIXSRC_SC },
   { "MIXSRC_SD", MIXSRC_SD },
-#if !defined(PCBX7) && !defined(PCBXLITE) && !defined(PCBX9LITE)
+#if defined(HARDWARE_SWITCH_E)
   { "MIXSRC_SE", MIXSRC_SE },
-  { "MIXSRC_SG", MIXSRC_SG },
 #endif
 #if defined(HARDWARE_SWITCH_F)
   { "MIXSRC_SF", MIXSRC_SF },
+#endif
+#if defined(HARDWARE_SWITCH_G)
+  { "MIXSRC_SG", MIXSRC_SG },
 #endif
 #if defined(HARDWARE_SWITCH_H)
   { "MIXSRC_SH", MIXSRC_SH },
@@ -1958,7 +2144,7 @@ const luaR_value_entry opentxConstants[] = {
   { "EVT_VIRTUAL_ENTER_LONG", EVT_KEY_LONG(KEY_ENTER) },
   { "EVT_VIRTUAL_EXIT", EVT_KEY_BREAK(KEY_EXIT) },
 #elif defined(NAVIGATION_X7) || defined(NAVIGATION_X9D)
-#if defined(RADIO_TX12) || defined(RADIO_T8)
+#if defined(RADIO_TX12) || defined(RADIO_ZORRO) || defined(RADIO_T8)
   { "EVT_VIRTUAL_PREV_PAGE", EVT_KEY_BREAK(KEY_PAGEUP) },
   { "EVT_VIRTUAL_NEXT_PAGE", EVT_KEY_BREAK(KEY_PAGEDN) },
   { "EVT_VIRTUAL_MENU", EVT_KEY_BREAK(KEY_MODEL) },

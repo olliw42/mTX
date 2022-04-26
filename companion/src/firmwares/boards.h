@@ -61,6 +61,8 @@ namespace Board {
     BOARD_RADIOMASTER_TX12,
     BOARD_RADIOMASTER_T8,
     BOARD_JUMPER_TLITE,
+    BOARD_JUMPER_TPRO,
+    BOARD_RADIOMASTER_ZORRO,
     BOARD_TYPE_COUNT,
     BOARD_TYPE_MAX = BOARD_TYPE_COUNT - 1
   };
@@ -136,11 +138,14 @@ namespace Board {
     MultiposPots,
     MultiposPotsPositions,
     Switches,
+    FunctionSwitches,
     SwitchPositions,
+    NumFunctionSwitchesPositions,
     FactoryInstalledSwitches,
     NumTrims,
     NumTrimSwitches,
-    HasRTC
+    HasRTC,
+    HasColorLcd
   };
 
   struct SwitchInfo
@@ -234,6 +239,11 @@ inline bool IS_JUMPER_TLITE(Board::Type board)
   return board == Board::BOARD_JUMPER_TLITE;
 }
 
+inline bool IS_JUMPER_TPRO(Board::Type board)
+{
+  return board == Board::BOARD_JUMPER_TPRO;
+}
+
 inline bool IS_JUMPER_T16(Board::Type board)
 {
   return board == Board::BOARD_JUMPER_T16;
@@ -254,6 +264,12 @@ inline bool IS_RADIOMASTER_TX12(Board::Type board)
   return board == Board::BOARD_RADIOMASTER_TX12;
 }
 
+inline bool IS_RADIOMASTER_ZORRO(Board::Type board)
+{
+  return board == Board::BOARD_RADIOMASTER_ZORRO;
+}
+
+
 inline bool IS_RADIOMASTER_T8(Board::Type board)
 {
   return board == Board::BOARD_RADIOMASTER_T8;
@@ -266,7 +282,7 @@ inline bool IS_FAMILY_T16(Board::Type board)
 
 inline bool IS_FAMILY_T12(Board::Type board)
 {
-  return board == Board::BOARD_JUMPER_T12 || board == Board::BOARD_RADIOMASTER_TX12 || board == Board::BOARD_RADIOMASTER_T8 || board == Board::BOARD_JUMPER_TLITE;
+  return board == Board::BOARD_JUMPER_T12 || board == Board::BOARD_RADIOMASTER_TX12 || board == Board::BOARD_RADIOMASTER_ZORRO || board == Board::BOARD_RADIOMASTER_T8 || board == Board::BOARD_JUMPER_TLITE || board == Board::BOARD_JUMPER_TPRO;
 }
 
 inline bool IS_TARANIS_XLITE(Board::Type board)
@@ -321,7 +337,7 @@ inline bool IS_TARANIS_X9E(Board::Type board)
 
 inline bool IS_TARANIS_SMALL(Board::Type board)
 {
-  return IS_TARANIS_X7(board) || IS_TARANIS_XLITE(board) || IS_TARANIS_X9LITE(board) || IS_FAMILY_T12(board);
+  return IS_TARANIS_X7(board) || IS_TARANIS_XLITE(board) || IS_TARANIS_X9LITE(board) || IS_FAMILY_T12(board) || IS_JUMPER_TPRO(board);
 }
 
 inline bool IS_TARANIS(Board::Type board)

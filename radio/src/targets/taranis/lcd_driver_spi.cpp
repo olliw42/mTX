@@ -20,7 +20,7 @@
 
 #include "opentx.h"
 
-#if defined(RADIO_FAMILY_JUMPER_T12) || defined(RADIO_TX12) || defined(RADIO_T8)
+#if defined(RADIO_FAMILY_JUMPER_T12) || defined(RADIO_TX12) || defined(RADIO_ZORRO) || defined(RADIO_T8) || defined(RADIO_TPRO)
   #define LCD_CONTRAST_OFFSET            -10
 #else
   #define LCD_CONTRAST_OFFSET            160
@@ -133,6 +133,11 @@ void lcdStart()
   lcdWriteCommand(0x81); // Set contrast
   lcdWriteCommand(0x36); // Set Vop
   lcdWriteCommand(0xa6); // Set display mode
+#endif
+#if defined(BOOT)
+  lcdSetRefVolt(LCD_CONTRAST_DEFAULT);
+#else
+  lcdSetRefVolt(g_eeGeneral.contrast);
 #endif
 }
 #else

@@ -69,29 +69,37 @@ void rotaryEncoderInit()
   NVIC_SetPriority(ROTARY_ENCODER_TIMER_IRQn, 7);
 }
 
+#if defined(BOOT)
+#define INC_ROT        1
+#define INC_ROT_2      2
+#else
+#define INC_ROT        (g_eeGeneral.rotEncDirection ? -1 : 1);
+#define INC_ROT_2      (g_eeGeneral.rotEncDirection ? -2 : 2);
+#endif
+
 void rotaryEncoderCheck()
 {
 #if (defined(RADIO_FAMILY_T16) && !defined(RADIO_T18)) || defined(RADIO_TX12)
   static uint8_t  state = 0;
-  uint8_t pins;
+  uint32_t pins;
 
   pins = ROTARY_ENCODER_POSITION();
 
   if (pins != (state & 0x03)) {
     if ((pins ^ (state & 0x03)) == 0x03) {
       if (pins == 3) {
-        rotencValue += 2;
+        rotencValue += INC_ROT_2;
       }
       else {
-        rotencValue -= 2;
+         rotencValue -= INC_ROT_2;
       }
     }
     else {
       if ((state & 0x01) ^ ((pins & 0x02) >> 1)) {
-        rotencValue -= 1;
+        rotencValue -= INC_ROT;
       }
       else {
-        rotencValue += 1;
+        rotencValue += INC_ROT;
       }
     }
     state &= ~0x03;
@@ -100,10 +108,10 @@ void rotaryEncoderCheck()
   uint8_t newPosition = ROTARY_ENCODER_POSITION();
   if (newPosition != rotencPosition && !(readKeys() & (1 << KEY_ENTER))) {
     if ((rotencPosition & 0x01) ^ ((newPosition & 0x02) >> 1)) {
-      --rotencValue;
+      rotencValue -= INC_ROT;
     }
     else {
-      ++rotencValue;
+      rotencValue += INC_ROT;
     }
     rotencPosition = newPosition;
 #endif
@@ -133,7 +141,7 @@ extern "C" void ROTARY_ENCODER_EXTI_IRQHandler1(void)
     EXTI_ClearITPendingBit(ROTARY_ENCODER_EXTI_LINE1);
   }
 
-#if !defined(ROTARY_ENCODER_EXTI_IRQn2)
+#if !defined(ROTARY_ENCODER_EXTI_IRQn2) && defined(ROTARY_ENCODER_EXTI_LINE2)
   if (EXTI_GetITStatus(ROTARY_ENCODER_EXTI_LINE2) != RESET) {
     rotaryEncoderStartDelay();
     EXTI_ClearITPendingBit(ROTARY_ENCODER_EXTI_LINE2);
@@ -145,7 +153,7 @@ extern "C" void ROTARY_ENCODER_EXTI_IRQHandler1(void)
 #endif
 }
 
-#if defined(ROTARY_ENCODER_EXTI_IRQn2)
+#if defined(ROTARY_ENCODER_EXTI_IRQn2) && defined(ROTARY_ENCODER_EXTI_LINE2)
 extern "C" void ROTARY_ENCODER_EXTI_IRQHandler2(void)
 {
   if (EXTI_GetITStatus(ROTARY_ENCODER_EXTI_LINE2) != RESET) {

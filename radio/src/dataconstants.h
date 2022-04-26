@@ -202,6 +202,9 @@ enum TrainerMode {
   TRAINER_MODE_MASTER_BLUETOOTH,
   TRAINER_MODE_SLAVE_BLUETOOTH,
   TRAINER_MODE_MULTI,
+#if defined(TRAINER_SPORT_SBUS)
+  TRAINER_MODE_MASTER_SBUS_SPORT
+#endif
 };
 #elif defined(PCBSKY9X)
   enum ModuleIndex {
@@ -222,7 +225,9 @@ enum TrainerMode {
 #else
   #define TRAINER_MODE_MAX()             TRAINER_MODE_SLAVE
 #endif
-#elif defined(INTERNAL_MODULE_MULTI) || defined(ALLOW_TRAINER_MULTI)
+#elif defined(TRAINER_SPORT_SBUS)
+  #define TRAINER_MODE_MAX()             TRAINER_MODE_MASTER_SBUS_SPORT
+#elif defined(INTERNAL_MODULE_MULTI) || defined(INTERNAL_MODULE_CRSF) || defined(INTERNAL_MODULE_ELRS) || defined(HARDWARE_TRAINER_MULTI_MOD)
   #define TRAINER_MODE_MAX()             TRAINER_MODE_MULTI
 #elif defined(BLUETOOTH)
   #define TRAINER_MODE_MAX()             TRAINER_MODE_SLAVE_BLUETOOTH
@@ -264,10 +269,10 @@ enum UartModes {
   UART_MODE_MAX = UART_MODE_COUNT-1
 };
 
+#define LEN_MODEL_FILENAME           16
 #if defined(PCBHORUS)
   #define LEN_SWITCH_NAME              3
   #define LEN_ANA_NAME                 3
-  #define LEN_MODEL_FILENAME           16
   #define LEN_BLUETOOTH_NAME           10
 #else
   #define LEN_SWITCH_NAME              3
@@ -328,8 +333,8 @@ enum TelemetryUnit {
   UNIT_MS,
   UNIT_US,
   UNIT_KM,
-  UNIT_MAX = UNIT_KM,
-  UNIT_SPARE5,
+  UNIT_DBM,
+  UNIT_MAX = UNIT_DBM,
   UNIT_SPARE6,
   UNIT_SPARE7,
   UNIT_SPARE8,
@@ -431,7 +436,12 @@ enum SwitchSources {
   SWSRC_SD2,
 #endif
 
-#if defined(STORAGE_SWITCH_E)
+#if defined(FUNCTION_SWITCHES) && defined(RADIO_TPRO)
+  SWSRC_FIRST_FUNCTION_SWITCH,
+  SWSRC_SE0 = SWSRC_FIRST_FUNCTION_SWITCH,
+  SWSRC_SE1,
+  SWSRC_SE2,
+#elif defined(STORAGE_SWITCH_E)
   SWSRC_SE0,
   SWSRC_SE1,
   SWSRC_SE2,
@@ -595,7 +605,7 @@ enum SwitchSources {
   SWSRC_INVERT = SWSRC_COUNT+1,
 };
 
-#if NUM_SWITCHES >= 8
+#if NUM_SWITCHES - NUM_FUNCTIONS_SWITCHES >= 8
   #define SWSRC_TRAINER SWSRC_SH2
 #else
   #define SWSRC_TRAINER SWSRC_LAST_SWITCH,
@@ -820,11 +830,15 @@ enum MixSources {
 static_assert(MIXSRC_FIRST_LOGICAL_SWITCH == MIXSRC_FIRST_SWITCH + STORAGE_NUM_SWITCHES, "Wrong switches definition in MIXSRC list");
 #endif
 
-#define MIXSRC_FIRST        (MIXSRC_NONE + 1)
-#define MIXSRC_LAST         MIXSRC_LAST_CH
-#define MIXSRC_LAST_SWITCH  (MIXSRC_FIRST_SWITCH + STORAGE_NUM_SWITCHES - 1)
-#define INPUTSRC_FIRST      MIXSRC_Rud
-#define INPUTSRC_LAST       MIXSRC_LAST_TELEM
+#define MIXSRC_FIRST                (MIXSRC_NONE + 1)
+#define MIXSRC_LAST                 MIXSRC_LAST_CH
+#define MIXSRC_LAST_SWITCH          (MIXSRC_FIRST_SWITCH + STORAGE_NUM_SWITCHES - 1)
+#define INPUTSRC_FIRST              MIXSRC_Rud
+#define INPUTSRC_LAST               MIXSRC_LAST_TELEM
+#if defined(FUNCTION_SWITCHES)
+#define MIXSRC_LAST_REGULAR_SWITCH  (MIXSRC_FIRST_SWITCH + NUM_REGULAR_SWITCHES - 1)
+#define MIXSRC_FIRST_FS_SWITCH      (MIXSRC_LAST_REGULAR_SWITCH + 1)
+#endif
 
 enum BacklightMode {
   e_backlight_mode_off  = 0,

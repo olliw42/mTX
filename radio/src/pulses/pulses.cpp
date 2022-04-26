@@ -183,6 +183,12 @@ uint8_t getRequiredProtocol(uint8_t module)
 
 #if defined(CROSSFIRE)
     case MODULE_TYPE_CROSSFIRE:
+#if defined(RADIO_TANGO)
+      if (module == EXTERNAL_MODULE && IS_PCBREV_01()) {
+        protocol = PROTOCOL_CHANNELS_NONE;
+        break;
+      }
+#endif
       protocol = PROTOCOL_CHANNELS_CROSSFIRE;
       break;
 #endif
@@ -333,8 +339,8 @@ void enablePulsesExternalModule(uint8_t protocol)
 //OWEND
 
     default:
-      // external module stopped, set period to 50ms (necessary for USB Joystick, for instance)
-      mixerSchedulerSetPeriod(EXTERNAL_MODULE, 50000/*us*/);
+      // external module stopped, use default mixer period
+      mixerSchedulerSetPeriod(EXTERNAL_MODULE, 0);
       break;
   }
 }
@@ -397,11 +403,12 @@ bool setupPulsesExternalModule(uint8_t protocol)
     case PROTOCOL_CHANNELS_CROSSFIRE:
     {
       ModuleSyncStatus& status = getModuleSyncStatus(EXTERNAL_MODULE);
-      if (status.isValid())
+      if (status.isValid()) {
         mixerSchedulerSetPeriod(EXTERNAL_MODULE, status.getAdjustedRefreshRate());
+      }
       else
         mixerSchedulerSetPeriod(EXTERNAL_MODULE, CROSSFIRE_PERIOD);
-      setupPulsesCrossfire();
+      setupPulsesCrossfire(EXTERNAL_MODULE);
 #if defined(PCBSKY9X)
       scheduleNextMixerCalculation(EXTERNAL_MODULE, CROSSFIRE_PERIOD);
 #endif
@@ -471,7 +478,15 @@ static void enablePulsesInternalModule(uint8_t protocol)
   // start new protocol hardware here
 
   switch (protocol) {
-#if defined(PXX1) && !defined(INTMODULE_USART)
+#if defined(INTERNAL_MODULE_ELRS)
+    case PROTOCOL_CHANNELS_CROSSFIRE:
+      intmoduleSerialStart(ELRS_INTERNAL_BAUDRATE, true, USART_Parity_No, USART_StopBits_1, USART_WordLength_8b);
+      mixerSchedulerSetPeriod(INTERNAL_MODULE, CROSSFIRE_PERIOD);
+      break;
+#elif defined(INTERNAL_MODULE_CRSF)
+    case PROTOCOL_CHANNELS_CROSSFIRE:
+      break;
+#elif defined(PXX1) && !defined(INTMODULE_USART)
     case PROTOCOL_CHANNELS_PXX1_PULSES:
       intmodulePxx1PulsesStart();
 #if defined(INTMODULE_HEARTBEAT)
@@ -524,7 +539,7 @@ static void enablePulsesInternalModule(uint8_t protocol)
 #endif
 
     default:
-      // internal module stopped, set internal period to 0 and start the scheduler
+      // internal module stopped, use default mixer period
       mixerSchedulerSetPeriod(INTERNAL_MODULE, 0);
       break;
   }
@@ -577,6 +592,18 @@ bool setupPulsesInternalModule(uint8_t protocol)
       setupPulsesMultiInternalModule();
       mixerSchedulerSetPeriod(INTERNAL_MODULE, MULTIMODULE_PERIOD);
       return true;
+#endif
+
+#if defined(INTERNAL_MODULE_CRSF) || defined(INTERNAL_MODULE_ELRS)
+    case PROTOCOL_CHANNELS_CROSSFIRE: {
+      ModuleSyncStatus & status = getModuleSyncStatus(INTERNAL_MODULE);
+      if (status.isValid())
+        mixerSchedulerSetPeriod(INTERNAL_MODULE, status.getAdjustedRefreshRate());
+      else
+        mixerSchedulerSetPeriod(INTERNAL_MODULE, CROSSFIRE_PERIOD);
+      setupPulsesCrossfire(INTERNAL_MODULE);
+      return true;
+    }
 #endif
 
     default:
@@ -632,6 +659,7 @@ bool setupPulsesExternalModule()
     extmoduleStop();
     moduleState[EXTERNAL_MODULE].protocol = protocol;
     enablePulsesExternalModule(protocol);
+    setupPulsesExternalModule(protocol);
     return false;
   }
   else {

@@ -86,8 +86,17 @@
 #define LEN_COUNTRYCODES       TR("\002", "\007")
 #define TR_COUNTRYCODES        TR("US""JP""EU", "América""Japón\0 ""Europa\0")
 
+#if defined(RADIO_FAMILY_TBS)
+#define LEN_USBMODES                   TR("\006", "\010")
+#define TR_USBMODES                    TR("Ask\0  ""Joyst\0""Agent\0""SDCard""Serial", "Ask\0    ""Joystick""Agent\0 ""Storage\0""Serial\0 ")
+#else
 #define LEN_USBMODES           "\010"
+#if defined(DEBUF)
 #define TR_USBMODES            "Pregunta""Joystick""SDCard\0 ""Serie\0  "
+#else
+#define TR_USBMODES            "Pregunta""Joystick""SDCard\0 ""Telem\0  "
+#endif
+#endif
 
 #define LEN_JACKMODES          "\010"
 #define TR_JACKMODES           "Pregunta""Audio\0  ""Entrena."
@@ -261,7 +270,7 @@
 #define LEN_VUNITSSYSTEM     "\010"
 #define TR_VUNITSSYSTEM      "Métrico\0""Imperial"
 #define LEN_VTELEMUNIT       "\003"
-#define TR_VTELEMUNIT        "-\0 ""V\0 ""A\0 ""mA\0""kts""m/s""f/s""kmh""mph""m\0 ""ft\0""@C\0""@F\0""%\0 ""mAh""W\0 ""mW\0""dB\0""rpm""g\0 ""@\0 ""rad""ml\0""fOz""mlm""Hz\0""mS\0""uS\0""km\0"
+#define TR_VTELEMUNIT        "-\0 ""V\0 ""A\0 ""mA\0""kts""m/s""f/s""kmh""mph""m\0 ""ft\0""@C\0""@F\0""%\0 ""mAh""W\0 ""mW\0""dB\0""rpm""g\0 ""@\0 ""rad""ml\0""fOz""mlm""Hz\0""mS\0""uS\0""km\0""dbm"
 
 #define STR_V                  (STR_VTELEMUNIT+1)
 #define STR_A                  (STR_VTELEMUNIT+4)
@@ -361,7 +370,8 @@
 #define TR_VTRAINER_MASTER_CPPM_MODULE "Master/Módulo CPPM"
 #define TR_VTRAINER_MASTER_BATTERY     "Master/Serie\0     "
 #define TR_VTRAINER_BLUETOOTH          TR("Master/BT\0        ""Esclavo/BT\0       ", "Master/Bluetooth\0 ""Esclavo/Bluetooth\0")
-#define TR_VTRAINER_MULTI              "Master/Multi"
+#define TR_VTRAINER_MULTI              "Master/Multi\0     "
+#define TR_VTRAINER_SPORT_SBUS         "Master/SBUS-Sport\0"
 
 #define LEN_VFAILSAFE          "\011"
 #define TR_VFAILSAFE           "No\0      ""Hold\0    ""Custom\0  ""No pulsos""Receptor\0"
@@ -529,6 +539,8 @@
 #define TR_PERSISTENT          TR(INDENT"Persisten.", INDENT"Persistente")
 #define TR_BACKLIGHT_LABEL     "Luz fondo"
 #define TR_GHOST_MENU_LABEL            "GHOST MENU"
+#define TR_STATUS                      "Status"
+#define TR_RAW_12BITS                  "Raw 12 bits"
 #define TR_BLDELAY             INDENT"Duración"
 #define TR_BLONBRIGHTNESS      INDENT"MAS brillo"
 #define TR_BLOFFBRIGHTNESS     INDENT"MENOS brillo"
@@ -665,6 +677,8 @@
 #define TR_MODULE_BINDING              "Emparejando"
 #define TR_MODULE_UPGRADE_ALERT        TR3("Actualizar", "Actualizar módulo", "Actualizar\nmódulo")
 #define TR_MODULE_UPGRADE              TR("Act recom", "Actualizar módulo recomendado")
+#define TR_PULSE_RATE                  "Pulse rate"
+#define TR_LINK_SPEED                  "Link speed"
 #define TR_REBIND                      "Reemparejar "
 #define TR_REG_OK                      "Registro ok"
 #define TR_BIND_OK                     "Emparejado ok"
@@ -836,6 +850,7 @@
 #define TR_DATE                        "Fecha"
 #define TR_MONTHS                      { "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic" }
 #define TR_ROTARY_ENCODER              "R.E."
+#define TR_INVERT_ROTARY               "Invert Rotary"
 #define TR_CHANNELS_MONITOR            "MONITOR CANALES"
 #define TR_MIXERS_MONITOR              "MONITOR MEZCLAS"
 #define TR_PATH_TOO_LONG               "Path muy largo"
@@ -850,6 +865,7 @@
 #define TR_FLASH_BLUETOOTH_MODULE      TR("Flash módulo BT", "Flash módulo bluetooth")
 #define TR_FLASH_POWER_MANAGEMENT_UNIT "Flash unid. pwr mngt"
 #define TR_CURRENT_VERSION             TR("Vers. actual", "Versión actual: ")
+#define TR_HW_REV                      "HW Rev"
 #define TR_FLASH_INTERNAL_MODULE       TR("Flash módulo int", "Flash módulo interno")
 #define TR_FLASH_INTERNAL_MULTI        TR("Flash Multi int", "Flash Multi interno")
 #define TR_FLASH_EXTERNAL_MODULE       TR("Flash módulo ext", "Flash módulo externo")
@@ -910,6 +926,7 @@
 #define TR_USB_JOYSTICK        "Joystick USB (HID)"
 #define TR_USB_MASS_STORAGE    "Almaz. USB (SD)"
 #define TR_USB_SERIAL          "Serie USB (Debug)"
+#define TR_USB_TELEMETRY       "USB Telem mirror"
 #define TR_SETUP_SCREENS       "Pantallas config"
 #define TR_MONITOR_SCREENS     "Monitores"
 #define TR_AND_SWITCH          TR("Inter. AND", "Interruptor AND")
@@ -1299,6 +1316,11 @@
 #define ZSTR_TX_POWER          "TPWR"
 #define ZSTR_TX_RSSI           "TRSS"
 #define ZSTR_TX_QUALITY        "TQly"
+#define ZSTR_RX_RSSI_PERC      "RRSP"
+#define ZSTR_RX_RF_POWER       "RPWR"
+#define ZSTR_TX_RSSI_PERC      "TRSP"
+#define ZSTR_TX_RF_POWER       "TPWR"
+#define ZSTR_TX_FPS            "TFPS"
 #define ZSTR_TX_SNR            "TSNR"
 #define ZSTR_TX_NOISE          "TNse"
 #define ZSTR_PITCH             "Ptch"
@@ -1389,3 +1411,100 @@
 #define ZSTR_LOSS                      "Loss"
 #define ZSTR_SPEED                     "Spd "
 #define ZSTR_FLOW                      "Flow"
+
+//
+// HoTT Telemetry sensor names by Hott device
+//
+// naming convention: Name of device in capital letters (1 or 2) followed by sensor name in lower case letters
+//
+// example: GPal = GPS altitude, GAal = GAM altitude, Valt = Vario altitude, GAt2 = GAM temperature sensor 2
+//
+// T  = transmitter
+// R  = receiver
+// V  = Vario
+// G  = GPS
+// ES = ESC
+// EA = EAM
+//
+// ssi = signal strength indicator
+// qly = quality
+// bt  = battery
+// evt = HoTT warnings
+// btm = battery lowest voltage
+// vpk = VPack
+// al or alt = altitude
+// vv  = vertical velocity (climb rate)
+// hd  = heading
+// sp  = speed
+// PS  = GPS coordinates
+// di  = direction
+// ns  = number of satellites
+// cp  = capacity
+// u   = voltage (may be followed by numner if device offers more voltage sensors
+// i   = current (may be followed by numner if device offers more current sensors
+// tmp or t = temperature (single t may be followed by numner if device offers more temperature sensors
+// rp or r  = temperature (single r may be followed by numner if device offers more temperature sensors
+// fl = fuel
+//  
+// TX
+#define ZSTR_HOTT_ID_TX_RSSI_DL     "Tssi"
+#define ZSTR_HOTT_ID_TX_LQI_DL      "Tqly"
+// RX
+#define ZSTR_HOTT_ID_RX_RSSI_UL     "Rssi"
+#define ZSTR_HOTT_ID_RX_LQI_UL      "Rqly"
+#define ZSTR_HOTT_ID_RX_VLT         "Rbt"
+#define ZSTR_HOTT_ID_RX_TMP         "Rtmp" 
+#define ZSTR_HOTT_ID_RX_BAT_MIN     "Rbtm"
+#define ZSTR_HOTT_ID_RX_VPCK        "Rvpk"
+#define ZSTR_HOTT_ID_RX_EVENT       "Revt"
+// Vario
+#define ZSTR_HOTT_ID_VARIO_ALT      "Valt"
+#define ZSTR_HOTT_ID_VARIO_VV       "Vvv"
+#define ZSTR_HOTT_ID_VARIO_HDG      "Vhdg"
+// GPS
+#define ZSTR_HOTT_ID_GPS_HDG        "GPhd"
+#define ZSTR_HOTT_ID_GPS_SPEED      "GPsp"
+#define ZSTR_HOTT_ID_GPS_LL         "GPS"
+#define ZSTR_HOTT_ID_GPS_DST        "GPdi"
+#define ZSTR_HOTT_ID_GPS_ALT        "GPal" 
+#define ZSTR_HOTT_ID_GPS_VV         "GPvv"
+#define ZSTR_HOTT_ID_GPS_NSATS      "GPns"
+// ESC
+#define ZSTR_HOTT_ID_ESC_VLT        "ESu1"
+#define ZSTR_HOTT_ID_ESC_CAP        "EScp"
+#define ZSTR_HOTT_ID_ESC_TMP        "ESt1" 
+#define ZSTR_HOTT_ID_ESC_CUR        "ESi1"
+#define ZSTR_HOTT_ID_ESC_RPM        "ESrp"
+#define ZSTR_HOTT_ID_ESC_BEC_VLT    "ESu2"
+#define ZSTR_HOTT_ID_ESC_BEC_CUR    "ESi2" 
+#define ZSTR_HOTT_ID_ESC_BEC_TMP    "ESt2"
+#define ZSTR_HOTT_ID_ESC_MOT_TMP    "ESt3"
+// GAM
+#define ZSTR_HOTT_ID_GAM_CELS       "GAcl"
+#define ZSTR_HOTT_ID_GAM_VLT1       "GAu1"
+#define ZSTR_HOTT_ID_GAM_VLT2       "GAu2"
+#define ZSTR_HOTT_ID_GAM_TMP1       "GAt1"
+#define ZSTR_HOTT_ID_GAM_TMP2       "GAt2"
+#define ZSTR_HOTT_ID_GAM_FUEL       "GAfl"
+#define ZSTR_HOTT_ID_GAM_RPM1       "GAr1"
+#define ZSTR_HOTT_ID_GAM_ALT        "GAal"
+#define ZSTR_HOTT_ID_GAM_VV         "GAvv"
+#define ZSTR_HOTT_ID_GAM_CUR        "GAi"
+#define ZSTR_HOTT_ID_GAM_VLT3       "GAu3"
+#define ZSTR_HOTT_ID_GAM_CAP        "GAcp"
+#define ZSTR_HOTT_ID_GAM_SPEED      "GAsp"
+#define ZSTR_HOTT_ID_GAM_RPM2       "GAr2"
+// EAM
+#define ZSTR_HOTT_ID_EAM_CELS_L     "EAc1"
+#define ZSTR_HOTT_ID_EAM_CELS_H     "EAc2"
+#define ZSTR_HOTT_ID_EAM_VLT1       "EAu1"
+#define ZSTR_HOTT_ID_EAM_VLT2       "EAu2"
+#define ZSTR_HOTT_ID_EAM_TMP1       "EAt1"
+#define ZSTR_HOTT_ID_EAM_TMP2       "EAt2"
+#define ZSTR_HOTT_ID_EAM_ALT        "EAal"
+#define ZSTR_HOTT_ID_EAM_CUR        "EAi"
+#define ZSTR_HOTT_ID_EAM_VLT3       "EAu3"
+#define ZSTR_HOTT_ID_EAM_CAP        "EAcp"
+#define ZSTR_HOTT_ID_EAM_VV         "EAvv"
+#define ZSTR_HOTT_ID_EAM_RPM        "EArp"
+#define ZSTR_HOTT_ID_EAM_SPEED      "EAsp"

@@ -861,6 +861,14 @@ void printTaskSwitchLog()
     else if (audioTaskId == n) {
       serialPrint("%d: audio", n);
     }
+#if defined(INTERNAL_MODULE_CRSF)
+    else if (crossfireTaskId == n) {
+      serialPrint("%d: crossfire", n);
+    }
+    else if (systemTaskId == n) {
+      serialPrint("%d: system", n);
+    }
+#endif
 //OW
 #if defined(TELEMETRY_MAVLINK)
     else if (mavlinkTaskId == n) {

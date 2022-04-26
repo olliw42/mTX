@@ -196,6 +196,8 @@ void extmoduleSendBuffer(const uint8_t * data, uint8_t size);
 void extmoduleSendNextFrame();
 void extmoduleSendInvertedByte(uint8_t byte);
 
+#define ELRS_INTERNAL_BAUDRATE        5250000     // 5.25 Mbps
+
 // Trainer driver
 void init_trainer_ppm();
 void stop_trainer_ppm();
@@ -295,6 +297,10 @@ enum EnumSwitchesPositions
 };
 
 #define STORAGE_NUM_SWITCHES_POSITIONS  (STORAGE_NUM_SWITCHES * 3)
+
+#if !defined(NUM_FUNCTIONS_SWITCHES)
+#define NUM_FUNCTIONS_SWITCHES        0
+#endif
 
 void keysInit();
 uint32_t switchState(uint8_t index);

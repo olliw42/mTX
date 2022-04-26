@@ -62,6 +62,8 @@ const char * OpenTxEepromInterface::getName()
       return "OpenTX for Jumper T12";
     case BOARD_JUMPER_TLITE:
       return "OpenTX for Jumper T-Lite";
+    case BOARD_JUMPER_TPRO:
+      return "OpenTX for Jumper T-Pro";
     case BOARD_JUMPER_T16:
       return "OpenTX for Jumper T16";
     case BOARD_JUMPER_T18:
@@ -70,6 +72,8 @@ const char * OpenTxEepromInterface::getName()
       return "OpenTX for Radiomaster TX16S";
     case BOARD_RADIOMASTER_TX12:
       return "OpenTX for Radiomaster TX12";
+    case BOARD_RADIOMASTER_ZORRO:
+      return "OpenTX for Radiomaster Zorro";
     case BOARD_RADIOMASTER_T8:
       return "OpenTX for Radiomaster T8";
     case BOARD_TARANIS_X9D:
@@ -343,8 +347,14 @@ int OpenTxEepromInterface::save(uint8_t * eeprom, const RadioData & radioData, u
   else if (IS_JUMPER_TLITE(board)) {
     variant |= JUMPER_TLITE_VARIANT;
   }
+  else if (IS_JUMPER_TPRO(board)) {
+    variant |= JUMPER_TPRO_VARIANT;
+  }
   else if (IS_RADIOMASTER_TX12(board)) {
     variant |= RADIOMASTER_TX12_VARIANT;
+  }
+  else if (IS_RADIOMASTER_ZORRO(board)) {
+    variant |= RADIOMASTER_ZORRO_VARIANT;
   }
   else if (IS_RADIOMASTER_T8(board)) {
     variant |= RADIOMASTER_T8_VARIANT;
@@ -445,8 +455,12 @@ int OpenTxFirmware::getCapability(::Capability capability)
         return 60;
     case Imperial:
       return 0;
-    case ModelImage:
+    case HasModelImage:
       return (board == BOARD_TARANIS_X9D || IS_TARANIS_PLUS(board) || board == BOARD_TARANIS_X9DP_2019 || IS_FAMILY_HORUS_OR_T16(board));
+    case ModelImageNameLen:
+      return (IS_FAMILY_HORUS_OR_T16(board) ? 14 : 10); //  including extension if saved and <= CPN_MAX_BITMAP_LEN
+    case ModelImageKeepExtn:
+      return (IS_FAMILY_HORUS_OR_T16(board) ? true : false);
     case HasBeeper:
       return false;
     case HasPxxCountry:
@@ -741,6 +755,16 @@ int OpenTxFirmware::getCapability(::Capability capability)
   }
 }
 
+QString OpenTxFirmware::getCapabilityStr(::Capability capability)
+{
+  switch (capability) {
+    case ModelImageFilters:
+      return IS_FAMILY_HORUS_OR_T16(board) ? "*.bmp|*.jpg|*.png" : "*.bmp";
+    default:
+      return QString();
+  }
+}
+
 QString OpenTxFirmware::getAnalogInputName(unsigned int index)
 {
   return Boards::getAnalogInputName(board, index);
@@ -771,7 +795,7 @@ bool OpenTxFirmware::isAvailable(PulsesProtocol proto, int port)
           case PULSES_ACCST_ISRM_D16:
             return IS_ACCESS_RADIO(board, id);
           case PULSES_MULTIMODULE:
-            return id.contains("internalmulti") || IS_RADIOMASTER_TX16S(board) || IS_JUMPER_T18(board) || IS_RADIOMASTER_TX12(board) || IS_JUMPER_TLITE(board);
+            return id.contains("internalmulti") || IS_FAMILY_T12(board) || IS_FAMILY_T16(board);
           default:
             return false;
         }
@@ -979,8 +1003,18 @@ bool OpenTxEepromInterface::checkVariant(unsigned int version, unsigned int vari
       variantError = true;
     }
   }
+  else if (IS_JUMPER_TPRO(board)) {
+    if (variant != JUMPER_TPRO_VARIANT) {
+      variantError = true;
+    }
+  }
   else if (IS_RADIOMASTER_TX12(board)) {
     if (variant != RADIOMASTER_TX12_VARIANT) {
+      variantError = true;
+    }
+  }
+  else if (IS_RADIOMASTER_ZORRO(board)) {
+    if (variant != RADIOMASTER_ZORRO_VARIANT) {
       variantError = true;
     }
   }
@@ -1320,6 +1354,17 @@ void registerOpenTxFirmwares()
   registerOpenTxFirmware(firmware);
   addOpenTxRfOptions(firmware, FLEX);
 
+  /* Jumper T-Pro board */
+  firmware = new OpenTxFirmware("opentx-tpro", QCoreApplication::translate("Firmware", "Jumper T-Pro"), BOARD_JUMPER_TPRO);
+  addOpenTxCommonOptions(firmware);
+  firmware->addOption("noheli", Firmware::tr("Disable HELI menu and cyclic mix support"));
+  firmware->addOption("nogvars", Firmware::tr("Disable Global variables"));
+  firmware->addOption("lua", Firmware::tr("Enable Lua custom scripts screen"));
+  firmware->addOption("internalelrs", Firmware::tr("Select if internal ELRS module is installed"));
+  addOpenTxFontOptions(firmware);
+  registerOpenTxFirmware(firmware);
+  addOpenTxRfOptions(firmware, FLEX);
+
   /* Jumper T16 board */
   firmware = new OpenTxFirmware("opentx-t16", Firmware::tr("Jumper T16 / T16+ / T16 Pro"), BOARD_JUMPER_T16);
   addOpenTxFrskyOptions(firmware);
@@ -1335,6 +1380,17 @@ void registerOpenTxFirmwares()
   firmware->addOption("noheli", Firmware::tr("Disable HELI menu and cyclic mix support"));
   firmware->addOption("nogvars", Firmware::tr("Disable Global variables"));
   firmware->addOption("lua", Firmware::tr("Enable Lua custom scripts screen"));
+  addOpenTxFontOptions(firmware);
+  registerOpenTxFirmware(firmware);
+  addOpenTxRfOptions(firmware, FLEX + AFHDS3);
+
+  /* Radiomaster Zorro board */
+  firmware = new OpenTxFirmware("opentx-zorro", QCoreApplication::translate("Firmware", "Radiomaster Zorro"), Board::BOARD_RADIOMASTER_ZORRO);
+  addOpenTxCommonOptions(firmware);
+  firmware->addOption("noheli", Firmware::tr("Disable HELI menu and cyclic mix support"));
+  firmware->addOption("nogvars", Firmware::tr("Disable Global variables"));
+  firmware->addOption("lua", Firmware::tr("Enable Lua custom scripts screen"));
+  firmware->addOption("internalelrs", Firmware::tr("Select if internal ELRS module is installed"));
   addOpenTxFontOptions(firmware);
   registerOpenTxFirmware(firmware);
   addOpenTxRfOptions(firmware, FLEX + AFHDS3);
@@ -1358,6 +1414,7 @@ void registerOpenTxFirmwares()
   static const Firmware::Option opt_internal_gps("internalgps", Firmware::tr("Support internal GPS"));
   firmware->addOptionsGroup({opt_bt, opt_internal_gps});
   firmware->addOption("externalaccessmod", Firmware::tr("Support hardware mod: R9M ACCESS"));
+  firmware->addOption("internalelrs", Firmware::tr("Select if internal ELRS module is installed"));
   registerOpenTxFirmware(firmware);
 
   /* Jumper T18 board */

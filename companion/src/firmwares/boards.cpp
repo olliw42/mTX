@@ -82,6 +82,8 @@ uint32_t Boards::getFourCC(Type board)
       return 0x3D78746F;
     case BOARD_JUMPER_TLITE:
       return 0x4278746F;
+    case BOARD_JUMPER_TPRO:
+      return 0x4678746F;
     case BOARD_JUMPER_T16:
       return 0x3F78746F;
     case BOARD_JUMPER_T18:
@@ -90,6 +92,8 @@ uint32_t Boards::getFourCC(Type board)
       return 0x3878746F;
     case BOARD_RADIOMASTER_TX12:
       return 0x4178746F;
+    case BOARD_RADIOMASTER_ZORRO:
+      return 0x4778746F;
     case BOARD_RADIOMASTER_T8:
       return 0x4378746F;
     default:
@@ -117,8 +121,10 @@ int Boards::getEEpromSize(Board::Type board)
     case BOARD_TARANIS_X9E:
     case BOARD_JUMPER_T12:
     case BOARD_JUMPER_TLITE:
+    case BOARD_JUMPER_TPRO:
     case BOARD_RADIOMASTER_TX12:
     case BOARD_RADIOMASTER_T8:
+    case BOARD_RADIOMASTER_ZORRO:
       return EESIZE_TARANIS;
     case BOARD_UNKNOWN:
       return EESIZE_MAX;
@@ -154,7 +160,9 @@ int Boards::getFlashSize(Type board)
     case BOARD_TARANIS_X9E:
     case BOARD_JUMPER_T12:
     case BOARD_JUMPER_TLITE:
+    case BOARD_JUMPER_TPRO:
     case BOARD_RADIOMASTER_TX12:
+    case BOARD_RADIOMASTER_ZORRO:
     case BOARD_RADIOMASTER_T8:
       return FSIZE_TARANIS;
     case BOARD_HORUS_X12S:
@@ -188,7 +196,7 @@ SwitchInfo Boards::getSwitchInfo(Board::Type board, int index)
     if (index < DIM(switches))
       return switches[index];
   }
-  else if (IS_TARANIS_XLITE(board) || IS_JUMPER_TLITE(board)) {
+  else if (IS_TARANIS_XLITE(board) || IS_JUMPER_TLITE(board) || IS_JUMPER_TPRO(board)) {
     const Board::SwitchInfo switches[] = {
       {SWITCH_3POS,   "SA"},
       {SWITCH_3POS,   "SB"},
@@ -235,6 +243,20 @@ SwitchInfo Boards::getSwitchInfo(Board::Type board, int index)
       {SWITCH_3POS,     "SF"},
       {SWITCH_2POS,     "SI"},
       {SWITCH_2POS,     "SJ"}
+    };
+    if (index < DIM(switches))
+      return switches[index];
+  }
+  else if (IS_RADIOMASTER_ZORRO(board)) {
+    const Board::SwitchInfo switches[] = {
+      {SWITCH_TOGGLE,   "SA"},
+      {SWITCH_3POS,     "SB"},
+      {SWITCH_3POS,     "SC"},
+      {SWITCH_TOGGLE,   "SD"},
+      {SWITCH_2POS,     "SE"},
+      {SWITCH_2POS,     "SF"},
+      {SWITCH_TOGGLE,   "SG"},
+      {SWITCH_TOGGLE,   "SH"}
     };
     if (index < DIM(switches))
       return switches[index];
@@ -329,7 +351,7 @@ int Boards::getCapability(Board::Type board, Board::Capability capability)
         return 1;
       else if (IS_JUMPER_TLITE(board))
         return 0;
-      else if (IS_TARANIS_SMALL(board))
+      else if (IS_TARANIS_SMALL(board) || IS_JUMPER_TPRO(board))
         return 2;
       else if (IS_TARANIS_X9E(board))
         return 4;
@@ -386,7 +408,7 @@ int Boards::getCapability(Board::Type board, Board::Capability capability)
         return 7;
       else if (board == BOARD_TARANIS_X7)
         return 8;
-      else if (board == BOARD_JUMPER_TLITE)
+      else if (board == BOARD_JUMPER_TLITE || board == BOARD_JUMPER_TPRO)
         return 4;
       else if (IS_FAMILY_T12(board))
         return 8;
@@ -401,11 +423,16 @@ int Boards::getCapability(Board::Type board, Board::Capability capability)
       else
         return 7;
 
+    case FunctionSwitches:
+      return (IS_JUMPER_TPRO(board) ? 6 : 0);
+
     case FactoryInstalledSwitches:
       if (IS_TARANIS_X9E(board))
         return 8;
-      else if (IS_JUMPER_TLITE(board))
+      else if (IS_JUMPER_TLITE(board) || IS_JUMPER_TPRO(board))
         return 4;
+      else if(IS_RADIOMASTER_ZORRO(board))
+        return 8;
       else if (IS_FAMILY_T12(board))
         return 6;
       else if (IS_HORUS_X12S(board))
@@ -419,6 +446,9 @@ int Boards::getCapability(Board::Type board, Board::Capability capability)
       else
         return 9;
 
+    case NumFunctionSwitchesPositions:
+      return getCapability(board, Board::FunctionSwitches) * 3;
+
     case NumTrims:
       if (IS_FAMILY_HORUS_OR_T16(board))
         return 6;
@@ -430,6 +460,9 @@ int Boards::getCapability(Board::Type board, Board::Capability capability)
 
     case HasRTC:
       return IS_STM32(board) ? true : false;
+
+    case HasColorLcd:
+      return IS_FAMILY_HORUS_OR_T16(board);
 
     default:
       return 0;
@@ -589,6 +622,8 @@ QString Boards::getBoardName(Board::Type board)
       return "Jumper T12";
     case BOARD_JUMPER_TLITE:
       return "Jumper T-Lite";
+    case BOARD_JUMPER_TPRO:
+      return "Jumper T-Pro";
     case BOARD_JUMPER_T16:
       return "Jumper T16";
     case BOARD_JUMPER_T18:
@@ -597,6 +632,8 @@ QString Boards::getBoardName(Board::Type board)
       return "Radiomaster TX16S";
     case BOARD_RADIOMASTER_TX12:
       return "Radiomaster TX12";
+    case BOARD_RADIOMASTER_ZORRO:
+      return "Radiomaster Zorro";
     case BOARD_RADIOMASTER_T8:
       return "Radiomaster T8";
     default:

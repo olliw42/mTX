@@ -164,6 +164,7 @@ extern const char STR_MULTI_POWER[];
 extern const char STR_MULTI_TELEMETRY_MODE[];
 extern const char STR_MULTI_WBUS_MODE[];
 extern const char STR_SPORT_MODES[];
+extern const char STR_FSGROUPS[];
 
 #if defined(AFHDS3)
 extern const char STR_AFHDS3_ONE_TO_ONE_TELEMETRY[];
@@ -291,6 +292,10 @@ extern const char STR_CONTRAST[];
 extern const char STR_ALARMS_LABEL[];
 extern const char STR_BATTERY_RANGE[];
 extern const char STR_BATTERYWARNING[];
+#if defined(BATT_CRITICAL_SHUTDOWN)
+extern const char STR_CRITICALBATTERYLEVEL[];
+extern const char STR_SHUTDOWNINXXS[];
+#endif
 extern const char STR_INACTIVITYALARM[];
 extern const char STR_MEMORYWARNING[];
 extern const char STR_ALARMWARNING[];
@@ -304,6 +309,8 @@ extern const char STR_BEEPCOUNTDOWN[];
 extern const char STR_PERSISTENT[];
 extern const char STR_BACKLIGHT_LABEL[];
 extern const char STR_GHOST_MENU_LABEL[];
+extern const char STR_STATUS[];
+extern const char STR_RAW_12BITS[];
 extern const char STR_BLDELAY[];
 
 #if defined(PWM_BACKLIGHT) || defined(COLORLCD)
@@ -344,8 +351,29 @@ extern const char STR_VTRIM[];
 extern const char STR_MENUTOSTART[];
 extern const char STR_SETMIDPOINT[];
 extern const char STR_MOVESTICKSPOTS[];
+#if defined(RADIO_CALIBRATION_HALL)
+extern const char STR_LEFT[];
+extern const char STR_RIGHT[];
+extern const char STR_BOTH[];
+extern const char STR_MOVESTICK_P0[];
+extern const char STR_MOVESTICK_P1[];
+extern const char STR_MOVESTICK_P2[];
+extern const char STR_MOVESTICK_P3[];
+extern const char STR_MOVESTICK_P4[];
+extern const char STR_MOVESTICK_P5[];
+extern const char STR_MOVESTICK_P6[];
+extern const char STR_MOVESTICK_P7[];
+extern const char STR_MOVESTICK_P8[];
+extern const char STR_CAL_POINTS[];
+extern const char STR_RELEASE_STICK[];
+extern const char STR_MOVE_PLUS[];
+extern const char STR_JOYSTICK_RF[];
+extern const char STR_TURN_OFF_RF[];
+extern const char STR_UPDATE_CROSSFIRE[];
+#endif
 extern const char STR_TX[];
 #define STR_RX (STR_TX+OFS_RX)
+extern const char STR_INVERT_ROTARY[];
 extern const char STR_NODATA[];
 extern const char STR_US[];
 extern const char STR_TMIXMAXMS[];
@@ -420,6 +448,8 @@ extern const char STR_MODULE_NO_TELEMETRY[];
 extern const char STR_MODULE_BINDING[];
 extern const char STR_MODULE_UPGRADE_ALERT[];
 extern const char STR_MODULE_UPGRADE[];
+extern const char STR_PULSE_RATE[];
+extern const char STR_LINK_SPEED[];
 extern const char STR_PROTOCOL_INVALID[];
 extern const char STR_MODULE_STATUS[];
 extern const char STR_MODULE_SYNC[];
@@ -430,12 +460,16 @@ extern const char STR_MULTI_RFCHAN[];
 extern const char STR_SUBTYPE[];
 #endif
 
-#if defined(DSM2) || defined(PXX)
+#if defined(DSM2) || defined(PXX) || defined(RADIO_FAMILY_TBS)
 extern const char STR_RECEIVER_NUM[];
 extern const char STR_RECEIVER[];
 extern const char STR_REBIND[];
 extern const char STR_REG_OK[];
 extern const char STR_BIND_OK[];
+#endif
+
+#if defined(RADIO_FAMILY_TBS)
+extern const char STR_CROSSFIRE[];
 #endif
 
 extern const char STR_INTERNALRF[];
@@ -507,8 +541,13 @@ extern const char STR_RESET_TELEMETRY[];
 extern const char STR_STATISTICS[];
 extern const char STR_ABOUT_US[];
 extern const char STR_USB_JOYSTICK[];
+#if defined(RADIO_FAMILY_TBS)
+extern const char STR_USB_AGENT[];
+extern const char STR_USB_CHARGE[];
+#endif
 extern const char STR_USB_MASS_STORAGE[];
 extern const char STR_USB_SERIAL[];
+extern const char STR_USB_TELEMETRY[];
 extern const char STR_SETUP_SCREENS[];
 extern const char STR_MONITOR_SCREENS[];
 extern const char STR_RESET_BTN[];
@@ -674,6 +713,7 @@ extern const char STR_FLASH_FLIGHT_CONTROLLER_BY_INTERNAL_MODULE_OTA[];
 extern const char STR_FLASH_BLUETOOTH_MODULE[];
 extern const char STR_FLASH_POWER_MANAGEMENT_UNIT[];
 extern const char STR_CURRENT_VERSION[];
+extern const char STR_HW_REV[];
 extern const char STR_FLASH_INTERNAL_MODULE[];
 extern const char STR_FLASH_INTERNAL_MULTI[];
 extern const char STR_FLASH_EXTERNAL_MODULE[];
@@ -990,7 +1030,6 @@ extern const char STR_USB_MAVLINK[];
 extern const char STR_SERIAL_LABEL[];
 extern const char STR_USBMODES_OW[];
 extern const char STR_AUX_SERIAL_MODES_OW[];
-extern const char STR_USB_SERIAL_OW[];
 #endif
 //OWEND
 

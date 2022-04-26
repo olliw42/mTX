@@ -212,6 +212,7 @@ class GeneralSettings {
     bool jitterFilter;
     bool rtcCheckDisable;
     bool keysBacklight;
+    bool rotEncoderDirection;
     unsigned int imperial;
     char ttsLanguage[TTS_LANGUAGE_LEN + 1];
     int beepVolume;
@@ -261,7 +262,6 @@ class GeneralSettings {
     static QString auxSerialModeToString(int value);
     static QString telemetryBaudrateToString(int value);
     static FieldRange getPPM_MultiplierRange();
-    static FieldRange getTxVoltageCalibrationRange();
     static FieldRange getTxCurrentCalibration();
     static AbstractStaticItemModel * antennaModeItemModel();
     static AbstractStaticItemModel * bluetoothModeItemModel();
