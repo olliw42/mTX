@@ -19,7 +19,7 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v33-rc5"
+#define OWVERSIONSTR  "v33-rc6"
 #define OWVERSION     3300 // used by mavlink/mbridge.cpp Telemetry alarms disabled TR_NO_RSSIALARM
 //OWEND
 
@@ -87,16 +87,20 @@ modified files in radio/src/
 
     cli.cpp:          2x
     CMakeList.txt:    1x
-    dataconstants.h:  3x
+    dataconstants.h:  1x
     datastructs.h:    7x
+    debug.cpp:        1x
+    gps.cpp:          1x
+    gps.h:            2x
     keys.cpp:         2x
     keys.h:           1x
-    main.cpp:         5x
-    opentx.cpp:       1x
+    main.cpp:         3x
+    opentx.cpp:       2x
     opentx.h:         2x
     options.h:        1x
     tasks.cpp:        3x
     tasks.h:          1x
+    touch.h:          2x
     translations.cpp: 1x
     translations.h:   1x
     gui/480x272/bitmap.cpp:          1x
@@ -108,10 +112,10 @@ modified files in radio/src/
     gui/480x272/radio_diaganas.cpp:  2x
     gui/480x272/radio_hardware.cpp:  6x
     gui/480x272/topbar.cpp:          2x
-    gui/gui_common.cpp:              2x
-    gui/gui_common.h:                1x
+    gui/gui_common.cpp:              4x
+    gui/gui_common.h:                2x
     lua/api_general.cpp:             4x
-    lua/api_lcd.cpp:                 2x
+    lua/api_lcd.cpp:                 4x
     lua/widgets.cpp:                 4x
     pulses/modules_constants.h:      1x
     pulses/modules_helpers.h:        1x
@@ -119,19 +123,20 @@ modified files in radio/src/
     pulses/pulses.h:                 1x
     targets/common/arm/stm32/aux_serial_driver.cpp:  8x
     targets/common/arm/stm32/CMakeLists.txt:         3x
-    targets/common/arm/stm32/usb_driver.cpp:         1x
+    targets/common/arm/stm32/usb_driver.cpp:         2x
     targets/common/arm/stm32/usb_driver.h:           1x
     targets/common/arm/stm32/usbd_cdc.cpp:           1x
     targets/common/arm/stm32/usbd_dec.cpp:           4x
     targets/horus/board.cpp:                         1x
-    targets/horus/board.h:                           2x
-    targets/horus/CMakeList.txt:                     3x
+    targets/horus/board.h:                           3x
+    targets/horus/CMakeList.txt:                     7x
     targets/horus/extmodule_driver.cpp:              1x
-    targets/horus/hal.h:                             1x
+    targets/horus/gps_driver.cpp:                    2x
+    targets/horus/hal.h:                             4x
     targets/horus/telemetry_driver.cpp:              9x
     targets/horus/tp_gt911.cpp:                      2x
     targets/horus/tp_gt911.h:                        1x
-    telemetry/telemetry.cpp:         2x
+    telemetry/telemetry.cpp:         5x
     telemetry/telemetry.h:           1x
     thirdparty/Lua/src/lauxlib.h:    1x
     thirdparty/Lua/src/linit.c:      1x
@@ -139,16 +144,23 @@ modified files in radio/src/
     translations/untranslated.h:     2x
 
 added files
+    gps2.cpp
+    gps-nmea.h
+    gps-ubx.h
+    mavlink/lua_api_mavlink.cpp
+    mavlink/lua_api_mavsdk.cpp
+    mavlink/lua_api_mbridge.cpp
     mavlink/mavlink_telem_autopilot.cpp
     mavlink/mavlink_telem_camera.cpp
+    mavlink/mavlink_telem_gcs_and_alike.cpp
     mavlink/mavlink_telem_gimbal.cpp
     mavlink/mavlink_telem_interface.cpp
     mavlink/mavlink_telem_mavapi.cpp
     mavlink/mavlink_telem_qshot.cpp
     mavlink/mavlink_telem.cpp
     mavlink/mavlink_telem.h
-    mavlink/lua_api_mavlink.cpp
-    mavlink/lua_api_mavsdk.cpp
+    mavlink/mbridge.cpp
+    mavlink/mbridge.h
     thirdparty/Mavlink/
 
 
