@@ -188,7 +188,7 @@ inline uint8_t MODULE_CHANNELS_ROWS(int moduleIdx)
   }
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  else if (isModuleMavlink(moduleIdx)) {
+  else if (isModuleMBridge(moduleIdx)) {
     return HIDDEN_ROW;
   }
 #endif

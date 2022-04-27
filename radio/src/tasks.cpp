@@ -107,7 +107,7 @@ bool isModuleSynchronous(uint8_t moduleIdx)
 #endif
 //OW
 #if defined(TELEMETRY_MAVLINK)
-    case PROTOCOL_CHANNELS_MAVLINK: //must be true since otherwise setupPulsesExternalModule() is not called, and it will crash
+    case PROTOCOL_CHANNELS_MBRIDGE: //must be true since otherwise setupPulsesExternalModule() is not called, and it will crash
 #endif
 //OWEND
       return true;

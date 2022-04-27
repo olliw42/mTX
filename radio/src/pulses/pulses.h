@@ -391,7 +391,7 @@ enum ChannelsProtocols {
   PROTOCOL_CHANNELS_GHOST
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  ,PROTOCOL_CHANNELS_MAVLINK, // uff, ModuleState.protocol, which this is assigned to, has 4 bits ...
+  ,PROTOCOL_CHANNELS_MBRIDGE, // uff, ModuleState.protocol, which this is assigned to, has 4 bits ...
 #endif
 //OWEND
 };

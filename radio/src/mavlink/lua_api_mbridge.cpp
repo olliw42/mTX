@@ -14,7 +14,7 @@
 
 static int luaMBridgeEnabled(lua_State * L)
 {
-  lua_pushboolean(L, (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK));
+  lua_pushboolean(L, (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE));
   return 1;
 }
 

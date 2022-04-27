@@ -326,9 +326,9 @@ inline bool isModuleAFHDS3(uint8_t idx)
 
 //OW
 #if defined(TELEMETRY_MAVLINK)
-inline bool isModuleMavlink(uint8_t idx)
+inline bool isModuleMBridge(uint8_t idx)
 {
-  return idx == EXTERNAL_MODULE && g_model.moduleData[idx].getType() == MODULE_TYPE_MAVLINK;
+  return idx == EXTERNAL_MODULE && g_model.moduleData[idx].getType() == MODULE_TYPE_MBRIDGE;
 }
 #endif
 //OWEND

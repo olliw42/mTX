@@ -54,7 +54,7 @@ void telemetryPortInit(uint32_t baudrate, uint8_t mode)
 //OW
 #if defined(TELEMETRY_MAVLINK)
 //it seems it works without, but I'm not sure, so keep
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) return;
 #endif
 //OWEND
   if (baudrate == 0) {
@@ -171,7 +171,7 @@ void telemetryPortInvertedInit(uint32_t baudrate)
 {
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) return;
 #endif
 //OWEND
   if (baudrate == 0) {
@@ -273,7 +273,7 @@ void telemetryPortSetDirectionOutput()
 {
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) return;
 #endif
 //OWEND
 #if defined(GHOST) && SPORT_MAX_BAUDRATE < 400000
@@ -294,7 +294,7 @@ void telemetryPortSetDirectionInput()
 {
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) return;
 #endif
 //OWEND
   sportWaitTransmissionComplete();
@@ -311,7 +311,7 @@ void sportSendByte(uint8_t byte)
 {
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) return;
 #endif
 //OWEND
   telemetryPortSetDirectionOutput();
@@ -324,7 +324,7 @@ void sportSendByteLoop(uint8_t byte)
 {
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) return;
 #endif
 //OWEND
   telemetryPortSetDirectionOutput();
@@ -357,7 +357,7 @@ void sportSendBuffer(const uint8_t * buffer, uint32_t count)
 {
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) return;
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) return;
 #endif
 //OWEND
   telemetryPortSetDirectionOutput();
@@ -410,7 +410,7 @@ extern "C" void TELEMETRY_USART_IRQHandler(void)
 
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) {
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) {
 
     if (USART_GetITStatus(TELEMETRY_USART, USART_IT_TXE) != RESET) {
       uint8_t txchar;

@@ -207,8 +207,8 @@ uint8_t getRequiredProtocol(uint8_t module)
 
 //OW
 #if defined(TELEMETRY_MAVLINK)
-    case MODULE_TYPE_MAVLINK:
-      protocol = PROTOCOL_CHANNELS_MAVLINK;
+    case MODULE_TYPE_MBRIDGE:
+      protocol = PROTOCOL_CHANNELS_MBRIDGE;
       break;
 #endif
 //OWEND
@@ -330,7 +330,7 @@ void enablePulsesExternalModule(uint8_t protocol)
 
 //OW
 #if defined(TELEMETRY_MAVLINK)
-    case PROTOCOL_CHANNELS_MAVLINK:
+    case PROTOCOL_CHANNELS_MBRIDGE:
       EXTERNAL_MODULE_ON();
       extmoduleMavlinkTelemStart();
       // TODO: mixerSchedulerSetPeriod() needed?? I think no, is reset by stop()

@@ -393,7 +393,7 @@ bool isAux1ModeAvailable(int mode)
   else
   if (mode == UART_MODE_MAVLINK)
 #if defined(TELEMETRY_MAVLINK)
-    return isModuleMavlink(EXTERNAL_MODULE) ? g_eeGeneral.aux2SerialMode != UART_MODE_MAVLINK : true; // only one serial can be MAVLink if external is MAVLink
+    return isModuleMBridge(EXTERNAL_MODULE) ? g_eeGeneral.aux2SerialMode != UART_MODE_MAVLINK : true; // only one serial can be MAVLink if external is MAVLink
 #else
     return false;
 #endif
@@ -427,7 +427,7 @@ bool isAux2ModeAvailable(int mode)
   else
   if (mode == UART_MODE_MAVLINK)
 #if defined(TELEMETRY_MAVLINK)
-    return isModuleMavlink(EXTERNAL_MODULE) ? g_eeGeneral.auxSerialMode != UART_MODE_MAVLINK : true; // only one serial can be MAVLink if external is MAVLink
+    return isModuleMBridge(EXTERNAL_MODULE) ? g_eeGeneral.auxSerialMode != UART_MODE_MAVLINK : true; // only one serial can be MAVLink if external is MAVLink
 #else
     return false;
 #endif

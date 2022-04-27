@@ -394,7 +394,7 @@ static int luaMavsdkCameraTakePhoto(lua_State *L)
 
 static int luaMavsdkMavTelemIsEnabled(lua_State *L)
 {
-  bool flag = (g_eeGeneral.auxSerialMode == UART_MODE_MAVLINK) || (g_eeGeneral.aux2SerialMode == UART_MODE_MAVLINK) || isModuleMavlink(EXTERNAL_MODULE);
+  bool flag = (g_eeGeneral.auxSerialMode == UART_MODE_MAVLINK) || (g_eeGeneral.aux2SerialMode == UART_MODE_MAVLINK) || isModuleMBridge(EXTERNAL_MODULE);
   lua_pushboolean(L, flag);
   return 1;
 }

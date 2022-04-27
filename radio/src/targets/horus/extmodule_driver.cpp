@@ -26,7 +26,7 @@ void extmoduleStop()
   
 //OW
 #if defined(TELEMETRY_MAVLINK)
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MAVLINK) {
+  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) {
     extmoduleMavlinkTelemStop();
     return;
   }
