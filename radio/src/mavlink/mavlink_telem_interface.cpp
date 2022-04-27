@@ -65,10 +65,10 @@ void mavlinkStart()
 // RXFifo is continuously filled in Rx ISR
 // if as command is detected, it is filled into RxFifo_cmd, prepended with 'OW'
 
-MAVLINK_RAM_SECTION Fifo<uint8_t, 4096> mavlinkTelemExternalTxFifo; // MissionPlanner is rude
-MAVLINK_RAM_SECTION Fifo<uint8_t, 4096> mavlinkTelemExternalRxFifo;
+MAVLINK_RAM_SECTION Fifo<uint8_t, 4096> mavlinkMBridgeTxFifo; // MissionPlanner is rude
+MAVLINK_RAM_SECTION Fifo<uint8_t, 4096> mavlinkMBridgeRxFifo;
 
-void extmoduleMavlinkTelemStop(void)
+void extmoduleMBridgeStop(void)
 {
   USART_ITConfig(TELEMETRY_USART, USART_IT_RXNE, DISABLE);
   USART_ITConfig(TELEMETRY_USART, USART_IT_TXE, DISABLE);
@@ -85,7 +85,7 @@ void extmoduleMavlinkTelemStop(void)
   //EXTERNAL_MODULE_OFF();
 }
 
-void extmoduleMavlinkTelemStart(void)
+void extmoduleMBridgeStart(void)
 {
   //EXTERNAL_MODULE_ON();
 
@@ -217,23 +217,23 @@ void mavlinkTelemExternal_wakeup(void)
 
 uint32_t mavlinkTelemExternalAvailable(void)
 {
-  return mavlinkTelemExternalRxFifo.size();
+  return mavlinkMBridgeRxFifo.size();
 }
 
 uint8_t mavlinkTelemExternalGetc(uint8_t* c)
 {
-  return mavlinkTelemExternalRxFifo.pop(*c);
+  return mavlinkMBridgeRxFifo.pop(*c);
 }
 
 bool mavlinkTelemExternalHasSpace(uint16_t count)
 {
-  return mavlinkTelemExternalTxFifo.hasSpace(count);
+  return mavlinkMBridgeTxFifo.hasSpace(count);
 }
 
 bool mavlinkTelemExternalPutBuf(const uint8_t *buf, const uint16_t count)
 {
-  if (!mavlinkTelemExternalTxFifo.hasSpace(count)) return false;
-  for (uint16_t i = 0; i < count; i++) mavlinkTelemExternalTxFifo.push(buf[i]);
+  if (!mavlinkMBridgeTxFifo.hasSpace(count)) return false;
+  for (uint16_t i = 0; i < count; i++) mavlinkMBridgeTxFifo.push(buf[i]);
   return true;
 }
 
@@ -269,7 +269,7 @@ MAVLINK_RAM_SECTION Fifo<uint8_t, 4096> mavlinkTelemUsbRxFifo; // MissionPlanner
 uint32_t mavlinkTelem1Available(void)
 {
   if (!mavlinkTelem.serial1_enabled) return 0;
-  if (mavlinkTelem.serial1_isexternal) return mavlinkTelemExternalRxFifo.size();
+  if (mavlinkTelem.serial1_isexternal) return mavlinkMBridgeRxFifo.size();
 
 //  if (auxSerialMode != UART_MODE_MAVLINK) return 0;
   return auxSerialRxFifo.size();
@@ -279,7 +279,7 @@ uint32_t mavlinkTelem1Available(void)
 uint8_t mavlinkTelem1Getc(uint8_t* c)
 {
   if (!mavlinkTelem.serial1_enabled) return 0;
-  if (mavlinkTelem.serial1_isexternal) return mavlinkTelemExternalRxFifo.pop(*c);
+  if (mavlinkTelem.serial1_isexternal) return mavlinkMBridgeRxFifo.pop(*c);
 
   return auxSerialRxFifo.pop(*c);
 }
@@ -287,7 +287,7 @@ uint8_t mavlinkTelem1Getc(uint8_t* c)
 bool mavlinkTelem1HasSpace(uint16_t count)
 {
   if (!mavlinkTelem.serial1_enabled) return 0;
-  if (mavlinkTelem.serial1_isexternal) return mavlinkTelemExternalTxFifo.hasSpace(count);
+  if (mavlinkTelem.serial1_isexternal) return mavlinkMBridgeTxFifo.hasSpace(count);
 
 //  if (auxSerialMode != UART_MODE_MAVLINK) return false;
   return auxSerialTxFifo.hasSpace(count);
@@ -319,7 +319,7 @@ bool mavlinkTelem1PutBuf(const uint8_t* buf, const uint16_t count){ return false
 uint32_t mavlinkTelem2Available(void)
 {
   if (!mavlinkTelem.serial2_enabled) return 0;
-  if (mavlinkTelem.serial2_isexternal) return mavlinkTelemExternalRxFifo.size();
+  if (mavlinkTelem.serial2_isexternal) return mavlinkMBridgeRxFifo.size();
 
 //  if (aux2SerialMode != UART_MODE_MAVLINK) return 0;
   return aux2SerialRxFifo.size();
@@ -329,7 +329,7 @@ uint32_t mavlinkTelem2Available(void)
 uint8_t mavlinkTelem2Getc(uint8_t* c)
 {
   if (!mavlinkTelem.serial2_enabled) return 0;
-  if (mavlinkTelem.serial2_isexternal) return mavlinkTelemExternalRxFifo.pop(*c);
+  if (mavlinkTelem.serial2_isexternal) return mavlinkMBridgeRxFifo.pop(*c);
 
   return aux2SerialRxFifo.pop(*c);
 }
@@ -337,7 +337,7 @@ uint8_t mavlinkTelem2Getc(uint8_t* c)
 bool mavlinkTelem2HasSpace(uint16_t count)
 {
   if (!mavlinkTelem.serial2_enabled) return 0;
-  if (mavlinkTelem.serial2_isexternal) return mavlinkTelemExternalTxFifo.hasSpace(count);
+  if (mavlinkTelem.serial2_isexternal) return mavlinkMBridgeTxFifo.hasSpace(count);
 
 //  if (aux2SerialMode != UART_MODE_MAVLINK) return false;
   return aux2SerialTxFifo.hasSpace(count);

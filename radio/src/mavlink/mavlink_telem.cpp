@@ -660,7 +660,7 @@ void MavlinkTelem::wakeup()
   }
 
   // do bridge
-  if (moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE) mavlinkTelemExternal_wakeup();
+  if (externalEnabled()) mavlinkTelemExternal_wakeup();
 
   // skip out if not at least one of the serial1, serial2 is enabled
   if (!serial1_enabled && !serial2_enabled) return;

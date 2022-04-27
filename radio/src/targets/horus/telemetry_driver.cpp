@@ -30,10 +30,10 @@ uint8_t telemetryFifoMode;
 
 //OW
 #if defined(TELEMETRY_MAVLINK)
-extern Fifo<uint8_t, 4096> mavlinkTelemExternalRxFifo;
+extern Fifo<uint8_t, 4096> mavlinkMBridgeRxFifo;
 extern Fifo<uint8_t, 256> mBridgeTxFifo_frame;
 extern Fifo<uint8_t, 256> mBridgeRxFifo_cmd;
-volatile uint8_t mavlinkTelemExternal_rx_state = 0;
+volatile uint8_t mBridge_rx_state = 0;
 #endif
 //OWEND
 
@@ -426,7 +426,7 @@ extern "C" void TELEMETRY_USART_IRQHandler(void)
         USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_TC);
         USART_ITConfig(TELEMETRY_USART, USART_IT_TC, ENABLE);
       }
-      mavlinkTelemExternal_rx_state = 0;
+      mBridge_rx_state = 0;
     }
     else if (USART_GetITStatus(TELEMETRY_USART, USART_IT_TC) != RESET) {
       USART_ITConfig(TELEMETRY_USART, USART_IT_TC, DISABLE);
@@ -434,27 +434,27 @@ extern "C" void TELEMETRY_USART_IRQHandler(void)
       TELEMETRY_DIR_GPIO->BSRRH = TELEMETRY_DIR_GPIO_PIN; // output disable
       USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_RXNE);
       TELEMETRY_USART->CR1 |= USART_CR1_RE; // turn on receiver
-      mavlinkTelemExternal_rx_state = 1;
+      mBridge_rx_state = 1;
       mBridgeRxFifo_cmd.clear();
     }
 
     if (USART_GetITStatus(TELEMETRY_USART, USART_IT_RXNE) != RESET) {
       USART_ClearITPendingBit(TELEMETRY_USART, USART_IT_RXNE);
       uint8_t c = USART_ReceiveData(TELEMETRY_USART);
-      if (mavlinkTelemExternal_rx_state == 2) {
-        mavlinkTelemExternalRxFifo.push(c); // receive serial data
+      if (mBridge_rx_state == 2) {
+          mavlinkMBridgeRxFifo.push(c); // receive serial data
       } else
-      if (mavlinkTelemExternal_rx_state == 1) {
+      if (mBridge_rx_state == 1) {
         if ((c & MBRIDGE_COMMANDPACKET_MASK) == MBRIDGE_COMMANDPACKET_STX) {
           mBridgeRxFifo_cmd.push(MBRIDGE_STX1);
           mBridgeRxFifo_cmd.push(MBRIDGE_STX2);
           mBridgeRxFifo_cmd.push(c);
-          mavlinkTelemExternal_rx_state = 3; // switch to receive command
+          mBridge_rx_state = 3; // switch to receive command
         } else {
-          mavlinkTelemExternal_rx_state = 2; // switch to receive serial data
+          mBridge_rx_state = 2; // switch to receive serial data
         }
       } else
-      if (mavlinkTelemExternal_rx_state == 3) {
+      if (mBridge_rx_state == 3) {
           mBridgeRxFifo_cmd.push(c); // receive command
       }
     }

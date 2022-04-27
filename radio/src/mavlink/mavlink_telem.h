@@ -28,8 +28,8 @@ extern Fifo<uint8_t, 4096> mavlinkTelemUsbRxFifo; // MissionPlanner is rude
 // since the two aux buffers cannot be reused, as they may be used by something else
 // so, no way out
 
-void extmoduleMavlinkTelemStop(void);
-void extmoduleMavlinkTelemStart(void);
+void extmoduleMBridgeStop(void);
+void extmoduleMBridgeStart(void);
 void mavlinkTelemExternal_wakeup(void);
 
 uint32_t mavlinkTelem1Available(void);
