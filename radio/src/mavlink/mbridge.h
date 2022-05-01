@@ -49,7 +49,9 @@ typedef enum {
     MBRIDGE_CMD_INFO                  = 11,
     MBRIDGE_CMD_PARAM_SET             = 12,
     MBRIDGE_CMD_PARAM_STORE           = 13, // len = 0
-    MBRIDGE_CMD_BIND                  = 14, // len = 0
+    MBRIDGE_CMD_BIND_START            = 14, // len = 0
+    MBRIDGE_CMD_BIND_STOP             = 15, // len = 0
+    MBRIDGE_CMD_MODELID_SET           = 16,
 } MBRIDGE_CMD_ENUM;
 
 #define MBRIDGE_CMD_TX_LINK_STATS_LEN         22
@@ -58,6 +60,7 @@ typedef enum {
 #define MBRIDGE_CMD_REQUEST_CMD_LEN           18
 #define MBRIDGE_CMD_INFO_LEN                  24
 #define MBRIDGE_CMD_PARAM_SET_LEN             7
+#define MBRIDGE_CMD_MODELID_SET_LEN           3
 
 
 // -- packets as exchanged over MBridge
@@ -110,8 +113,11 @@ typedef struct
   uint8_t fhss_cnt;
 
   uint8_t vehicle_state : 2; // 0 = disarmed, 1 = armed 2 = flying, 3 = invalid/unknown
+  uint8_t spare : 6;
 
-  uint8_t spare;
+  uint8_t link_state_connected : 1;
+  uint8_t link_state_binding : 1;
+  uint8_t spare2 : 6;
 }) tMBridgeLinkStats;
 
 
@@ -132,11 +138,18 @@ class MBridge
   public:
     MBridge(); // constructor
 
+    void triggerSendModelId(uint8_t new_model_id) { _send_model_id = true; _model_id = new_model_id; }
+    void triggerSendBindStart(void) { _send_bind = true; _send_bind_start = true; }
+    void triggerSendBindStop(void) { _send_bind = true; _send_bind_start = false; }
+
     void read_packet();
     void send_serialpacket(void);
     void send_channelpacket(void);
     bool send_cmdpacket(void);
     bool linkstats_updated(void);
+
+    bool send_bindpacket(void);
+    bool send_modelidpacket(void);
 
     #define MBRIDGE_RSSI_LIST_LEN  32
 
@@ -184,7 +197,7 @@ class MBridge
 
     struct CmdPacket {
       uint8_t cmd;
-      uint8_t len;
+      uint8_t len; // helper field, to keep len
       uint8_t payload[MBRIDGE_R2M_COMMAND_PAYLOAD_LEN_MAX]; // used for both rx & tx, payload sizes are equal
     };
     Fifo<struct CmdPacket, 16> tx_cmd_fifo;
@@ -199,6 +212,15 @@ class MBridge
     void get_channels(uint8_t* _payload, uint8_t* len);
 
     void set_linkstats(tMBridgeLinkStats* ls);
+
+    void _send_cmdpacket(struct CmdPacket* pkt);
+
+  public:
+    bool _send_model_id;
+    uint8_t _model_id;
+    bool _send_bind;
+    uint32_t _send_bind_tsend_10ms;
+    bool _send_bind_start;
 };
 
 extern MBridge mBridge;

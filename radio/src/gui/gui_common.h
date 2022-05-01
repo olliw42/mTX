@@ -152,6 +152,10 @@ inline uint8_t MODULE_BIND_ROWS(int moduleIdx)
 {
   if (isModuleCrossfire(moduleIdx))
     return 1;
+//OW
+  if (isModuleMBridge(moduleIdx))
+    return 1;
+//OWEND
 
   if (isModuleMultimodule(moduleIdx)) {
     if (IS_RX_MULTI(moduleIdx))
@@ -187,11 +191,9 @@ inline uint8_t MODULE_CHANNELS_ROWS(int moduleIdx)
     return 0;
   }
 //OW
-#if defined(TELEMETRY_MAVLINK)
   else if (isModuleMBridge(moduleIdx)) {
     return HIDDEN_ROW;
   }
-#endif
 //OWEND
   else {
     return 1;

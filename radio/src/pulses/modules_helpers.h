@@ -325,12 +325,14 @@ inline bool isModuleAFHDS3(uint8_t idx)
 }
 
 //OW
-#if defined(TELEMETRY_MAVLINK)
 inline bool isModuleMBridge(uint8_t idx)
 {
+#if defined(TELEMETRY_MAVLINK)
   return idx == EXTERNAL_MODULE && g_model.moduleData[idx].getType() == MODULE_TYPE_MBRIDGE;
-}
+#else
+  return false;
 #endif
+}
 //OWEND
 
 // order is the same as in enum Protocols in myeeprom.h (none, ppm, pxx, pxx2, dsm, crossfire, multi, r9m, r9m2, sbus)
@@ -432,6 +434,10 @@ inline bool isModuleRxNumAvailable(uint8_t moduleIdx)
   if (isModuleCrossfire(moduleIdx))
     return true;
 
+//OW not yet supported
+  if (isModuleMBridge(moduleIdx))
+    return true;
+//OWEND
   return false;
 }
 
@@ -471,11 +477,17 @@ inline bool isModuleFailsafeAvailable(uint8_t moduleIdx)
 
 inline bool isModuleBindRangeAvailable(uint8_t moduleIdx)
 {
+//OW
+  if (isModuleMBridge(moduleIdx)) return true;
+//OWEND
   return isModulePXX2(moduleIdx) || isModulePXX1(moduleIdx) || isModuleDSM2(moduleIdx) || isModuleMultimodule(moduleIdx) || isModuleAFHDS3(moduleIdx);
 }
 
 inline bool isModuleRangeAvailable(uint8_t moduleIdx)
 {
+//OW
+  if (isModuleMBridge(moduleIdx)) return false;
+//OWEND
   return isModuleBindRangeAvailable(moduleIdx) && !IS_RX_MULTI(moduleIdx);
 }
 
@@ -497,6 +509,10 @@ inline uint8_t getMaxRxNum(uint8_t idx)
     }
   }
 #endif
+
+//OW
+  if (isModuleMBridge(idx)) return 15;
+//OWEND
 
   return MAX_RXNUM;
 }

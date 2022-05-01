@@ -153,22 +153,35 @@ void extmoduleMBridgeStart(void)
 // 16 bytes per slot = 8000 bytes/s = effectively 80000 bps, should be way enough
 // 3+16 bytes @ 400000 bps = 0.475 ms, 16 bytes @ 400000 bps = 0.4 ms, => 0.875 ms
 
-void mavlinkTelemExternal_wakeup(void)
+void extmoduleMBridge_wakeup(void)
 {
   static uint8_t slot_counter = 0;
 
+  if (!mavlinkTelem.externalEnabled()) return;
+
+  // read
   mBridge.read_packet();
 
+  // switch to send
   // we do it at the beginning, so it gives few cycles before TX is enabled
   TELEMETRY_DIR_GPIO->BSRRL = TELEMETRY_DIR_GPIO_PIN; // enable output
   TELEMETRY_USART->CR1 &= ~USART_CR1_RE; // turn off receiver
 
-  // every 10th slot we send a channel packet
+  // send
+  // every 10th slot we send a channel packet, important as it syncs the tx module
   if (slot_counter == 0) {
     mBridge.send_channelpacket();
   } else
   if ((slot_counter == 1) || (slot_counter == 5)) {
-    if (!mBridge.send_cmdpacket()) mBridge.send_serialpacket(); // if we have a cmd packet, send it, else send a serial packet
+    if (mBridge.send_bindpacket()) {
+    } else
+    if (mBridge.send_modelidpacket()) {
+    } else
+    // if we have a cmd packet, send it, else send a serial packet
+    if (mBridge.send_cmdpacket()) {
+    } else {
+      mBridge.send_serialpacket();
+    }
   } else {
     mBridge.send_serialpacket();
   }

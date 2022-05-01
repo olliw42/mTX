@@ -30,7 +30,7 @@ extern Fifo<uint8_t, 4096> mavlinkTelemUsbRxFifo; // MissionPlanner is rude
 
 void extmoduleMBridgeStop(void);
 void extmoduleMBridgeStart(void);
-void mavlinkTelemExternal_wakeup(void);
+void extmoduleMBridge_wakeup(void);
 
 uint32_t mavlinkTelem1Available(void);
 uint8_t mavlinkTelem1Getc(uint8_t *c);

@@ -1664,6 +1664,13 @@ bool menuModelSetup(event_t event)
                 if (checkIncDec_Ret && isModuleCrossfire(moduleIdx)) {
                   moduleState[EXTERNAL_MODULE].counter = CRSF_FRAME_MODELID;
                 }
+//OW
+#if defined(TELEMETRY_MAVLINK)
+                if (checkIncDec_Ret && isModuleMBridge(moduleIdx)) {
+                  mBridge.triggerSendModelId(g_model.header.modelId[moduleIdx]);
+                }
+#endif
+//OWEND
                 if (event == EVT_KEY_LONG(KEY_ENTER)) {
                   killEvents(event);
                   uint8_t newVal = modelslist.findNextUnusedModelId(moduleIdx);
@@ -1691,6 +1698,14 @@ bool menuModelSetup(event_t event)
               s_editMode = 0;
             }
 #endif
+//OW
+#if defined(TELEMETRY_MAVLINK)
+           if (isModuleMBridge(moduleIdx)) {
+             // reset edit mode if it was/is in edit but mode went back to normal
+             if (old_editMode > 0 && s_editMode > 0 && moduleState[moduleIdx].mode == MODULE_MODE_NORMAL) s_editMode = 0;
+           }
+#endif
+//OWEND
             if (attr && l_posHorz>0) {
               if (s_editMode>0) {
                 if (l_posHorz == 1) {
@@ -1728,6 +1743,20 @@ bool menuModelSetup(event_t event)
             if (newFlag == MODULE_MODE_BIND)
               setMultiBindStatus(moduleIdx, MULTI_BIND_INITIATED);
 #endif
+//OW
+#if defined(TELEMETRY_MAVLINK)
+            if (isModuleMBridge(moduleIdx)) {
+              if (newFlag == MODULE_MODE_BIND) {
+                // changed from no-edit to edit, so trigger bind start
+                if (old_editMode == 0 && s_editMode > 0) mBridge.triggerSendBindStart();
+              }
+              if (newFlag == MODULE_MODE_NORMAL) {
+                // changed from edit to no-edit, so trigger bind stop
+                if (old_editMode > 0 && s_editMode == 0) mBridge.triggerSendBindStop();
+              }
+            }
+#endif
+//OWEND
           }
         }
         break;

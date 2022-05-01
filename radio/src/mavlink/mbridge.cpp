@@ -31,6 +31,10 @@ MBridge::MBridge()
 
   tx_cmd_fifo.clear();
   rx_cmd_fifo.clear();
+
+  _send_model_id = false;
+  _model_id = UINT8_MAX;
+  _send_bind = false;
 }
 
 
@@ -49,7 +53,9 @@ uint8_t MBridge::cmd_payload_len(uint8_t cmd)
   case MBRIDGE_CMD_INFO: return MBRIDGE_CMD_INFO_LEN;
   case MBRIDGE_CMD_PARAM_SET: return MBRIDGE_CMD_PARAM_SET_LEN; break;
   case MBRIDGE_CMD_PARAM_STORE: return 0;
-  case MBRIDGE_CMD_BIND: return 0;
+  case MBRIDGE_CMD_BIND_START: return 0;
+  case MBRIDGE_CMD_BIND_STOP: return 0;
+  case MBRIDGE_CMD_MODELID_SET: return MBRIDGE_CMD_MODELID_SET_LEN; break;
   }
   return 0;
 }
@@ -146,10 +152,23 @@ uint8_t len;
 }
 
 
+void MBridge::_send_cmdpacket(struct CmdPacket* pkt)
+{
+  pkt->cmd &=~ MBRIDGE_COMMANDPACKET_MASK;
+
+  // always send header, this synchronizes slave
+  mBridgeTxFifo_frame.push(MBRIDGE_STX1);
+  mBridgeTxFifo_frame.push(MBRIDGE_STX2);
+  mBridgeTxFifo_frame.push((uint8_t)MBRIDGE_COMMANDPACKET_STX + pkt->cmd);
+  for (uint16_t i = 0; i < pkt->len; i++) mBridgeTxFifo_frame.push(pkt->payload[i]);
+}
+
+
 // called in mavlinkTelemExternal_wakeup()
 bool MBridge::send_cmdpacket(void)
 {
-  struct MBridge::CmdPacket pkt;
+struct CmdPacket pkt;
+
   if (!tx_cmd_fifo.pop(pkt)) return false;
 
   pkt.cmd &=~ MBRIDGE_COMMANDPACKET_MASK;
@@ -164,6 +183,42 @@ bool MBridge::send_cmdpacket(void)
   for (uint16_t i = 0; i < payload_len; i++) {
     mBridgeTxFifo_frame.push((i < pkt.len) ? pkt.payload[i] : 0);
   }
+
+  return true;
+}
+
+
+bool MBridge::send_bindpacket(void)
+{
+struct CmdPacket pkt;
+
+  if (!_send_bind) return false;
+  _send_bind = false;
+  _send_bind_tsend_10ms = get_tmr10ms();
+
+  pkt.cmd = (_send_bind_start) ? MBRIDGE_CMD_BIND_START : MBRIDGE_CMD_BIND_STOP;
+
+  pkt.len = cmd_payload_len(pkt.cmd);
+  _send_cmdpacket(&pkt);
+
+  return true;
+}
+
+
+bool MBridge::send_modelidpacket(void)
+{
+struct CmdPacket pkt;
+
+  if (!_send_model_id) return false;
+  _send_model_id = false;
+
+  pkt.cmd = MBRIDGE_CMD_MODELID_SET;
+  pkt.payload[0] = _model_id;
+  pkt.payload[1] = _model_id;
+  pkt.payload[2] = _model_id;
+
+  pkt.len = cmd_payload_len(pkt.cmd);
+  _send_cmdpacket(&pkt);
 
   return true;
 }
@@ -209,6 +264,14 @@ void MBridge::set_linkstats(tMBridgeLinkStats* ls)
   link_stats.receiver_antenna_list[ls->fhss_curr_i] = ls->receiver_receive_antenna;
 
   _link_stats_updated = true;
+
+  // reset internal bind status
+  if (moduleState[EXTERNAL_MODULE].mode == MODULE_MODE_BIND) {
+    uint32_t tnow = get_tmr10ms();
+    if (((tnow - _send_bind_tsend_10ms) > 25) && !ls->link_state_binding) {
+        moduleState[EXTERNAL_MODULE].mode = MODULE_MODE_NORMAL;
+    }
+  }
 }
 
 

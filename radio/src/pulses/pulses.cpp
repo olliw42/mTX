@@ -334,6 +334,7 @@ void enablePulsesExternalModule(uint8_t protocol)
       EXTERNAL_MODULE_ON();
       extmoduleMBridgeStart();
       // TODO: mixerSchedulerSetPeriod() needed?? I think no, is reset by stop()
+      mixerSchedulerSetPeriod(EXTERNAL_MODULE, 4000);
       break;
 #endif
 //OWEND
@@ -465,6 +466,16 @@ bool setupPulsesExternalModule(uint8_t protocol)
 #endif
       return true;
 #endif
+
+//OW
+#if defined(TELEMETRY_MAVLINK)
+    case PROTOCOL_CHANNELS_MBRIDGE:
+#if defined(PCBSKPCBSKY9X)
+      scheduleNextMixerCalculation(EXTERNAL_MODULE, 4000);
+#endif
+      return true;
+#endif
+//OWEND
 
     default:
       return false;
