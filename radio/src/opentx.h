@@ -30,7 +30,7 @@ TODO:
 
 type to getType() changes not marked with //OW
 
-
+v33 2022-05-05
 upgraded to otx2.3.15 as base
 mBridge
 v31 2021-11-21
@@ -97,7 +97,7 @@ modified files in radio/src/
     main.cpp:         3x
     opentx.cpp:       2x
     opentx.h:         2x
-    options.h:        1x
+    options.h:        2x
     tasks.cpp:        3x
     tasks.h:          1x
     touch.h:          2x
@@ -108,18 +108,18 @@ modified files in radio/src/
     gui/480x272/lcd.cpp:             1x
     gui/480x272/lcd.h:               1x
     gui/480x272/menus.h:             1x
-    gui/480x272/model_setup.cpp:     3x
+    gui/480x272/model_setup.cpp:     6x
     gui/480x272/radio_diaganas.cpp:  2x
     gui/480x272/radio_hardware.cpp:  6x
     gui/480x272/topbar.cpp:          2x
     gui/gui_common.cpp:              4x
-    gui/gui_common.h:                2x
+    gui/gui_common.h:                3x
     lua/api_general.cpp:             4x
     lua/api_lcd.cpp:                 4x
     lua/widgets.cpp:                 4x
     pulses/modules_constants.h:      1x
-    pulses/modules_helpers.h:        1x
-    pulses/pulses.cpp:               2x
+    pulses/modules_helpers.h:        5x
+    pulses/pulses.cpp:               3x
     pulses/pulses.h:                 1x
     targets/common/arm/stm32/aux_serial_driver.cpp:  8x
     targets/common/arm/stm32/CMakeLists.txt:         3x
