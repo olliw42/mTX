@@ -285,7 +285,7 @@ class MavlinkTelem
     }
 
     struct Radio {
-      uint16_t is_receiving; // RADIO_STATUS has priority
+      uint16_t is_receiving; // RADIO_STATUS (msg 109) has priority
       uint8_t rssi;
       uint8_t remrssi;
       uint8_t noise;

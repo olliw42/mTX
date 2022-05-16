@@ -225,7 +225,22 @@ void extmoduleMBridge_wakeup(void)
     mavlinkTelem.mbridgestats.receiver_rssi_scaled = rssi;
 
     mavlinkTelem.mbridgestats.receiver_LQ = mBridge.link_stats.receiver_LQ;
-  }
+
+    // mimic crossfire.cpp
+    if (mBridge.link_stats.receiver_LQ) {
+      telemetryData.rssi.set(mBridge.link_stats.receiver_LQ);
+      telemetryStreaming = TELEMETRY_TIMEOUT10ms; // MAVLINK_TELEM_RADIO_RECEIVING_TIMEOUT;
+      telemetryData.telemetryValid |= (1 << EXTERNAL_MODULE);
+    }
+    else {
+      if (telemetryData.telemetryValid & (1 << EXTERNAL_MODULE)) {
+        telemetryData.rssi.reset();
+        telemetryStreaming = 0;
+      }
+      telemetryData.telemetryValid &= ~(1 << EXTERNAL_MODULE);
+    }
+
+  }// end of if (mBridge.linkstats_updated())
 }
 
 uint32_t mavlinkTelemExternalAvailable(void)
@@ -495,7 +510,7 @@ void MavlinkTelem::telemetrySetValue(uint16_t id, uint8_t subId, uint8_t instanc
 void MavlinkTelem::telemetrySetRssiValue(uint8_t rssi)
 {
   if (g_model.mavlinkRssiScale > 0) {
-    if (g_model.mavlinkRssiScale < 255) { //if not full range, respect  UINT8_MAX
+    if (g_model.mavlinkRssiScale < 255) { //if not full range, respect UINT8_MAX
       if (rssi == UINT8_MAX) rssi = 0;
     }
     if (rssi > g_model.mavlinkRssiScale) rssi = g_model.mavlinkRssiScale; //constrain
@@ -507,7 +522,7 @@ void MavlinkTelem::telemetrySetRssiValue(uint8_t rssi)
 
   radio.rssi_scaled = rssi;
 
-  if (g_model.mavlinkRssi) {
+  if (g_model.mavlinkRssi && !mbridgestats.is_receiving_linkstats) {
     if (!radio.is_receiving && !radio.is_receiving65 && !radio.is_receiving35) return;
 
     telemetryData.rssi.set(rssi);
@@ -530,7 +545,7 @@ void MavlinkTelem::telemetryResetRssiValue(void)
 
   radio.rssi_scaled = 0;
 
-  if (g_model.mavlinkRssi) {
+  if (g_model.mavlinkRssi && !mbridgestats.is_receiving_linkstats) {
     telemetryData.rssi.reset();
   }
 

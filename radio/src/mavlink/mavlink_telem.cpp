@@ -818,6 +818,8 @@ void MavlinkTelem::_resetMBridgeStats(void)
   mbridgestats.is_receiving_linkstats = 0;
   mbridgestats.receiver_LQ = 0;
   mbridgestats.receiver_rssi = UINT8_MAX;
+
+  telemetryResetRssiValue();
 }
 
 void MavlinkTelem::_reset(void)
