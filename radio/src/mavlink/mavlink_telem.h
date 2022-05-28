@@ -68,7 +68,7 @@ tmr10ms_t mavlinkRcOverrideRate(void);
 #include "thirdparty/Mavlink/out/opentx/opentx.h"
 #include "thirdparty/Mavlink/out/lib/fastmavlink_router.h"
 
-#define FASTMAVLINK_PARAM_NUM   7
+#define FASTMAVLINK_PARAM_NUM   8
 extern const fmav_param_entry_t fmav_param_list[FASTMAVLINK_PARAM_NUM];
 
 #include "thirdparty/Mavlink/out/lib/fastmavlink_parameters.h"
@@ -955,6 +955,7 @@ class MavlinkTelem
       uint8_t mavlinkRssiScale;
       uint8_t mavlinkMimicSensors;
       uint8_t mavlinkRcOverride;
+      uint8_t mavlinkRcOverride16Ch;
       uint8_t mavlinkSendPosition;
     };
     struct MyParameters p;

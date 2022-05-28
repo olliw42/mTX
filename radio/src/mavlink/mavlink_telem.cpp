@@ -107,6 +107,7 @@ const fmav_param_entry_t fmav_param_list[FASTMAVLINK_PARAM_NUM] = {
   {(uint8_t*)&(mavlinkTelem.p.mavlinkRssiScale), MAV_PARAM_TYPE_UINT8, "RSSI_SCALE" },
   {(uint8_t*)&(mavlinkTelem.p.mavlinkMimicSensors), MAV_PARAM_TYPE_UINT8, "MIMIC_SENSORS" },
   {(uint8_t*)&(mavlinkTelem.p.mavlinkRcOverride), MAV_PARAM_TYPE_UINT8, "RC_OVERRIDE" },
+  {(uint8_t*)&(mavlinkTelem.p.mavlinkRcOverride16Ch), MAV_PARAM_TYPE_UINT8, "RC_OVERRIDE_16CH" },
   {(uint8_t*)&(mavlinkTelem.p.mavlinkSendPosition), MAV_PARAM_TYPE_UINT8, "SEND_POSITION" },
 };
 
@@ -119,6 +120,7 @@ void MavlinkTelem::_mavlink_copy_g2p(void)
   p.mavlinkRssiScale = g_model.mavlinkRssiScale;
   p.mavlinkMimicSensors = g_model.mavlinkMimicSensors;
   p.mavlinkRcOverride = g_model.mavlinkRcOverride;
+  p.mavlinkRcOverride16Ch = g_model.mavlinkRcOverride16Channels;
   p.mavlinkSendPosition = g_model.mavlinkSendPosition;
 }
 
@@ -128,6 +130,7 @@ void MavlinkTelem::_mavlink_copy_p2g(void)
   g_model.mavlinkRssiScale = p.mavlinkRssiScale;
   g_model.mavlinkMimicSensors = (p.mavlinkMimicSensors > 0) ? 1 : 0;
   g_model.mavlinkRcOverride = (p.mavlinkRcOverride <= 14) ? p.mavlinkRcOverride : 0;
+  g_model.mavlinkRcOverride16Channels = (p.mavlinkRcOverride16Ch <= 1) ? p.mavlinkRcOverride : 0;
   g_model.mavlinkSendPosition = (p.mavlinkSendPosition <= 5) ? p.mavlinkSendPosition : 0;
 }
 
@@ -461,27 +464,34 @@ void MavlinkTelem::doTask(void)
   do_requests();
 
   // do rc override
-  // ArduPilot has a DAMED BUG!!!
-  // per MAVLink spec 0 and UNIT16_MAX should not be considered for channels >= 8, but it doesn't do it for 0
-  // but we can hope that it handles 0 for the higher channels
+  // per MAVLink spec 0 and UNIT16_MAX should not be considered for channels >= 8, so we can send 0 and benefit for zero padding
+  // comment: ArduPilot 4.1 and older had a DAMED BUG, is resolved with ArduPilot 4.2
   if (g_model.mavlinkRcOverride && param.SYSID_MYGCS >= 0) {
     uint32_t dt_10ms = mavlinkRcOverrideRate();
     if ((tnow - _rcoverride_tlast) >= dt_10ms) {
       _rcoverride_tlast += dt_10ms;
-      if ((tnow - _rcoverride_tlast) >= dt_10ms) _rcoverride_tlast = tnow; //we are late, so get back in sync
-      for (uint8_t i = 0; i < 8; i++) {
-        /* we should do this, see pulses/sbus.cpp, and other in there:
+      if ((tnow - _rcoverride_tlast) >= dt_10ms) _rcoverride_tlast = tnow; // we are late, so get back in sync
+      uint8_t ch_max = (g_model.mavlinkRcOverride16Channels) ? 16 : 8;
+      for (uint8_t i = 0; i < ch_max; i++) {
+        /* see pulses/sbus.cpp, and other in there:
           int ch = g_model.moduleData[EXTERNAL_MODULE].channelsStart + channel;
           if (ch > 31) return 0; // We will ignore 17 and 18th if that brings us over the limit
           return channelOutputs[ch] + 2 * PPM_CH_CENTER(ch) - 2*PPM_CENTER;
         */
         // the first four channels may not be ordered like with transmitter!!
         //int value = channelOutputs[i]/2 + PPM_CH_CENTER(i);
-        int ch = g_model.moduleData[INTERNAL_MODULE].channelsStart + i; // or EXTERNAL_MODULE ?
-        int value = channelOutputs[ch]/2 + PPM_CH_CENTER(ch);
+        int ch_ofs = 0;
+        if (g_model.moduleData[EXTERNAL_MODULE].getType() > MODULE_TYPE_NONE) {
+          ch_ofs = g_model.moduleData[EXTERNAL_MODULE].channelsStart;
+        }
+        else if (g_model.moduleData[INTERNAL_MODULE].getType() > MODULE_TYPE_NONE) {
+          ch_ofs = g_model.moduleData[INTERNAL_MODULE].channelsStart;
+        }
+        int ch = ch_ofs + i;
+        int value = (ch <= 31) ? channelOutputs[ch]/2 + PPM_CH_CENTER(ch) : 0;
         _tovr_chan_raw[i] = value;
       }
-      for (uint8_t i = 8; i < 18; i++) { 
+      for (uint8_t i = ch_max; i < 18; i++) {
         _tovr_chan_raw[i] = 0; 
       }
       SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_RC_CHANNELS_OVERRIDE);

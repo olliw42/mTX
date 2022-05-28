@@ -1022,6 +1022,7 @@ extern const char STR_MAVLINK_RSSI_SCALE[];
 extern const char STR_MAVLINK_SENSOR_MIMICRY[];
 extern const char STR_MAVLINK_RC_OVERRIDE[];
 extern const char STR_MAVLINK_RC_OVERRIDE_FREQUENCIES[];
+extern const char STR_MAVLINK_RC_OVERRIDE_16CH[];
 extern const char STR_MAVLINK_SEND_POSITION[];
 extern const char STR_MAVLINK_SEND_POSITION_FREQUENCIES[];
 extern const char STR_MAVLINK_AUX_BAUDRATES[];
