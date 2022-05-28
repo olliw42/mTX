@@ -1027,6 +1027,8 @@ extern const char STR_MAVLINK_SEND_POSITION_FREQUENCIES[];
 extern const char STR_MAVLINK_AUX_BAUDRATES[];
 extern const char STR_USB_MAVLINK[];
 
+extern const char STR_MAVLINK_THROTTLE_WARNINGS[];
+
 extern const char STR_SERIAL_LABEL[];
 extern const char STR_USBMODES_OW[];
 extern const char STR_AUX_SERIAL_MODES_OW[];

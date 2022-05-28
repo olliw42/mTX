@@ -870,7 +870,14 @@ bool menuModelSetup(event_t event)
 
       case ITEM_MODEL_SETUP_THROTTLE_WARNING:
         lcdDrawText(MENUS_MARGIN_LEFT, y, STR_THROTTLEWARNING);
+//OW
+#if defined(TELEMETRY_MAVLINK)
+        if (g_model.mavlinkThrottleWarning > 3) g_model.mavlinkThrottleWarning = 0; // sanitize
+        g_model.mavlinkThrottleWarning = editChoice(MODEL_SETUP_2ND_COLUMN, y, STR_MAVLINK_THROTTLE_WARNINGS, g_model.mavlinkThrottleWarning, 0, 3, attr, event);
+#else
         g_model.disableThrottleWarning = !editCheckBox(!g_model.disableThrottleWarning, MODEL_SETUP_2ND_COLUMN, y, attr, event);
+#endif
+//OWEND
         break;
 
       case ITEM_MODEL_SETUP_SWITCHES_WARNING:

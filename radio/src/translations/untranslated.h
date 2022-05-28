@@ -187,6 +187,9 @@
 #define TR_MAVLINK_AUX_BAUDRATES       "57600\0""115200""38400\0""19200\0"
 #define TR_USB_MAVLINK                 "USB Mavlink (VCP)"
 
+#define LEN_MAVLINK_THROTTLE_WARNINGS  "\011"
+#define TR_MAVLINK_THROTTLE_WARNINGS   "OFF\0     ""Low\0     ""Mid\0     ""Low & Mid"
+
 #define TR_SERIAL_LABEL                "Serials"
 #define LEN_USBMODES_OW                TR("\006", "\010")
 #if defined(DEBUG)

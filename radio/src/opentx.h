@@ -28,8 +28,9 @@ TODO:
 - is velocity for send GLOBAL_POSITION_INT correct ? is velocity needed for follow to work
 - is_receiving handling should be improved such as to distinguish between a momentary connection lost and a reset of a component
 
-type to getType() changes not marked with //OW
+the type to getType() changes are not marked with //OW
 
+add mavlinkThrottleWarning option
 v33 2022-05-05
 upgraded to otx2.3.15 as base
 mBridge

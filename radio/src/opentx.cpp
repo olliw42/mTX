@@ -1078,7 +1078,13 @@ void checkLowEEPROM()
 
 bool isThrottleWarningAlertNeeded()
 {
+//OW
+#ifdef TELEMETRY_MAVLINK
+  if (!g_model.mavlinkThrottleWarning) {
+#else
   if (g_model.disableThrottleWarning) {
+#endif
+//OWEND
     return false;
   }
 
@@ -1095,6 +1101,16 @@ bool isThrottleWarningAlertNeeded()
   if (g_model.thrTraceSrc && g_model.throttleReversed) { // TODO : proper review of THR source definition and handling
     v = -v;
   }
+//OW
+#ifdef TELEMETRY_MAVLINK
+  switch (g_model.mavlinkThrottleWarning) {
+  case 1: return (v > THRCHK_DEADBAND - 1024);
+  case 2: return ((v < -100) || (v > +100));
+  case 3: return ((v > THRCHK_DEADBAND - 1024) && (v < -100)) || (v > +100);
+  }
+  return false;
+#endif
+//OWEND
   return v > THRCHK_DEADBAND - 1024;
 }
 
