@@ -1702,7 +1702,9 @@ bool menuModelSetup(event_t event)
 #if defined(TELEMETRY_MAVLINK)
            if (isModuleMBridge(moduleIdx)) {
              // reset edit mode if it was/is in edit but mode went back to normal
-             if (old_editMode > 0 && s_editMode > 0 && moduleState[moduleIdx].mode == MODULE_MODE_NORMAL) s_editMode = 0;
+             if (old_editMode > 0 && s_editMode > 0 && attr && l_posHorz == 1) {
+                 if (moduleState[moduleIdx].mode == MODULE_MODE_NORMAL) s_editMode = 0;
+             }
            }
 #endif
 //OWEND
