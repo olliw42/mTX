@@ -20,7 +20,7 @@
 
 //OW
 #define OWVERSIONSTR  "v34-rc2"
-#define OWVERSION     3400 // used by mavlink/mbridge.cpp Telemetry alarms disabled TR_NO_RSSIALARM
+#define OWVERSION     3400 // used by mavlink/mbridge.cpp
 //OWEND
 
 /*
@@ -30,6 +30,7 @@ TODO:
 
 the type to getType() changes are not marked with //OW
 
+add rc override 16 ch
 add mavlinkThrottleWarning option
 v33 2022-05-05
 upgraded to otx2.3.15 as base
