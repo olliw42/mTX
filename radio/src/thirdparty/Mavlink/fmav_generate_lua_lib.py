@@ -289,7 +289,7 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
 
     for enumname in enums_all_by_name:
         s.append( '  \\')
-        for entry in enums_all_by_name[enumname].entry[:-1]:
+        for entry in enums_all_by_name[enumname].entries[:-1]:
             nameshort = shortenNameEnum(entry.name, 30)
             s.append('  { "'+nameshort+'", '+str(entry.value)+' }, \\')
 
