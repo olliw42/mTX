@@ -72,6 +72,7 @@ static int luaMavsdkGimbalGetInfo(lua_State *L)
   }
   lua_pushtablestring(L, "hardware_version", s);
   lua_pushtableinteger(L, "capability_flags", mavlinkTelem.gimbaldeviceInfo.cap_flags);
+  lua_pushtableinteger(L, "custom_cap_flags", mavlinkTelem.gimbaldeviceInfo.custom_cap_flags);
   return 1;
 }
 
@@ -99,7 +100,7 @@ static int luaMavsdkGimbalGetAttPitchDeg(lua_State *L)
 
 static int luaMavsdkGimbalGetAttYawDeg(lua_State *L)
 {
-  lua_pushnumber(L, mavlinkTelem.gimbalAtt.yaw_deg_relative);
+  lua_pushnumber(L, mavlinkTelem.gimbalAtt.yaw_deg_vehicle_frame);
   return 1;
 }
 
@@ -146,17 +147,17 @@ static int luaMavsdkGimbalSendPitchYawDeg(lua_State *L)
 
 // -- GIMBAL CLIENT -- gimbal protocol v2
 
-static int luaMavsdkIsGimbalProtocolV2(lua_State *L)
+static int luaMavsdkIsSTorM32GimbalProtocol(lua_State *L)
 {
-  bool flag = mavlinkTelem.isStorm32GimbalProtocolV2();
+  bool flag = mavlinkTelem.isStorm32GimbalProtocol();
   lua_pushboolean(L, flag);
   return 1;
 }
 
-static int luaMavsdkSetGimbalProtocolV2(lua_State *L)
+static int luaMavsdkSetSTorM32GimbalProtocol(lua_State *L)
 {
   bool flag = LUAL_CHECKBOOLEAN(L, 1);
-  mavlinkTelem.setStorm32GimbalProtocolV2(flag);
+  mavlinkTelem.setStorm32GimbalProtocol(flag);
   return 0;
 }
 
@@ -252,7 +253,7 @@ static int luaMavsdkGimbalDeviceSendPitchYawDeg(lua_State *L)
 {
   float pitch = luaL_checknumber(L, 1);
   float yaw = luaL_checknumber(L, 2);
-  mavlinkTelem.sendStorm32GimbalDevicePitchYawDeg(pitch, yaw);
+  mavlinkTelem.sendGimbalDevicePitchYawDeg(pitch, yaw);
   return 0;
 }
 
@@ -455,38 +456,28 @@ static int luaMavsdkGetVehicleClass(lua_State *L)
 int nbr;
 
   switch (mavlinkTelem.vehicletype) {
-    case MAV_TYPE_FIXED_WING:
-    case MAV_TYPE_FLAPPING_WING:
-    case MAV_TYPE_VTOL_DUOROTOR:
-    case MAV_TYPE_VTOL_QUADROTOR:
-    case MAV_TYPE_VTOL_TILTROTOR:
-    case MAV_TYPE_VTOL_RESERVED2:
-    case MAV_TYPE_VTOL_RESERVED3:
-    case MAV_TYPE_VTOL_RESERVED4:
-    case MAV_TYPE_VTOL_RESERVED5:
-    case MAV_TYPE_PARAFOIL:
-      nbr = MAVSDK_VEHICLECLASS_PLANE;
-      break;
     case MAV_TYPE_QUADROTOR:
     case MAV_TYPE_COAXIAL:
     case MAV_TYPE_HELICOPTER:
     case MAV_TYPE_HEXAROTOR:
     case MAV_TYPE_OCTOROTOR:
     case MAV_TYPE_TRICOPTER:
+    case MAV_TYPE_DECAROTOR:
     case MAV_TYPE_DODECAROTOR:
       nbr = MAVSDK_VEHICLECLASS_COPTER;
       break;
+    case MAV_TYPE_SURFACE_BOAT:
     case MAV_TYPE_GROUND_ROVER:
       nbr = MAVSDK_VEHICLECLASS_ROVER;
-      break;
-    case MAV_TYPE_SURFACE_BOAT:
-      nbr = MAVSDK_VEHICLECLASS_BOAT;
       break;
     case MAV_TYPE_SUBMARINE:
       nbr = MAVSDK_VEHICLECLASS_SUB;
       break;
-    default:
+    case MAV_TYPE_GENERIC:
       nbr = MAVSDK_VEHICLECLASS_GENERIC;
+      break;
+    default:
+      nbr = MAVSDK_VEHICLECLASS_PLANE; // let's guess it's a plane
   }
   lua_pushnumber(L, nbr);
   return 1;
@@ -1490,9 +1481,9 @@ const luaL_Reg mavsdkLib[] = {
   { "gimbalSendGpsPointMode", luaMavsdkGimbalSendGpsPointMode },
   { "gimbalSendSysIdTargetingMode", luaMavsdkGimbalSendSysIdTargetingMode },
   { "gimbalSendPitchYawDeg", luaMavsdkGimbalSendPitchYawDeg },
-  // gimbal protocol v2
-  { "gimbalIsProtocolV2", luaMavsdkIsGimbalProtocolV2 },
-  { "gimbalSetProtocolV2", luaMavsdkSetGimbalProtocolV2 },
+  // gimbal protocol
+  { "gimbalIsSTorM32Protocol", luaMavsdkIsSTorM32GimbalProtocol },
+  { "gimbalSetSTorM32Protocol", luaMavsdkSetSTorM32GimbalProtocol },
   { "gimbalClientIsReceiving", luaMavsdkGimbalClientIsReceiving },
   { "gimbalClientIsInitialized", luaMavsdkGimbalClientIsInitialized },
   { "gimbalClientGetInfo", luaMavsdkGimbalClientGetInfo },
@@ -1506,6 +1497,9 @@ const luaL_Reg mavsdkLib[] = {
   { "gimbalClientSendCntrlPitchYawDeg", luaMavsdkGimbalClientSendCntrlPitchYawDeg },
   { "gimbalClientSendCmdPitchYawDeg", luaMavsdkGimbalClientSendCmdPitchYawDeg },
   { "gimbalDeviceSendPitchYawDeg", luaMavsdkGimbalDeviceSendPitchYawDeg },
+  // for backwards compatibility, should be deprecated
+  { "gimbalIsProtocolV2", luaMavsdkIsSTorM32GimbalProtocol },
+  { "gimbalSetProtocolV2", luaMavsdkSetSTorM32GimbalProtocol },
 
   { "qshotSendCmdConfigure", luaMavsdkQShotSendCmdConfigure },
   { "qshotSendStatus", luaMavsdkQShotSendStatus },
@@ -1644,18 +1638,18 @@ const luaR_value_entry mavsdkConstants[] = {
   { "VEHICLECLASS_PLANE", MAVSDK_VEHICLECLASS_PLANE },
   { "VEHICLECLASS_COPTER", MAVSDK_VEHICLECLASS_COPTER },
   { "VEHICLECLASS_ROVER", MAVSDK_VEHICLECLASS_ROVER },
-  { "VEHICLECLASS_BOAT", MAVSDK_VEHICLECLASS_BOAT },
   { "VEHICLECLASS_SUB", MAVSDK_VEHICLECLASS_SUB },
 
-  { "GDFLAGS_RETRACT", MAV_STORM32_GIMBAL_DEVICE_FLAGS_RETRACT },
-  { "GDFLAGS_NEUTRAL", MAV_STORM32_GIMBAL_DEVICE_FLAGS_NEUTRAL },
-  { "GDFLAGS_ROLL_LOCK", MAV_STORM32_GIMBAL_DEVICE_FLAGS_ROLL_LOCK },
-  { "GDFLAGS_PITCH_LOCK", MAV_STORM32_GIMBAL_DEVICE_FLAGS_PITCH_LOCK },
-  { "GDFLAGS_YAW_LOCK", MAV_STORM32_GIMBAL_DEVICE_FLAGS_YAW_LOCK },
-  { "GDFLAGS_CAN_ACCEPT_YAW_ABSOLUTE", MAV_STORM32_GIMBAL_DEVICE_FLAGS_CAN_ACCEPT_YAW_ABSOLUTE },
-  { "GDFLAGS_YAW_ABSOLUTE", MAV_STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE },
-  { "GDFLAGS_RC_EXCLUSIVE", MAV_STORM32_GIMBAL_DEVICE_FLAGS_RC_EXCLUSIVE },
-  { "GDFLAGS_RC_MIXED", MAV_STORM32_GIMBAL_DEVICE_FLAGS_RC_MIXED },
+  { "GDFLAGS_RETRACT", GIMBAL_DEVICE_FLAGS_RETRACT },
+  { "GDFLAGS_NEUTRAL", GIMBAL_DEVICE_FLAGS_NEUTRAL },
+  { "GDFLAGS_ROLL_LOCK", GIMBAL_DEVICE_FLAGS_ROLL_LOCK },
+  { "GDFLAGS_PITCH_LOCK", GIMBAL_DEVICE_FLAGS_PITCH_LOCK },
+  { "GDFLAGS_YAW_LOCK", GIMBAL_DEVICE_FLAGS_YAW_LOCK },
+  { "GDFLAGS_CAN_ACCEPT_YAW_ABSOLUTE", GIMBAL_DEVICE_FLAGS_YAW_IN_VEHICLE_FRAME },
+  { "GDFLAGS_YAW_ABSOLUTE", GIMBAL_DEVICE_FLAGS_YAW_IN_EARTH_FRAME },
+  { "GDFLAGS_ACCEPTS_YAW_IN_EF", GIMBAL_DEVICE_FLAGS_ACCEPTS_YAW_IN_EARTH_FRAME },
+  { "GDFLAGS_RC_EXCLUSIVE", GIMBAL_DEVICE_FLAGS_RC_EXCLUSIVE },
+  { "GDFLAGS_RC_MIXED", GIMBAL_DEVICE_FLAGS_RC_MIXED },
 
   { "GMFLAGS_NONE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_NONE },
   { "GMFLAGS_RC_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_RC_ACTIVE },

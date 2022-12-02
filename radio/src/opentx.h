@@ -30,6 +30,7 @@ TODO:
 
 the type to getType() changes are not marked with //OW
 
+migrate to gimbald device v2 & new storm32.xml
 add rc override 16 ch
 add mavlinkThrottleWarning option
 v33 2022-05-05

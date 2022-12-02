@@ -166,6 +166,7 @@ const luaL_Reg mbridgeLib[] = {
 };
 
 const luaR_value_entry mbridgeConstants[] = {
+/* since we have to emulate anyhow for vanilla OpenTx, no reason to have them
   { "CMD_TX_LINK_STATS", MBRIDGE_CMD_TX_LINK_STATS },
   { "CMD_REQUEST_INFO", MBRIDGE_CMD_REQUEST_INFO },
   { "CMD_DEVICE_ITEM_TX", MBRIDGE_CMD_DEVICE_ITEM_TX },
@@ -185,7 +186,7 @@ const luaR_value_entry mbridgeConstants[] = {
   { "PARAM_TYPE_UINT16", MBRIDGE_PARAM_TYPE_UINT16 },
   { "PARAM_TYPE_INT16", MBRIDGE_PARAM_TYPE_INT16 },
   { "PARAM_TYPE_LIST", MBRIDGE_PARAM_TYPE_LIST },
-  { "PARAM_TYPE_STR6", MBRIDGE_PARAM_TYPE_STR6 },
+  { "PARAM_TYPE_STR6", MBRIDGE_PARAM_TYPE_STR6 }, */
 
   { nullptr, 0 }  /* sentinel */
 };
