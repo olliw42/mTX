@@ -19,8 +19,8 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v34-rc2"
-#define OWVERSION     3400 // used by mavlink/mbridge.cpp
+#define OWVERSIONSTR  "v35-rc1"
+#define OWVERSION     3500 // used by mavlink/mbridge.cpp
 //OWEND
 
 /*
