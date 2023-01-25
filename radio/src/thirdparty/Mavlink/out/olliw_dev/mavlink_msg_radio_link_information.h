@@ -15,18 +15,18 @@
 // fields are ordered, as they appear on the wire
 FASTMAVLINK_PACK(
 typedef struct _fmav_radio_link_information_t {
-    uint16_t type;
+    uint16_t rate;
+    uint8_t type;
     uint8_t mode;
-    uint8_t rate;
     int8_t tx_power;
     int8_t rx_power;
 }) fmav_radio_link_information_t;
 
 
-#define FASTMAVLINK_MSG_ID_RADIO_LINK_INFORMATION  98
+#define FASTMAVLINK_MSG_ID_RADIO_LINK_INFORMATION  60048
 
 #define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_PAYLOAD_LEN_MAX  6
-#define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_CRCEXTRA  188
+#define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_CRCEXTRA  98
 
 #define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_FLAGS  0
 #define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_TARGET_SYSTEM_OFS  0
@@ -36,9 +36,9 @@ typedef struct _fmav_radio_link_information_t {
 
 
 
-#define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_FIELD_TYPE_OFS  0
-#define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_FIELD_MODE_OFS  2
-#define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_FIELD_RATE_OFS  3
+#define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_FIELD_RATE_OFS  0
+#define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_FIELD_TYPE_OFS  2
+#define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_FIELD_MODE_OFS  3
 #define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_FIELD_TX_POWER_OFS  4
 #define FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_FIELD_RX_POWER_OFS  5
 
@@ -51,14 +51,14 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_radio_link_information_pack(
     fmav_message_t* _msg,
     uint8_t sysid,
     uint8_t compid,
-    uint16_t type, uint8_t mode, uint8_t rate, int8_t tx_power, int8_t rx_power,
+    uint8_t type, uint8_t mode, uint16_t rate, int8_t tx_power, int8_t rx_power,
     fmav_status_t* _status)
 {
     fmav_radio_link_information_t* _payload = (fmav_radio_link_information_t*)_msg->payload;
 
+    _payload->rate = rate;
     _payload->type = type;
     _payload->mode = mode;
-    _payload->rate = rate;
     _payload->tx_power = tx_power;
     _payload->rx_power = rx_power;
 
@@ -93,14 +93,14 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_radio_link_information_pack_to_
     uint8_t* _buf,
     uint8_t sysid,
     uint8_t compid,
-    uint16_t type, uint8_t mode, uint8_t rate, int8_t tx_power, int8_t rx_power,
+    uint8_t type, uint8_t mode, uint16_t rate, int8_t tx_power, int8_t rx_power,
     fmav_status_t* _status)
 {
     fmav_radio_link_information_t* _payload = (fmav_radio_link_information_t*)(&_buf[FASTMAVLINK_HEADER_V2_LEN]);
 
+    _payload->rate = rate;
     _payload->type = type;
     _payload->mode = mode;
-    _payload->rate = rate;
     _payload->tx_power = tx_power;
     _payload->rx_power = rx_power;
 
@@ -138,14 +138,14 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_radio_link_information_encode_t
 FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_radio_link_information_pack_to_serial(
     uint8_t sysid,
     uint8_t compid,
-    uint16_t type, uint8_t mode, uint8_t rate, int8_t tx_power, int8_t rx_power,
+    uint8_t type, uint8_t mode, uint16_t rate, int8_t tx_power, int8_t rx_power,
     fmav_status_t* _status)
 {
     fmav_radio_link_information_t _payload;
 
+    _payload.rate = rate;
     _payload.type = type;
     _payload.mode = mode;
-    _payload.rate = rate;
     _payload.tx_power = tx_power;
     _payload.rx_power = rx_power;
 
@@ -206,7 +206,7 @@ FASTMAVLINK_FUNCTION_DECORATOR void fmav_msg_radio_link_information_decode(fmav_
 }
 
 
-FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_radio_link_information_get_field_type(const fmav_message_t* msg)
+FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_radio_link_information_get_field_rate(const fmav_message_t* msg)
 {
     uint16_t r;
     memcpy(&r, &(msg->payload[0]), sizeof(uint16_t));
@@ -214,7 +214,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_radio_link_information_get_fiel
 }
 
 
-FASTMAVLINK_FUNCTION_DECORATOR uint8_t fmav_msg_radio_link_information_get_field_mode(const fmav_message_t* msg)
+FASTMAVLINK_FUNCTION_DECORATOR uint8_t fmav_msg_radio_link_information_get_field_type(const fmav_message_t* msg)
 {
     uint8_t r;
     memcpy(&r, &(msg->payload[2]), sizeof(uint8_t));
@@ -222,7 +222,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint8_t fmav_msg_radio_link_information_get_field
 }
 
 
-FASTMAVLINK_FUNCTION_DECORATOR uint8_t fmav_msg_radio_link_information_get_field_rate(const fmav_message_t* msg)
+FASTMAVLINK_FUNCTION_DECORATOR uint8_t fmav_msg_radio_link_information_get_field_mode(const fmav_message_t* msg)
 {
     uint8_t r;
     memcpy(&r, &(msg->payload[3]), sizeof(uint8_t));
@@ -254,17 +254,17 @@ FASTMAVLINK_FUNCTION_DECORATOR int8_t fmav_msg_radio_link_information_get_field_
 //----------------------------------------
 #ifdef FASTMAVLINK_PYMAVLINK_ENABLED
 
-#define MAVLINK_MSG_ID_RADIO_LINK_INFORMATION  98
+#define MAVLINK_MSG_ID_RADIO_LINK_INFORMATION  60048
 
 #define mavlink_radio_link_information_t  fmav_radio_link_information_t
 
 #define MAVLINK_MSG_ID_RADIO_LINK_INFORMATION_LEN  6
 #define MAVLINK_MSG_ID_RADIO_LINK_INFORMATION_MIN_LEN  6
-#define MAVLINK_MSG_ID_98_LEN  6
-#define MAVLINK_MSG_ID_98_MIN_LEN  6
+#define MAVLINK_MSG_ID_60048_LEN  6
+#define MAVLINK_MSG_ID_60048_MIN_LEN  6
 
-#define MAVLINK_MSG_ID_RADIO_LINK_INFORMATION_CRC  188
-#define MAVLINK_MSG_ID_98_CRC  188
+#define MAVLINK_MSG_ID_RADIO_LINK_INFORMATION_CRC  98
+#define MAVLINK_MSG_ID_60048_CRC  98
 
 
 
@@ -275,7 +275,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_radio_link_information_pack(
     uint8_t sysid,
     uint8_t compid,
     mavlink_message_t* _msg,
-    uint16_t type, uint8_t mode, uint8_t rate, int8_t tx_power, int8_t rx_power)
+    uint8_t type, uint8_t mode, uint16_t rate, int8_t tx_power, int8_t rx_power)
 {
     fmav_status_t* _status = mavlink_get_channel_status(MAVLINK_COMM_0);
     return fmav_msg_radio_link_information_pack(
@@ -292,7 +292,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_radio_link_information_pack_
     fmav_status_t* _status,
     uint8_t sysid,
     uint8_t compid,
-    uint16_t type, uint8_t mode, uint8_t rate, int8_t tx_power, int8_t rx_power)
+    uint8_t type, uint8_t mode, uint16_t rate, int8_t tx_power, int8_t rx_power)
 {
     return fmav_msg_radio_link_information_pack_to_frame_buf(
         (uint8_t*)_buf,

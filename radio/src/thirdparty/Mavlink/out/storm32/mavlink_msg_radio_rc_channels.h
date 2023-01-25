@@ -21,7 +21,7 @@ typedef struct _fmav_radio_rc_channels_t {
 }) fmav_radio_rc_channels_t;
 
 
-#define FASTMAVLINK_MSG_ID_RADIO_RC_CHANNELS  95
+#define FASTMAVLINK_MSG_ID_RADIO_RC_CHANNELS  60045
 
 #define FASTMAVLINK_MSG_RADIO_RC_CHANNELS_PAYLOAD_LEN_MAX  50
 #define FASTMAVLINK_MSG_RADIO_RC_CHANNELS_CRCEXTRA  89
@@ -228,17 +228,17 @@ FASTMAVLINK_FUNCTION_DECORATOR int16_t fmav_msg_radio_rc_channels_get_field_chan
 //----------------------------------------
 #ifdef FASTMAVLINK_PYMAVLINK_ENABLED
 
-#define MAVLINK_MSG_ID_RADIO_RC_CHANNELS  95
+#define MAVLINK_MSG_ID_RADIO_RC_CHANNELS  60045
 
 #define mavlink_radio_rc_channels_t  fmav_radio_rc_channels_t
 
 #define MAVLINK_MSG_ID_RADIO_RC_CHANNELS_LEN  50
 #define MAVLINK_MSG_ID_RADIO_RC_CHANNELS_MIN_LEN  2
-#define MAVLINK_MSG_ID_95_LEN  50
-#define MAVLINK_MSG_ID_95_MIN_LEN  2
+#define MAVLINK_MSG_ID_60045_LEN  50
+#define MAVLINK_MSG_ID_60045_MIN_LEN  2
 
 #define MAVLINK_MSG_ID_RADIO_RC_CHANNELS_CRC  89
-#define MAVLINK_MSG_ID_95_CRC  89
+#define MAVLINK_MSG_ID_60045_CRC  89
 
 #define MAVLINK_MSG_RADIO_RC_CHANNELS_FIELD_CHANNELS_LEN 24
 

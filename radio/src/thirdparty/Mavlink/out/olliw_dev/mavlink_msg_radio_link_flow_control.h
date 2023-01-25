@@ -23,7 +23,7 @@ typedef struct _fmav_radio_link_flow_control_t {
 }) fmav_radio_link_flow_control_t;
 
 
-#define FASTMAVLINK_MSG_ID_RADIO_LINK_FLOW_CONTROL  97
+#define FASTMAVLINK_MSG_ID_RADIO_LINK_FLOW_CONTROL  60047
 
 #define FASTMAVLINK_MSG_RADIO_LINK_FLOW_CONTROL_PAYLOAD_LEN_MAX  7
 #define FASTMAVLINK_MSG_RADIO_LINK_FLOW_CONTROL_CRCEXTRA  82
@@ -254,17 +254,17 @@ FASTMAVLINK_FUNCTION_DECORATOR uint8_t fmav_msg_radio_link_flow_control_get_fiel
 //----------------------------------------
 #ifdef FASTMAVLINK_PYMAVLINK_ENABLED
 
-#define MAVLINK_MSG_ID_RADIO_LINK_FLOW_CONTROL  97
+#define MAVLINK_MSG_ID_RADIO_LINK_FLOW_CONTROL  60047
 
 #define mavlink_radio_link_flow_control_t  fmav_radio_link_flow_control_t
 
 #define MAVLINK_MSG_ID_RADIO_LINK_FLOW_CONTROL_LEN  7
 #define MAVLINK_MSG_ID_RADIO_LINK_FLOW_CONTROL_MIN_LEN  7
-#define MAVLINK_MSG_ID_97_LEN  7
-#define MAVLINK_MSG_ID_97_MIN_LEN  7
+#define MAVLINK_MSG_ID_60047_LEN  7
+#define MAVLINK_MSG_ID_60047_MIN_LEN  7
 
 #define MAVLINK_MSG_ID_RADIO_LINK_FLOW_CONTROL_CRC  82
-#define MAVLINK_MSG_ID_97_CRC  82
+#define MAVLINK_MSG_ID_60047_CRC  82
 
 
 

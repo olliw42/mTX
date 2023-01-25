@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 #ifndef FASTMAVLINK_BUILD_DATE
-#define FASTMAVLINK_BUILD_DATE  "Sat Dec 03 2022"
+#define FASTMAVLINK_BUILD_DATE  "Wed Jan 25 2023"
 #endif
 
 #ifndef FASTMAVLINK_DIALECT_VERSION
@@ -243,7 +243,7 @@ typedef enum MAV_CMD {
     MAV_CMD_GUIDED_CHANGE_SPEED = 43000,  // Change flight speed at a given rate. This slews the vehicle at a controllable rate between it's previous speed and the new one. (affects GUIDED only. Outside GUIDED, aircraft ignores these commands. Designed for onboard companion-computer command-and-control, not normally operator/GCS control.) | Airspeed or groundspeed. | Target Speed | Acceleration rate, 0 to take effect instantly | Empty | Empty | Empty | Empty
     MAV_CMD_GUIDED_CHANGE_ALTITUDE = 43001,  // Change target altitude at a given rate. This slews the vehicle at a controllable rate between it's previous altitude and the new one. (affects GUIDED only. Outside GUIDED, aircraft ignores these commands. Designed for onboard companion-computer command-and-control, not normally operator/GCS control.) | Empty | Empty | Rate of change, toward new altitude. 0 for maximum rate change. Positive numbers only, as negative numbers will not converge on the new target alt. | Empty | Empty | Empty | Target Altitude
     MAV_CMD_GUIDED_CHANGE_HEADING = 43002,  // Change to target heading at a given rate, overriding previous heading/s. This slews the vehicle at a controllable rate between it's previous heading and the new one. (affects GUIDED only. Exiting GUIDED returns aircraft to normal behaviour defined elsewhere. Designed for onboard companion-computer command-and-control, not normally operator/GCS control.) | course-over-ground or raw vehicle heading. | Target heading. | Maximum centripetal accelearation, ie rate of change,  toward new heading. | Empty | Empty | Empty | Empty
-    MAV_CMD_STORM32_DO_GIMBAL_MANAGER_CONTROL_PITCHYAW = 60002,  // Command to a gimbal manager to control the gimbal tilt and pan angles. It is possible to set combinations of the values below. E.g. an angle as well as a desired angular rate can be used to get to this angle at a certain angular rate, or an angular rate only will result in continuous turning. NaN is to be used to signal unset. A gimbal device is never to react to this command. | Pitch/tilt angle (positive: tilt up, NaN to be ignored). | Yaw/pan angle (positive: pan to the right, NaN to be ignored). The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags. | Pitch/tilt rate (positive: tilt up, NaN to be ignored). | Yaw/pan rate (positive: pan to the right, NaN to be ignored). The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags. | Gimbal device flags to be applied. | Gimbal manager flags to be applied. | Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals). The client is copied into bits 8-15.
+    MAV_CMD_STORM32_DO_GIMBAL_MANAGER_CONTROL_PITCHYAW = 60002,  // Command to a gimbal manager to control the gimbal tilt and pan angles. It is possible to set combinations of the values below. E.g. an angle as well as a desired angular rate can be used to get to this angle at a certain angular rate, or an angular rate only will result in continuous turning. NaN is to be used to signal unset. A gimbal device is never to react to this command. | Pitch/tilt angle (positive: tilt up). NaN to be ignored. | Yaw/pan angle (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags. | Pitch/tilt rate (positive: tilt up). NaN to be ignored. | Yaw/pan rate (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags. | Gimbal device flags to be applied. | Gimbal manager flags to be applied. | Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals. The client is copied into bits 8-15.
     MAV_CMD_STORM32_DO_GIMBAL_MANAGER_SETUP = 60010,  // Command to configure a gimbal manager. A gimbal device is never to react to this command. The selected profile is reported in the STORM32_GIMBAL_MANAGER_STATUS message. | Gimbal manager profile (0 = default). | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
     MAV_CMD_QSHOT_DO_CONFIGURE = 60020,  // Command to set the shot manager mode. | Set shot mode. | Set shot state or command. The allowed values are specific to the selected shot mode. | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Reserved (default:0)
     MAV_CMD_ENUM_END = 60021,  // end marker
@@ -279,7 +279,7 @@ typedef enum MAV_CMD {
 
 #include "../ardupilotmega/ardupilotmega.h"
 #include "../storm32/storm32.h"
-#include "../mlrs/mlrs.h"
+#include "../olliw_dev/olliw_dev.h"
 
 
 #ifdef __cplusplus

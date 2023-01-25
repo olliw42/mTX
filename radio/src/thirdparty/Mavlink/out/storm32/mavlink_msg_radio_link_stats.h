@@ -33,7 +33,7 @@ typedef struct _fmav_radio_link_stats_t {
 }) fmav_radio_link_stats_t;
 
 
-#define FASTMAVLINK_MSG_ID_RADIO_LINK_STATS  96
+#define FASTMAVLINK_MSG_ID_RADIO_LINK_STATS  60046
 
 #define FASTMAVLINK_MSG_RADIO_LINK_STATS_PAYLOAD_LEN_MAX  15
 #define FASTMAVLINK_MSG_RADIO_LINK_STATS_CRCEXTRA  238
@@ -384,17 +384,17 @@ FASTMAVLINK_FUNCTION_DECORATOR uint8_t fmav_msg_radio_link_stats_get_field_tx_tr
 //----------------------------------------
 #ifdef FASTMAVLINK_PYMAVLINK_ENABLED
 
-#define MAVLINK_MSG_ID_RADIO_LINK_STATS  96
+#define MAVLINK_MSG_ID_RADIO_LINK_STATS  60046
 
 #define mavlink_radio_link_stats_t  fmav_radio_link_stats_t
 
 #define MAVLINK_MSG_ID_RADIO_LINK_STATS_LEN  15
 #define MAVLINK_MSG_ID_RADIO_LINK_STATS_MIN_LEN  15
-#define MAVLINK_MSG_ID_96_LEN  15
-#define MAVLINK_MSG_ID_96_MIN_LEN  15
+#define MAVLINK_MSG_ID_60046_LEN  15
+#define MAVLINK_MSG_ID_60046_MIN_LEN  15
 
 #define MAVLINK_MSG_ID_RADIO_LINK_STATS_CRC  238
-#define MAVLINK_MSG_ID_96_CRC  238
+#define MAVLINK_MSG_ID_60046_CRC  238
 
 
 

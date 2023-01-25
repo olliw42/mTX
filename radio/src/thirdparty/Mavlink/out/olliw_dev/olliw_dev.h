@@ -4,15 +4,15 @@
 //------------------------------
 
 #pragma once
-#ifndef FASTMAVLINK_MLRS_H
-#define FASTMAVLINK_MLRS_H
+#ifndef FASTMAVLINK_OLLIW_DEV_H
+#define FASTMAVLINK_OLLIW_DEV_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifndef FASTMAVLINK_BUILD_DATE
-#define FASTMAVLINK_BUILD_DATE  "Sat Dec 03 2022"
+#define FASTMAVLINK_BUILD_DATE  "Wed Jan 25 2023"
 #endif
 
 #ifndef FASTMAVLINK_DIALECT_VERSION
@@ -26,7 +26,7 @@ extern "C" {
 //-- msgid, extra crc, max length, flag, target sysid offset, target compid offset
 //------------------------------
 
-#include "mlrs_msg_entries.h"
+#include "olliw_dev_msg_entries.h"
 
 #ifndef FASTMAVLINK_MESSAGE_CRCS
 #define FASTMAVLINK_MESSAGE_CRCS  FASTMAVLINK_MSG_ENTRIES
@@ -50,32 +50,15 @@ extern "C" {
 
 #ifndef FASTMAVLINK_TEST_EXCLUDE_ENUMS
 
-#ifndef FASTMAVLINK_HAS_ENUM_RADIO_RC_CHANNELS_FLAGS
-#define FASTMAVLINK_HAS_ENUM_RADIO_RC_CHANNELS_FLAGS
-typedef enum RADIO_RC_CHANNELS_FLAGS {
-    RADIO_RC_CHANNELS_FLAGS_FAILSAFE = 1,  // Failsafe is active. 
-    RADIO_RC_CHANNELS_FLAGS_FRAME_MISSED = 2,  // Indicates that the current frame has not been received. Channel values are frozen. 
-    RADIO_RC_CHANNELS_FLAGS_ENUM_END = 3,  // end marker
-} RADIO_RC_CHANNELS_FLAGS;
-#endif
-
-
-#ifndef FASTMAVLINK_HAS_ENUM_RADIO_LINK_STATS_FLAGS
-#define FASTMAVLINK_HAS_ENUM_RADIO_LINK_STATS_FLAGS
-typedef enum RADIO_LINK_STATS_FLAGS {
-    RADIO_LINK_STATS_FLAGS_RSSI_DBM = 1,  // Rssi are in negative dBm. Values 0..254 corresponds to 0..-254 dBm. 
-    RADIO_LINK_STATS_FLAGS_ENUM_END = 2,  // end marker
-} RADIO_LINK_STATS_FLAGS;
-#endif
-
-
-#ifndef FASTMAVLINK_HAS_ENUM_RADIO_TYPE
-#define FASTMAVLINK_HAS_ENUM_RADIO_TYPE
-typedef enum RADIO_TYPE {
-    RADIO_TYPE_GENERIC = 0,  // Unknwon radio link type. 
-    RADIO_TYPE_MLRS = 1,  // Radio link is mLRS. 
-    RADIO_TYPE_ENUM_END = 2,  // end marker
-} RADIO_TYPE;
+#ifndef FASTMAVLINK_HAS_ENUM_RADIO_LINK_TYPE
+#define FASTMAVLINK_HAS_ENUM_RADIO_LINK_TYPE
+typedef enum RADIO_LINK_TYPE {
+    RADIO_LINK_TYPE_GENERIC = 0,  // Unknown radio link type. 
+    RADIO_LINK_TYPE_CROSSFIRE = 1,  // Radio link is Crossfire. 
+    RADIO_LINK_TYPE_EXPRESSLRS = 2,  // Radio link is ExpressLRS. 
+    RADIO_LINK_TYPE_MLRS = 3,  // Radio link is mLRS. 
+    RADIO_LINK_TYPE_ENUM_END = 4,  // end marker
+} RADIO_LINK_TYPE;
 #endif
 
 #endif // FASTMAVLINK_DO_NOT_INCLUDE_ENUMS
@@ -92,12 +75,9 @@ typedef enum RADIO_TYPE {
   #endif
 #endif
 
-#include "./mavlink_msg_radio_rc_channels.h"
-#include "./mavlink_msg_radio_link_stats.h"
+#include "./mavlink_msg_autopilot_state_for_gimbal_device_ext.h"
 #include "./mavlink_msg_radio_link_flow_control.h"
 #include "./mavlink_msg_radio_link_information.h"
-#include "./mavlink_msg_frsky_passthrough_array.h"
-#include "./mavlink_msg_param_value_array.h"
 
 #ifdef FASTMAVLINK_IGNORE_WADDRESSOFPACKEDMEMBER
   #if defined __GNUC__ && __GNUC__ >= 9
@@ -117,4 +97,4 @@ typedef enum RADIO_TYPE {
 }
 #endif
 
-#endif // FASTMAVLINK_MLRS_H
+#endif // FASTMAVLINK_OLLIW_DEV_H

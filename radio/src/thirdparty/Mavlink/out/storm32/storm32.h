@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 #ifndef FASTMAVLINK_BUILD_DATE
-#define FASTMAVLINK_BUILD_DATE  "Sat Dec 03 2022"
+#define FASTMAVLINK_BUILD_DATE  "Wed Jan 25 2023"
 #endif
 
 #ifndef FASTMAVLINK_DIALECT_VERSION
@@ -53,12 +53,12 @@ extern "C" {
 #ifndef FASTMAVLINK_HAS_ENUM_MAV_STORM32_TUNNEL_PAYLOAD_TYPE
 #define FASTMAVLINK_HAS_ENUM_MAV_STORM32_TUNNEL_PAYLOAD_TYPE
 typedef enum MAV_STORM32_TUNNEL_PAYLOAD_TYPE {
-    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH1_IN = 200,  // Registered for STorM32 gimbal controller. For commincation with gimbal or camera. 
-    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH1_OUT = 201,  // Registered for STorM32 gimbal controller. For commincation with gimbal or camera. 
-    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH2_IN = 202,  // Registered for STorM32 gimbal controller. For commincation with gimbal. 
-    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH2_OUT = 203,  // Registered for STorM32 gimbal controller. For commincation with gimbal. 
-    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH3_IN = 204,  // Registered for STorM32 gimbal controller. For commincation with camera. 
-    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH3_OUT = 205,  // Registered for STorM32 gimbal controller. For commincation with camera. 
+    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH1_IN = 200,  // Registered for STorM32 gimbal controller. For communication with gimbal or camera. 
+    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH1_OUT = 201,  // Registered for STorM32 gimbal controller. For communication with gimbal or camera. 
+    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH2_IN = 202,  // Registered for STorM32 gimbal controller. For communication with gimbal. 
+    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH2_OUT = 203,  // Registered for STorM32 gimbal controller. For communication with gimbal. 
+    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH3_IN = 204,  // Registered for STorM32 gimbal controller. For communication with camera. 
+    MAV_STORM32_TUNNEL_PAYLOAD_TYPE_STORM32_CH3_OUT = 205,  // Registered for STorM32 gimbal controller. For communication with camera. 
     MAV_STORM32_TUNNEL_PAYLOAD_TYPE_ENUM_END = 206,  // end marker
 } MAV_STORM32_TUNNEL_PAYLOAD_TYPE;
 #endif
@@ -144,7 +144,7 @@ typedef enum MAV_STORM32_GIMBAL_MANAGER_CLIENT {
 #define FASTMAVLINK_HAS_ENUM_MAV_STORM32_GIMBAL_MANAGER_PROFILE
 typedef enum MAV_STORM32_GIMBAL_MANAGER_PROFILE {
     MAV_STORM32_GIMBAL_MANAGER_PROFILE_DEFAULT = 0,  // Default profile. Implementation specific. 
-    MAV_STORM32_GIMBAL_MANAGER_PROFILE_CUSTOM = 1,  // Custom profile. Configurable profile according to the STorM32 definition. Is configured with STORM32_GIMBAL_MANAGER_PROFIL. 
+    MAV_STORM32_GIMBAL_MANAGER_PROFILE_CUSTOM = 1,  // Not supported/deprecated. 
     MAV_STORM32_GIMBAL_MANAGER_PROFILE_COOPERATIVE = 2,  // Profile with cooperative behavior. 
     MAV_STORM32_GIMBAL_MANAGER_PROFILE_EXCLUSIVE = 3,  // Profile with exclusive behavior. 
     MAV_STORM32_GIMBAL_MANAGER_PROFILE_PRIORITY_COOPERATIVE = 4,  // Profile with priority and cooperative behavior for equal priority. 
@@ -365,11 +365,30 @@ typedef enum MAV_CMD {
     MAV_CMD_GUIDED_CHANGE_SPEED = 43000,  // Change flight speed at a given rate. This slews the vehicle at a controllable rate between it's previous speed and the new one. (affects GUIDED only. Outside GUIDED, aircraft ignores these commands. Designed for onboard companion-computer command-and-control, not normally operator/GCS control.) | Airspeed or groundspeed. | Target Speed | Acceleration rate, 0 to take effect instantly | Empty | Empty | Empty | Empty
     MAV_CMD_GUIDED_CHANGE_ALTITUDE = 43001,  // Change target altitude at a given rate. This slews the vehicle at a controllable rate between it's previous altitude and the new one. (affects GUIDED only. Outside GUIDED, aircraft ignores these commands. Designed for onboard companion-computer command-and-control, not normally operator/GCS control.) | Empty | Empty | Rate of change, toward new altitude. 0 for maximum rate change. Positive numbers only, as negative numbers will not converge on the new target alt. | Empty | Empty | Empty | Target Altitude
     MAV_CMD_GUIDED_CHANGE_HEADING = 43002,  // Change to target heading at a given rate, overriding previous heading/s. This slews the vehicle at a controllable rate between it's previous heading and the new one. (affects GUIDED only. Exiting GUIDED returns aircraft to normal behaviour defined elsewhere. Designed for onboard companion-computer command-and-control, not normally operator/GCS control.) | course-over-ground or raw vehicle heading. | Target heading. | Maximum centripetal accelearation, ie rate of change,  toward new heading. | Empty | Empty | Empty | Empty
-    MAV_CMD_STORM32_DO_GIMBAL_MANAGER_CONTROL_PITCHYAW = 60002,  // Command to a gimbal manager to control the gimbal tilt and pan angles. It is possible to set combinations of the values below. E.g. an angle as well as a desired angular rate can be used to get to this angle at a certain angular rate, or an angular rate only will result in continuous turning. NaN is to be used to signal unset. A gimbal device is never to react to this command. | Pitch/tilt angle (positive: tilt up, NaN to be ignored). | Yaw/pan angle (positive: pan to the right, NaN to be ignored). The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags. | Pitch/tilt rate (positive: tilt up, NaN to be ignored). | Yaw/pan rate (positive: pan to the right, NaN to be ignored). The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags. | Gimbal device flags to be applied. | Gimbal manager flags to be applied. | Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals). The client is copied into bits 8-15.
+    MAV_CMD_STORM32_DO_GIMBAL_MANAGER_CONTROL_PITCHYAW = 60002,  // Command to a gimbal manager to control the gimbal tilt and pan angles. It is possible to set combinations of the values below. E.g. an angle as well as a desired angular rate can be used to get to this angle at a certain angular rate, or an angular rate only will result in continuous turning. NaN is to be used to signal unset. A gimbal device is never to react to this command. | Pitch/tilt angle (positive: tilt up). NaN to be ignored. | Yaw/pan angle (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags. | Pitch/tilt rate (positive: tilt up). NaN to be ignored. | Yaw/pan rate (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags. | Gimbal device flags to be applied. | Gimbal manager flags to be applied. | Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals. The client is copied into bits 8-15.
     MAV_CMD_STORM32_DO_GIMBAL_MANAGER_SETUP = 60010,  // Command to configure a gimbal manager. A gimbal device is never to react to this command. The selected profile is reported in the STORM32_GIMBAL_MANAGER_STATUS message. | Gimbal manager profile (0 = default). | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
     MAV_CMD_QSHOT_DO_CONFIGURE = 60020,  // Command to set the shot manager mode. | Set shot mode. | Set shot state or command. The allowed values are specific to the selected shot mode. | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Reserved (default:0) | Reserved (default:0)
     MAV_CMD_ENUM_END = 60021,  // end marker
 } MAV_CMD;
+#endif
+
+
+#ifndef FASTMAVLINK_HAS_ENUM_RADIO_RC_CHANNELS_FLAGS
+#define FASTMAVLINK_HAS_ENUM_RADIO_RC_CHANNELS_FLAGS
+typedef enum RADIO_RC_CHANNELS_FLAGS {
+    RADIO_RC_CHANNELS_FLAGS_FAILSAFE = 1,  // Failsafe is active. 
+    RADIO_RC_CHANNELS_FLAGS_FRAME_MISSED = 2,  // Indicates that the current frame has not been received. Channel values are frozen. 
+    RADIO_RC_CHANNELS_FLAGS_ENUM_END = 3,  // end marker
+} RADIO_RC_CHANNELS_FLAGS;
+#endif
+
+
+#ifndef FASTMAVLINK_HAS_ENUM_RADIO_LINK_STATS_FLAGS
+#define FASTMAVLINK_HAS_ENUM_RADIO_LINK_STATS_FLAGS
+typedef enum RADIO_LINK_STATS_FLAGS {
+    RADIO_LINK_STATS_FLAGS_RSSI_DBM = 1,  // Rssi are in negative dBm. Values 0..254 corresponds to 0..-254 dBm. 
+    RADIO_LINK_STATS_FLAGS_ENUM_END = 2,  // end marker
+} RADIO_LINK_STATS_FLAGS;
 #endif
 
 #endif // FASTMAVLINK_DO_NOT_INCLUDE_ENUMS
@@ -391,9 +410,11 @@ typedef enum MAV_CMD {
 #include "./mavlink_msg_storm32_gimbal_manager_control.h"
 #include "./mavlink_msg_storm32_gimbal_manager_control_pitchyaw.h"
 #include "./mavlink_msg_storm32_gimbal_manager_correct_roll.h"
-#include "./mavlink_msg_storm32_gimbal_manager_profile.h"
 #include "./mavlink_msg_qshot_status.h"
-#include "./mavlink_msg_component_prearm_status.h"
+#include "./mavlink_msg_radio_rc_channels.h"
+#include "./mavlink_msg_radio_link_stats.h"
+#include "./mavlink_msg_frsky_passthrough_array.h"
+#include "./mavlink_msg_param_value_array.h"
 
 #ifdef FASTMAVLINK_IGNORE_WADDRESSOFPACKEDMEMBER
   #if defined __GNUC__ && __GNUC__ >= 9

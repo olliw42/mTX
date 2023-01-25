@@ -2,7 +2,6 @@
 <mavlink>
   <include>mavlink/message_definitions/v1.0/ardupilotmega.xml</include>
   <include>mavlink/message_definitions/v1.0/storm32.xml</include>
-  <include>mlrs.xml</include>
-  <dialect>0</dialect>
+  <include>olliw_dev.xml</include>
   <messages/>
 </mavlink>
