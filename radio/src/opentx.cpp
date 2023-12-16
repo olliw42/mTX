@@ -1026,7 +1026,12 @@ void checkAll()
 
   checkSwitches();
   checkFailsafe();
+//OW
+//  checkRSSIAlarmsDisabled();
+#ifndef TELEMETRY_MAVLINK
   checkRSSIAlarmsDisabled();
+#endif
+//OWEND
 
 #if defined(SDCARD) && !defined(RADIOMASTER_RTF_RELEASE)
   checkSDVersion();

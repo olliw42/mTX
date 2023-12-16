@@ -470,7 +470,7 @@ bool setupPulsesExternalModule(uint8_t protocol)
 //OW
 #if defined(TELEMETRY_MAVLINK)
     case PROTOCOL_CHANNELS_MBRIDGE:
-#if defined(PCBSKPCBSKY9X)
+#if defined(PCBSKY9X)
       scheduleNextMixerCalculation(EXTERNAL_MODULE, 4000);
 #endif
       return true;
