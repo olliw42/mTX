@@ -55,6 +55,17 @@ void gpsSendFrame(const char * frame)
 // called in main
 void gpsWakeup()
 {
+  bool enabled = false;
+#if defined(SERIAL_GPS)
+#if defined(AUX_SERIAL)
+  if (auxSerialMode == UART_MODE_GPS) enabled = true;
+#endif
+#if defined(AUX2_SERIAL)
+  if (aux2SerialMode == UART_MODE_GPS) enabled = true;
+#endif
+#endif
+  if (!enabled) { gps_msg_received_tlast = 0; return; }
+
   uint8_t byte;
   while (gpsGetByte(&byte)) {
     gps_parse_nextchar(byte); // gpsNewData(byte);
