@@ -222,9 +222,9 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_adap_tuning_encode_to_serial(
 //----------------------------------------
 //-- Message ADAP_TUNING decode routines, for receiving
 //----------------------------------------
-// For these functions to work correctly, the msg payload must be zero filled.
+// For these functions to work correctly, the msg payload must be zero-filled.
 // Call the helper fmav_msg_zerofill() if needed, or set FASTMAVLINK_ALWAYS_ZEROFILL to 1
-// Note that the parse functions do zerofill the msg payload, but that message generator functions
+// Note that the parse functions do zero-fill the msg payload, but that message generator functions
 // do not. This means that for the msg obtained from parsing the below functions can safely be used,
 // but that this is not so for the msg obtained from pack/encode functions.
 
@@ -233,14 +233,14 @@ FASTMAVLINK_FUNCTION_DECORATOR void fmav_msg_adap_tuning_decode(fmav_adap_tuning
 #if FASTMAVLINK_ALWAYS_ZEROFILL
     if (msg->len < FASTMAVLINK_MSG_ADAP_TUNING_PAYLOAD_LEN_MAX) {
         memcpy(payload, msg->payload, msg->len);
-        // ensure that returned payload is zero filled
+        // ensure that returned payload is zero-filled
         memset(&(((uint8_t*)payload)[msg->len]), 0, FASTMAVLINK_MSG_ADAP_TUNING_PAYLOAD_LEN_MAX - msg->len);
     } else {
-		// note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
+        // note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
         memcpy(payload, msg->payload, FASTMAVLINK_MSG_ADAP_TUNING_PAYLOAD_LEN_MAX);
     }
 #else
-    // this requires that msg payload had been zero filled before
+    // this requires that msg payload had been zero-filled before
     memcpy(payload, msg->payload, FASTMAVLINK_MSG_ADAP_TUNING_PAYLOAD_LEN_MAX);
 #endif
 }
@@ -386,6 +386,20 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_adap_tuning_pack(
         _msg, sysid, compid,
         axis, desired, achieved, error, theta, omega, sigma, theta_dot, omega_dot, sigma_dot, f, f_dot, u,
         _status);
+}
+
+
+FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_adap_tuning_encode(
+    uint8_t sysid,
+    uint8_t compid,
+    mavlink_message_t* _msg,
+    const mavlink_adap_tuning_t* _payload)
+{
+    return mavlink_msg_adap_tuning_pack(
+        sysid,
+        compid,
+        _msg,
+        _payload->axis, _payload->desired, _payload->achieved, _payload->error, _payload->theta, _payload->omega, _payload->sigma, _payload->theta_dot, _payload->omega_dot, _payload->sigma_dot, _payload->f, _payload->f_dot, _payload->u);
 }
 
 #endif

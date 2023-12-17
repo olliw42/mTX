@@ -1,10 +1,10 @@
 //*******************************************************
-// The MAVLink for OpenTx project
+// mTX: MAVLink for OpenTx Project
 // Copyright (c) OlliW, OlliW42, www.olliw.eu
 // LGPL3
 // https://www.gnu.org/licenses/lgpl-3.0.en.html
+// MavTelem Library
 //*******************************************************
-
 
 #define MAVLINK_RAM_SECTION  __attribute__((section (".ram")))
 
@@ -65,7 +65,7 @@ tmr10ms_t mavlinkRcOverrideRate(void);
 #define FASTMAVLINK_ROUTER_COMPONENTS_MAX   12
 #define FASTMAVLINK_ROUTER_USE_TIMEOUT
 
-#include "thirdparty/Mavlink/out/opentx/opentx.h"
+#include "thirdparty/Mavlink/out/mtx/mtx.h"
 #include "thirdparty/Mavlink/out/lib/fastmavlink_router.h"
 
 #define FASTMAVLINK_PARAM_NUM   8

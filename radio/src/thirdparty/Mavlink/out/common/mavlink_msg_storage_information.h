@@ -215,9 +215,9 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_storage_information_encode_to_s
 //----------------------------------------
 //-- Message STORAGE_INFORMATION decode routines, for receiving
 //----------------------------------------
-// For these functions to work correctly, the msg payload must be zero filled.
+// For these functions to work correctly, the msg payload must be zero-filled.
 // Call the helper fmav_msg_zerofill() if needed, or set FASTMAVLINK_ALWAYS_ZEROFILL to 1
-// Note that the parse functions do zerofill the msg payload, but that message generator functions
+// Note that the parse functions do zero-fill the msg payload, but that message generator functions
 // do not. This means that for the msg obtained from parsing the below functions can safely be used,
 // but that this is not so for the msg obtained from pack/encode functions.
 
@@ -226,14 +226,14 @@ FASTMAVLINK_FUNCTION_DECORATOR void fmav_msg_storage_information_decode(fmav_sto
 #if FASTMAVLINK_ALWAYS_ZEROFILL
     if (msg->len < FASTMAVLINK_MSG_STORAGE_INFORMATION_PAYLOAD_LEN_MAX) {
         memcpy(payload, msg->payload, msg->len);
-        // ensure that returned payload is zero filled
+        // ensure that returned payload is zero-filled
         memset(&(((uint8_t*)payload)[msg->len]), 0, FASTMAVLINK_MSG_STORAGE_INFORMATION_PAYLOAD_LEN_MAX - msg->len);
     } else {
-		// note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
+        // note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
         memcpy(payload, msg->payload, FASTMAVLINK_MSG_STORAGE_INFORMATION_PAYLOAD_LEN_MAX);
     }
 #else
-    // this requires that msg payload had been zero filled before
+    // this requires that msg payload had been zero-filled before
     memcpy(payload, msg->payload, FASTMAVLINK_MSG_STORAGE_INFORMATION_PAYLOAD_LEN_MAX);
 #endif
 }
@@ -373,6 +373,20 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_storage_information_pack(
         _msg, sysid, compid,
         time_boot_ms, storage_id, storage_count, status, total_capacity, used_capacity, available_capacity, read_speed, write_speed, type, name, storage_usage,
         _status);
+}
+
+
+FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_storage_information_encode(
+    uint8_t sysid,
+    uint8_t compid,
+    mavlink_message_t* _msg,
+    const mavlink_storage_information_t* _payload)
+{
+    return mavlink_msg_storage_information_pack(
+        sysid,
+        compid,
+        _msg,
+        _payload->time_boot_ms, _payload->storage_id, _payload->storage_count, _payload->status, _payload->total_capacity, _payload->used_capacity, _payload->available_capacity, _payload->read_speed, _payload->write_speed, _payload->type, _payload->name, _payload->storage_usage);
 }
 
 #endif

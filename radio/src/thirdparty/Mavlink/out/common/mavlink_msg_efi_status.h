@@ -252,9 +252,9 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_efi_status_encode_to_serial(
 //----------------------------------------
 //-- Message EFI_STATUS decode routines, for receiving
 //----------------------------------------
-// For these functions to work correctly, the msg payload must be zero filled.
+// For these functions to work correctly, the msg payload must be zero-filled.
 // Call the helper fmav_msg_zerofill() if needed, or set FASTMAVLINK_ALWAYS_ZEROFILL to 1
-// Note that the parse functions do zerofill the msg payload, but that message generator functions
+// Note that the parse functions do zero-fill the msg payload, but that message generator functions
 // do not. This means that for the msg obtained from parsing the below functions can safely be used,
 // but that this is not so for the msg obtained from pack/encode functions.
 
@@ -263,14 +263,14 @@ FASTMAVLINK_FUNCTION_DECORATOR void fmav_msg_efi_status_decode(fmav_efi_status_t
 #if FASTMAVLINK_ALWAYS_ZEROFILL
     if (msg->len < FASTMAVLINK_MSG_EFI_STATUS_PAYLOAD_LEN_MAX) {
         memcpy(payload, msg->payload, msg->len);
-        // ensure that returned payload is zero filled
+        // ensure that returned payload is zero-filled
         memset(&(((uint8_t*)payload)[msg->len]), 0, FASTMAVLINK_MSG_EFI_STATUS_PAYLOAD_LEN_MAX - msg->len);
     } else {
-		// note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
+        // note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
         memcpy(payload, msg->payload, FASTMAVLINK_MSG_EFI_STATUS_PAYLOAD_LEN_MAX);
     }
 #else
-    // this requires that msg payload had been zero filled before
+    // this requires that msg payload had been zero-filled before
     memcpy(payload, msg->payload, FASTMAVLINK_MSG_EFI_STATUS_PAYLOAD_LEN_MAX);
 #endif
 }
@@ -464,6 +464,20 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_efi_status_pack(
         _msg, sysid, compid,
         health, ecu_index, rpm, fuel_consumed, fuel_flow, engine_load, throttle_position, spark_dwell_time, barometric_pressure, intake_manifold_pressure, intake_manifold_temperature, cylinder_head_temperature, ignition_timing, injection_time, exhaust_gas_temperature, throttle_out, pt_compensation, ignition_voltage, fuel_pressure,
         _status);
+}
+
+
+FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_efi_status_encode(
+    uint8_t sysid,
+    uint8_t compid,
+    mavlink_message_t* _msg,
+    const mavlink_efi_status_t* _payload)
+{
+    return mavlink_msg_efi_status_pack(
+        sysid,
+        compid,
+        _msg,
+        _payload->health, _payload->ecu_index, _payload->rpm, _payload->fuel_consumed, _payload->fuel_flow, _payload->engine_load, _payload->throttle_position, _payload->spark_dwell_time, _payload->barometric_pressure, _payload->intake_manifold_pressure, _payload->intake_manifold_temperature, _payload->cylinder_head_temperature, _payload->ignition_timing, _payload->injection_time, _payload->exhaust_gas_temperature, _payload->throttle_out, _payload->pt_compensation, _payload->ignition_voltage, _payload->fuel_pressure);
 }
 
 #endif

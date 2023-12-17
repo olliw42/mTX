@@ -19,19 +19,20 @@ typedef struct _fmav_mission_count_t {
     uint8_t target_system;
     uint8_t target_component;
     uint8_t mission_type;
+    uint32_t opaque_id;
 }) fmav_mission_count_t;
 
 
 #define FASTMAVLINK_MSG_ID_MISSION_COUNT  44
 
-#define FASTMAVLINK_MSG_MISSION_COUNT_PAYLOAD_LEN_MAX  5
+#define FASTMAVLINK_MSG_MISSION_COUNT_PAYLOAD_LEN_MAX  9
 #define FASTMAVLINK_MSG_MISSION_COUNT_CRCEXTRA  221
 
 #define FASTMAVLINK_MSG_MISSION_COUNT_FLAGS  3
 #define FASTMAVLINK_MSG_MISSION_COUNT_TARGET_SYSTEM_OFS  2
 #define FASTMAVLINK_MSG_MISSION_COUNT_TARGET_COMPONENT_OFS  3
 
-#define FASTMAVLINK_MSG_MISSION_COUNT_FRAME_LEN_MAX  30
+#define FASTMAVLINK_MSG_MISSION_COUNT_FRAME_LEN_MAX  34
 
 
 
@@ -39,6 +40,7 @@ typedef struct _fmav_mission_count_t {
 #define FASTMAVLINK_MSG_MISSION_COUNT_FIELD_TARGET_SYSTEM_OFS  2
 #define FASTMAVLINK_MSG_MISSION_COUNT_FIELD_TARGET_COMPONENT_OFS  3
 #define FASTMAVLINK_MSG_MISSION_COUNT_FIELD_MISSION_TYPE_OFS  4
+#define FASTMAVLINK_MSG_MISSION_COUNT_FIELD_OPAQUE_ID_OFS  5
 
 
 //----------------------------------------
@@ -49,7 +51,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_pack(
     fmav_message_t* _msg,
     uint8_t sysid,
     uint8_t compid,
-    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type,
+    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type, uint32_t opaque_id,
     fmav_status_t* _status)
 {
     fmav_mission_count_t* _payload = (fmav_mission_count_t*)_msg->payload;
@@ -58,6 +60,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_pack(
     _payload->target_system = target_system;
     _payload->target_component = target_component;
     _payload->mission_type = mission_type;
+    _payload->opaque_id = opaque_id;
 
 
     _msg->sysid = sysid;
@@ -81,7 +84,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_encode(
 {
     return fmav_msg_mission_count_pack(
         _msg, sysid, compid,
-        _payload->target_system, _payload->target_component, _payload->count, _payload->mission_type,
+        _payload->target_system, _payload->target_component, _payload->count, _payload->mission_type, _payload->opaque_id,
         _status);
 }
 
@@ -90,7 +93,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_pack_to_frame_buf
     uint8_t* _buf,
     uint8_t sysid,
     uint8_t compid,
-    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type,
+    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type, uint32_t opaque_id,
     fmav_status_t* _status)
 {
     fmav_mission_count_t* _payload = (fmav_mission_count_t*)(&_buf[FASTMAVLINK_HEADER_V2_LEN]);
@@ -99,6 +102,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_pack_to_frame_buf
     _payload->target_system = target_system;
     _payload->target_component = target_component;
     _payload->mission_type = mission_type;
+    _payload->opaque_id = opaque_id;
 
 
     _buf[5] = sysid;
@@ -124,7 +128,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_encode_to_frame_b
 {
     return fmav_msg_mission_count_pack_to_frame_buf(
         _buf, sysid, compid,
-        _payload->target_system, _payload->target_component, _payload->count, _payload->mission_type,
+        _payload->target_system, _payload->target_component, _payload->count, _payload->mission_type, _payload->opaque_id,
         _status);
 }
 
@@ -134,7 +138,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_encode_to_frame_b
 FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_pack_to_serial(
     uint8_t sysid,
     uint8_t compid,
-    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type,
+    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type, uint32_t opaque_id,
     fmav_status_t* _status)
 {
     fmav_mission_count_t _payload;
@@ -143,6 +147,7 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_pack_to_serial(
     _payload.target_system = target_system;
     _payload.target_component = target_component;
     _payload.mission_type = mission_type;
+    _payload.opaque_id = opaque_id;
 
 
     return fmav_finalize_serial(
@@ -177,9 +182,9 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_count_encode_to_serial(
 //----------------------------------------
 //-- Message MISSION_COUNT decode routines, for receiving
 //----------------------------------------
-// For these functions to work correctly, the msg payload must be zero filled.
+// For these functions to work correctly, the msg payload must be zero-filled.
 // Call the helper fmav_msg_zerofill() if needed, or set FASTMAVLINK_ALWAYS_ZEROFILL to 1
-// Note that the parse functions do zerofill the msg payload, but that message generator functions
+// Note that the parse functions do zero-fill the msg payload, but that message generator functions
 // do not. This means that for the msg obtained from parsing the below functions can safely be used,
 // but that this is not so for the msg obtained from pack/encode functions.
 
@@ -188,14 +193,14 @@ FASTMAVLINK_FUNCTION_DECORATOR void fmav_msg_mission_count_decode(fmav_mission_c
 #if FASTMAVLINK_ALWAYS_ZEROFILL
     if (msg->len < FASTMAVLINK_MSG_MISSION_COUNT_PAYLOAD_LEN_MAX) {
         memcpy(payload, msg->payload, msg->len);
-        // ensure that returned payload is zero filled
+        // ensure that returned payload is zero-filled
         memset(&(((uint8_t*)payload)[msg->len]), 0, FASTMAVLINK_MSG_MISSION_COUNT_PAYLOAD_LEN_MAX - msg->len);
     } else {
-		// note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
+        // note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
         memcpy(payload, msg->payload, FASTMAVLINK_MSG_MISSION_COUNT_PAYLOAD_LEN_MAX);
     }
 #else
-    // this requires that msg payload had been zero filled before
+    // this requires that msg payload had been zero-filled before
     memcpy(payload, msg->payload, FASTMAVLINK_MSG_MISSION_COUNT_PAYLOAD_LEN_MAX);
 #endif
 }
@@ -233,6 +238,14 @@ FASTMAVLINK_FUNCTION_DECORATOR uint8_t fmav_msg_mission_count_get_field_mission_
 }
 
 
+FASTMAVLINK_FUNCTION_DECORATOR uint32_t fmav_msg_mission_count_get_field_opaque_id(const fmav_message_t* msg)
+{
+    uint32_t r;
+    memcpy(&r, &(msg->payload[5]), sizeof(uint32_t));
+    return r;
+}
+
+
 
 
 
@@ -245,9 +258,9 @@ FASTMAVLINK_FUNCTION_DECORATOR uint8_t fmav_msg_mission_count_get_field_mission_
 
 #define mavlink_mission_count_t  fmav_mission_count_t
 
-#define MAVLINK_MSG_ID_MISSION_COUNT_LEN  5
+#define MAVLINK_MSG_ID_MISSION_COUNT_LEN  9
 #define MAVLINK_MSG_ID_MISSION_COUNT_MIN_LEN  4
-#define MAVLINK_MSG_ID_44_LEN  5
+#define MAVLINK_MSG_ID_44_LEN  9
 #define MAVLINK_MSG_ID_44_MIN_LEN  4
 
 #define MAVLINK_MSG_ID_MISSION_COUNT_CRC  221
@@ -262,13 +275,27 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_mission_count_pack(
     uint8_t sysid,
     uint8_t compid,
     mavlink_message_t* _msg,
-    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type)
+    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type, uint32_t opaque_id)
 {
     fmav_status_t* _status = mavlink_get_channel_status(MAVLINK_COMM_0);
     return fmav_msg_mission_count_pack(
         _msg, sysid, compid,
-        target_system, target_component, count, mission_type,
+        target_system, target_component, count, mission_type, opaque_id,
         _status);
+}
+
+
+FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_mission_count_encode(
+    uint8_t sysid,
+    uint8_t compid,
+    mavlink_message_t* _msg,
+    const mavlink_mission_count_t* _payload)
+{
+    return mavlink_msg_mission_count_pack(
+        sysid,
+        compid,
+        _msg,
+        _payload->target_system, _payload->target_component, _payload->count, _payload->mission_type, _payload->opaque_id);
 }
 
 #endif
@@ -279,13 +306,13 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_mission_count_pack_txbuf(
     fmav_status_t* _status,
     uint8_t sysid,
     uint8_t compid,
-    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type)
+    uint8_t target_system, uint8_t target_component, uint16_t count, uint8_t mission_type, uint32_t opaque_id)
 {
     return fmav_msg_mission_count_pack_to_frame_buf(
         (uint8_t*)_buf,
         sysid,
         compid,
-        target_system, target_component, count, mission_type,
+        target_system, target_component, count, mission_type, opaque_id,
         _status);
 }
 

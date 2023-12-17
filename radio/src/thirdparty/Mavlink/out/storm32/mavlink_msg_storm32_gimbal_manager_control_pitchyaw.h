@@ -207,9 +207,9 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_storm32_gimbal_manager_control_
 //----------------------------------------
 //-- Message STORM32_GIMBAL_MANAGER_CONTROL_PITCHYAW decode routines, for receiving
 //----------------------------------------
-// For these functions to work correctly, the msg payload must be zero filled.
+// For these functions to work correctly, the msg payload must be zero-filled.
 // Call the helper fmav_msg_zerofill() if needed, or set FASTMAVLINK_ALWAYS_ZEROFILL to 1
-// Note that the parse functions do zerofill the msg payload, but that message generator functions
+// Note that the parse functions do zero-fill the msg payload, but that message generator functions
 // do not. This means that for the msg obtained from parsing the below functions can safely be used,
 // but that this is not so for the msg obtained from pack/encode functions.
 
@@ -218,14 +218,14 @@ FASTMAVLINK_FUNCTION_DECORATOR void fmav_msg_storm32_gimbal_manager_control_pitc
 #if FASTMAVLINK_ALWAYS_ZEROFILL
     if (msg->len < FASTMAVLINK_MSG_STORM32_GIMBAL_MANAGER_CONTROL_PITCHYAW_PAYLOAD_LEN_MAX) {
         memcpy(payload, msg->payload, msg->len);
-        // ensure that returned payload is zero filled
+        // ensure that returned payload is zero-filled
         memset(&(((uint8_t*)payload)[msg->len]), 0, FASTMAVLINK_MSG_STORM32_GIMBAL_MANAGER_CONTROL_PITCHYAW_PAYLOAD_LEN_MAX - msg->len);
     } else {
-		// note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
+        // note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
         memcpy(payload, msg->payload, FASTMAVLINK_MSG_STORM32_GIMBAL_MANAGER_CONTROL_PITCHYAW_PAYLOAD_LEN_MAX);
     }
 #else
-    // this requires that msg payload had been zero filled before
+    // this requires that msg payload had been zero-filled before
     memcpy(payload, msg->payload, FASTMAVLINK_MSG_STORM32_GIMBAL_MANAGER_CONTROL_PITCHYAW_PAYLOAD_LEN_MAX);
 #endif
 }
@@ -347,6 +347,20 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_storm32_gimbal_manager_contr
         _msg, sysid, compid,
         target_system, target_component, gimbal_id, client, device_flags, manager_flags, pitch, yaw, pitch_rate, yaw_rate,
         _status);
+}
+
+
+FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_encode(
+    uint8_t sysid,
+    uint8_t compid,
+    mavlink_message_t* _msg,
+    const mavlink_storm32_gimbal_manager_control_pitchyaw_t* _payload)
+{
+    return mavlink_msg_storm32_gimbal_manager_control_pitchyaw_pack(
+        sysid,
+        compid,
+        _msg,
+        _payload->target_system, _payload->target_component, _payload->gimbal_id, _payload->client, _payload->device_flags, _payload->manager_flags, _payload->pitch, _payload->yaw, _payload->pitch_rate, _payload->yaw_rate);
 }
 
 #endif

@@ -11,6 +11,6 @@
 #define FASTMAVLINK_PYMAVLINK_ENABLED
 #endif
 
-#include "opentx.h"
+#include "mtx.h"
 
 #endif // MAVLINK_H

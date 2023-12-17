@@ -1,16 +1,17 @@
 //*******************************************************
-// MavTelem Library
+// mTX: MAVLink for OpenTx Project
 // Copyright (c) OlliW, OlliW42, www.olliw.eu
 // LGPL3
 // https://www.gnu.org/licenses/lgpl-3.0.en.html
+// MavTelem Library
 //*******************************************************
 
 #include <ctype.h>
 #include <stdio.h>
 #include "opentx.h"
 #include "../lua/lua_api.h"
-#include "thirdparty/Mavlink/opentx_lua_lib_constants.h"
-#include "thirdparty/Mavlink/opentx_lua_lib_messages.h"
+#include "thirdparty/Mavlink/mtx_lua_lib_constants.h"
+#include "thirdparty/Mavlink/mtx_lua_lib_messages.h"
 
 
 static int luaMavlinkGetVersion(lua_State * L)

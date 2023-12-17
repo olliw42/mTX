@@ -1,8 +1,9 @@
 //*******************************************************
-// MavTelem Library
+// mTX: MAVLink for OpenTx Project
 // Copyright (c) OlliW, OlliW42, www.olliw.eu
 // LGPL3
 // https://www.gnu.org/licenses/lgpl-3.0.en.html
+// MavTelem Library
 //*******************************************************
 
 #pragma once

@@ -232,9 +232,9 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_mission_item_encode_to_serial(
 //----------------------------------------
 //-- Message MISSION_ITEM decode routines, for receiving
 //----------------------------------------
-// For these functions to work correctly, the msg payload must be zero filled.
+// For these functions to work correctly, the msg payload must be zero-filled.
 // Call the helper fmav_msg_zerofill() if needed, or set FASTMAVLINK_ALWAYS_ZEROFILL to 1
-// Note that the parse functions do zerofill the msg payload, but that message generator functions
+// Note that the parse functions do zero-fill the msg payload, but that message generator functions
 // do not. This means that for the msg obtained from parsing the below functions can safely be used,
 // but that this is not so for the msg obtained from pack/encode functions.
 
@@ -243,14 +243,14 @@ FASTMAVLINK_FUNCTION_DECORATOR void fmav_msg_mission_item_decode(fmav_mission_it
 #if FASTMAVLINK_ALWAYS_ZEROFILL
     if (msg->len < FASTMAVLINK_MSG_MISSION_ITEM_PAYLOAD_LEN_MAX) {
         memcpy(payload, msg->payload, msg->len);
-        // ensure that returned payload is zero filled
+        // ensure that returned payload is zero-filled
         memset(&(((uint8_t*)payload)[msg->len]), 0, FASTMAVLINK_MSG_MISSION_ITEM_PAYLOAD_LEN_MAX - msg->len);
     } else {
-		// note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
+        // note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
         memcpy(payload, msg->payload, FASTMAVLINK_MSG_MISSION_ITEM_PAYLOAD_LEN_MAX);
     }
 #else
-    // this requires that msg payload had been zero filled before
+    // this requires that msg payload had been zero-filled before
     memcpy(payload, msg->payload, FASTMAVLINK_MSG_MISSION_ITEM_PAYLOAD_LEN_MAX);
 #endif
 }
@@ -412,6 +412,20 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_mission_item_pack(
         _msg, sysid, compid,
         target_system, target_component, seq, frame, command, current, autocontinue, param1, param2, param3, param4, x, y, z, mission_type,
         _status);
+}
+
+
+FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_mission_item_encode(
+    uint8_t sysid,
+    uint8_t compid,
+    mavlink_message_t* _msg,
+    const mavlink_mission_item_t* _payload)
+{
+    return mavlink_msg_mission_item_pack(
+        sysid,
+        compid,
+        _msg,
+        _payload->target_system, _payload->target_component, _payload->seq, _payload->frame, _payload->command, _payload->current, _payload->autocontinue, _payload->param1, _payload->param2, _payload->param3, _payload->param4, _payload->x, _payload->y, _payload->z, _payload->mission_type);
 }
 
 #endif

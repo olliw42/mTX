@@ -1,3 +1,10 @@
+//*******************************************************
+// mTX: MAVLink for OpenTx Project
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
+    
 //------------------------------------------------------------
 // mavlink messages
 //------------------------------------------------------------
@@ -14,6 +21,7 @@
 #define lua_pushtablestring_raw(L, k, v)   (lua_pushstring(L,(k)), lua_pushstring(L,(v)), lua_rawset(L,-3))
 #define lua_pushtableinumber_raw(L, i, v)  (lua_pushnumber(L,(i)), lua_pushnumber(L,(v)), lua_rawset(L,-3))
 #define lua_pushtableinumber(L, i, v)      (lua_pushnumber(L,(i)), lua_pushnumber(L,(v)), lua_settable(L,-3))
+
 
 static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
 {
@@ -415,6 +423,9 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
     lua_pushtablenumber(L, "total", payload->total);
     lua_pushtablenumber(L, "mission_state", payload->mission_state);
     lua_pushtablenumber(L, "mission_mode", payload->mission_mode);
+    lua_pushtablenumber(L, "mission_id", payload->mission_id);
+    lua_pushtablenumber(L, "fence_id", payload->fence_id);
+    lua_pushtablenumber(L, "rally_points_id", payload->rally_points_id);
     return;
     }
   case FASTMAVLINK_MSG_ID_MISSION_REQUEST_LIST: { // #43
@@ -426,6 +437,7 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
     fmav_mission_count_t* payload = (fmav_mission_count_t*)(mavmsg->payload_ptr);
     lua_pushtablenumber(L, "count", payload->count);
     lua_pushtablenumber(L, "mission_type", payload->mission_type);
+    lua_pushtablenumber(L, "opaque_id", payload->opaque_id);
     return;
     }
   case FASTMAVLINK_MSG_ID_MISSION_CLEAR_ALL: { // #45
@@ -442,6 +454,7 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
     fmav_mission_ack_t* payload = (fmav_mission_ack_t*)(mavmsg->payload_ptr);
     lua_pushtablenumber(L, "type", payload->type);
     lua_pushtablenumber(L, "mission_type", payload->mission_type);
+    lua_pushtablenumber(L, "opaque_id", payload->opaque_id);
     return;
     }
   case FASTMAVLINK_MSG_ID_SET_GPS_GLOBAL_ORIGIN: { // #48
@@ -626,6 +639,12 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
     lua_pushtablenumber(L, "enabled_extensions", payload->enabled_extensions);
     lua_pushtablenumber(L, "s", payload->s);
     lua_pushtablenumber(L, "t", payload->t);
+    lua_pushtablenumber(L, "aux1", payload->aux1);
+    lua_pushtablenumber(L, "aux2", payload->aux2);
+    lua_pushtablenumber(L, "aux3", payload->aux3);
+    lua_pushtablenumber(L, "aux4", payload->aux4);
+    lua_pushtablenumber(L, "aux5", payload->aux5);
+    lua_pushtablenumber(L, "aux6", payload->aux6);
     return;
     }
   case FASTMAVLINK_MSG_ID_RC_CHANNELS_OVERRIDE: { // #70
@@ -2575,6 +2594,7 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
       lua_pushtableinumber(L, i+1, payload->cam_definition_uri[i]); // lua is 1 indexed
     }
     lua_rawset(L, -3);
+    lua_pushtablenumber(L, "gimbal_device_id", payload->gimbal_device_id);
     return;
     }
   case FASTMAVLINK_MSG_ID_CAMERA_SETTINGS: { // #260
@@ -2849,6 +2869,7 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
     lua_pushtablenumber(L, "pitch_max", payload->pitch_max);
     lua_pushtablenumber(L, "yaw_min", payload->yaw_min);
     lua_pushtablenumber(L, "yaw_max", payload->yaw_max);
+    lua_pushtablenumber(L, "gimbal_device_id", payload->gimbal_device_id);
     return;
     }
   case FASTMAVLINK_MSG_ID_GIMBAL_DEVICE_SET_ATTITUDE: { // #284
@@ -2881,6 +2902,7 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
     lua_pushtablenumber(L, "failure_flags", payload->failure_flags);
     lua_pushtablenumber(L, "delta_yaw", payload->delta_yaw);
     lua_pushtablenumber(L, "delta_yaw_velocity", payload->delta_yaw_velocity);
+    lua_pushtablenumber(L, "gimbal_device_id", payload->gimbal_device_id);
     return;
     }
   case FASTMAVLINK_MSG_ID_AUTOPILOT_STATE_FOR_GIMBAL_DEVICE: { // #286
@@ -4340,6 +4362,61 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
     lua_pushtablenumber(L, "offset", payload->offset);
     return;
     }
+  case FASTMAVLINK_MSG_ID_AIRLINK_AUTH: { // #52000
+    fmav_airlink_auth_t* payload = (fmav_airlink_auth_t*)(mavmsg->payload_ptr);
+    lua_pushstring(L, "login"); // array login[50]
+    lua_newtable(L);
+    for (int i = 0; i < 50; i++) { 
+      lua_pushtableinumber(L, i+1, payload->login[i]); // lua is 1 indexed
+    }
+    lua_rawset(L, -3);
+    lua_pushstring(L, "password"); // array password[50]
+    lua_newtable(L);
+    for (int i = 0; i < 50; i++) { 
+      lua_pushtableinumber(L, i+1, payload->password[i]); // lua is 1 indexed
+    }
+    lua_rawset(L, -3);
+    return;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_AUTH_RESPONSE: { // #52001
+    fmav_airlink_auth_response_t* payload = (fmav_airlink_auth_response_t*)(mavmsg->payload_ptr);
+    lua_pushtablenumber(L, "resp_type", payload->resp_type);
+    return;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_EYE_GS_HOLE_PUSH_REQUEST: { // #52002
+    fmav_airlink_eye_gs_hole_push_request_t* payload = (fmav_airlink_eye_gs_hole_push_request_t*)(mavmsg->payload_ptr);
+    lua_pushtablenumber(L, "resp_type", payload->resp_type);
+    return;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_EYE_GS_HOLE_PUSH_RESPONSE: { // #52003
+    fmav_airlink_eye_gs_hole_push_response_t* payload = (fmav_airlink_eye_gs_hole_push_response_t*)(mavmsg->payload_ptr);
+    lua_pushtablenumber(L, "resp_type", payload->resp_type);
+    lua_pushtablenumber(L, "ip_version", payload->ip_version);
+    lua_pushstring(L, "ip_address_4"); // array ip_address_4[4]
+    lua_newtable(L);
+    for (int i = 0; i < 4; i++) { 
+      lua_pushtableinumber(L, i+1, payload->ip_address_4[i]); // lua is 1 indexed
+    }
+    lua_rawset(L, -3);
+    lua_pushstring(L, "ip_address_6"); // array ip_address_6[16]
+    lua_newtable(L);
+    for (int i = 0; i < 16; i++) { 
+      lua_pushtableinumber(L, i+1, payload->ip_address_6[i]); // lua is 1 indexed
+    }
+    lua_rawset(L, -3);
+    lua_pushtablenumber(L, "ip_port", payload->ip_port);
+    return;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_EYE_HP: { // #52004
+    fmav_airlink_eye_hp_t* payload = (fmav_airlink_eye_hp_t*)(mavmsg->payload_ptr);
+    lua_pushtablenumber(L, "resp_type", payload->resp_type);
+    return;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_EYE_TURN_INIT: { // #52005
+    fmav_airlink_eye_turn_init_t* payload = (fmav_airlink_eye_turn_init_t*)(mavmsg->payload_ptr);
+    lua_pushtablenumber(L, "resp_type", payload->resp_type);
+    return;
+    }
   case FASTMAVLINK_MSG_ID_AUTOPILOT_STATE_FOR_GIMBAL_DEVICE_EXT: { // #60000
     fmav_autopilot_state_for_gimbal_device_ext_t* payload = (fmav_autopilot_state_for_gimbal_device_ext_t*)(mavmsg->payload_ptr);
     lua_pushtablenumber(L, "time_boot_us", payload->time_boot_us);
@@ -4498,6 +4575,7 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
 #define lua_checktableinteger(L, r, k, d)  (lua_pushstring(L,(k)), lua_gettable(L,-2 ), r = (lua_isnumber(L,-1))?lua_tointeger(L,-1):(d), lua_pop(L,1))
 #define lua_checktablenumber(L, r, k, d)   (lua_pushstring(L,(k)), lua_gettable(L,-2 ), r = (lua_isnumber(L,-1))?lua_tonumber(L,-1):(d), lua_pop(L,1))
 #define lua_checktableinumber(L, r, i, d)  (lua_pushnumber(L,(i)), lua_gettable(L,-2 ), r = (lua_isnumber(L,-1))?lua_tonumber(L,-1):(d), lua_pop(L,1))
+
 
 static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
 {
@@ -4894,14 +4972,14 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     fmav_rc_channels_scaled_t* payload = (fmav_rc_channels_scaled_t*)(msg_out->payload);
     lua_checktablenumber(L, payload->time_boot_ms, "time_boot_ms", 0);
     lua_checktablenumber(L, payload->port, "port", 0);
-    lua_checktablenumber(L, payload->chan1_scaled, "chan1_scaled", UINT16_MAX);
-    lua_checktablenumber(L, payload->chan2_scaled, "chan2_scaled", UINT16_MAX);
-    lua_checktablenumber(L, payload->chan3_scaled, "chan3_scaled", UINT16_MAX);
-    lua_checktablenumber(L, payload->chan4_scaled, "chan4_scaled", UINT16_MAX);
-    lua_checktablenumber(L, payload->chan5_scaled, "chan5_scaled", UINT16_MAX);
-    lua_checktablenumber(L, payload->chan6_scaled, "chan6_scaled", UINT16_MAX);
-    lua_checktablenumber(L, payload->chan7_scaled, "chan7_scaled", UINT16_MAX);
-    lua_checktablenumber(L, payload->chan8_scaled, "chan8_scaled", UINT16_MAX);
+    lua_checktablenumber(L, payload->chan1_scaled, "chan1_scaled", INT16_MAX);
+    lua_checktablenumber(L, payload->chan2_scaled, "chan2_scaled", INT16_MAX);
+    lua_checktablenumber(L, payload->chan3_scaled, "chan3_scaled", INT16_MAX);
+    lua_checktablenumber(L, payload->chan4_scaled, "chan4_scaled", INT16_MAX);
+    lua_checktablenumber(L, payload->chan5_scaled, "chan5_scaled", INT16_MAX);
+    lua_checktablenumber(L, payload->chan6_scaled, "chan6_scaled", INT16_MAX);
+    lua_checktablenumber(L, payload->chan7_scaled, "chan7_scaled", INT16_MAX);
+    lua_checktablenumber(L, payload->chan8_scaled, "chan8_scaled", INT16_MAX);
     lua_checktablenumber(L, payload->rssi, "rssi", UINT8_MAX);
     msg_out->crc_extra = FASTMAVLINK_MSG_RC_CHANNELS_SCALED_CRCEXTRA;
     msg_out->payload_max_len = FASTMAVLINK_MSG_RC_CHANNELS_SCALED_PAYLOAD_LEN_MAX;
@@ -5026,6 +5104,9 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     lua_checktablenumber(L, payload->total, "total", UINT16_MAX);
     lua_checktablenumber(L, payload->mission_state, "mission_state", 0);
     lua_checktablenumber(L, payload->mission_mode, "mission_mode", 0);
+    lua_checktablenumber(L, payload->mission_id, "mission_id", 0);
+    lua_checktablenumber(L, payload->fence_id, "fence_id", 0);
+    lua_checktablenumber(L, payload->rally_points_id, "rally_points_id", 0);
     msg_out->crc_extra = FASTMAVLINK_MSG_MISSION_CURRENT_CRCEXTRA;
     msg_out->payload_max_len = FASTMAVLINK_MSG_MISSION_CURRENT_PAYLOAD_LEN_MAX;
     return 1;
@@ -5047,6 +5128,7 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     lua_checktablenumber(L, payload->target_component, "target_compid", 0);
     lua_checktablenumber(L, payload->count, "count", 0);
     lua_checktablenumber(L, payload->mission_type, "mission_type", 0);
+    lua_checktablenumber(L, payload->opaque_id, "opaque_id", 0);
     msg_out->target_sysid = payload->target_system;
     msg_out->target_compid = payload->target_component;
     msg_out->crc_extra = FASTMAVLINK_MSG_MISSION_COUNT_CRCEXTRA;
@@ -5077,6 +5159,7 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     lua_checktablenumber(L, payload->target_component, "target_compid", 0);
     lua_checktablenumber(L, payload->type, "type", 0);
     lua_checktablenumber(L, payload->mission_type, "mission_type", 0);
+    lua_checktablenumber(L, payload->opaque_id, "opaque_id", 0);
     msg_out->target_sysid = payload->target_system;
     msg_out->target_compid = payload->target_component;
     msg_out->crc_extra = FASTMAVLINK_MSG_MISSION_ACK_CRCEXTRA;
@@ -5323,6 +5406,12 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     lua_checktablenumber(L, payload->enabled_extensions, "enabled_extensions", 0);
     lua_checktablenumber(L, payload->s, "s", 0);
     lua_checktablenumber(L, payload->t, "t", 0);
+    lua_checktablenumber(L, payload->aux1, "aux1", 0);
+    lua_checktablenumber(L, payload->aux2, "aux2", 0);
+    lua_checktablenumber(L, payload->aux3, "aux3", 0);
+    lua_checktablenumber(L, payload->aux4, "aux4", 0);
+    lua_checktablenumber(L, payload->aux5, "aux5", 0);
+    lua_checktablenumber(L, payload->aux6, "aux6", 0);
     msg_out->target_sysid = payload->target;
     msg_out->crc_extra = FASTMAVLINK_MSG_MANUAL_CONTROL_CRCEXTRA;
     msg_out->payload_max_len = FASTMAVLINK_MSG_MANUAL_CONTROL_PAYLOAD_LEN_MAX;
@@ -7561,7 +7650,7 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     lua_gettable(L, -2);
     if (lua_istable(L,-1)) {
       for (int i = 0; i < 4; i++) { 
-        lua_checktableinumber(L, payload->q[i], i+1, 0); // lua is 1 indexed
+        lua_checktableinumber(L, payload->q[i], i+1, NAN); // lua is 1 indexed
       }
     }
     lua_pop(L, 1);
@@ -7841,9 +7930,9 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     }
     lua_pop(L, 1);
     lua_checktablenumber(L, payload->firmware_version, "firmware_version", 0);
-    lua_checktablenumber(L, payload->focal_length, "focal_length", 0);
-    lua_checktablenumber(L, payload->sensor_size_h, "sensor_size_h", 0);
-    lua_checktablenumber(L, payload->sensor_size_v, "sensor_size_v", 0);
+    lua_checktablenumber(L, payload->focal_length, "focal_length", NAN);
+    lua_checktablenumber(L, payload->sensor_size_h, "sensor_size_h", NAN);
+    lua_checktablenumber(L, payload->sensor_size_v, "sensor_size_v", NAN);
     lua_checktablenumber(L, payload->resolution_h, "resolution_h", 0);
     lua_checktablenumber(L, payload->resolution_v, "resolution_v", 0);
     lua_checktablenumber(L, payload->lens_id, "lens_id", 0);
@@ -7857,6 +7946,7 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
       }
     }
     lua_pop(L, 1);
+    lua_checktablenumber(L, payload->gimbal_device_id, "gimbal_device_id", 0);
     msg_out->crc_extra = FASTMAVLINK_MSG_CAMERA_INFORMATION_CRCEXTRA;
     msg_out->payload_max_len = FASTMAVLINK_MSG_CAMERA_INFORMATION_PAYLOAD_LEN_MAX;
     return 1;
@@ -8207,6 +8297,7 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     lua_checktablenumber(L, payload->pitch_max, "pitch_max", NAN);
     lua_checktablenumber(L, payload->yaw_min, "yaw_min", NAN);
     lua_checktablenumber(L, payload->yaw_max, "yaw_max", NAN);
+    lua_checktablenumber(L, payload->gimbal_device_id, "gimbal_device_id", 0);
     msg_out->crc_extra = FASTMAVLINK_MSG_GIMBAL_DEVICE_INFORMATION_CRCEXTRA;
     msg_out->payload_max_len = FASTMAVLINK_MSG_GIMBAL_DEVICE_INFORMATION_PAYLOAD_LEN_MAX;
     return 1;
@@ -8253,6 +8344,7 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     lua_checktablenumber(L, payload->failure_flags, "failure_flags", 0);
     lua_checktablenumber(L, payload->delta_yaw, "delta_yaw", NAN);
     lua_checktablenumber(L, payload->delta_yaw_velocity, "delta_yaw_velocity", NAN);
+    lua_checktablenumber(L, payload->gimbal_device_id, "gimbal_device_id", 0);
     msg_out->target_sysid = payload->target_system;
     msg_out->target_compid = payload->target_component;
     msg_out->crc_extra = FASTMAVLINK_MSG_GIMBAL_DEVICE_ATTITUDE_STATUS_CRCEXTRA;
@@ -10233,6 +10325,81 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     msg_out->target_compid = payload->target_component;
     msg_out->crc_extra = FASTMAVLINK_MSG_CUBEPILOT_FIRMWARE_UPDATE_RESP_CRCEXTRA;
     msg_out->payload_max_len = FASTMAVLINK_MSG_CUBEPILOT_FIRMWARE_UPDATE_RESP_PAYLOAD_LEN_MAX;
+    return 1;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_AUTH: { // #52000
+    fmav_airlink_auth_t* payload = (fmav_airlink_auth_t*)(msg_out->payload);
+    lua_pushstring(L, "login"); // array login[50]
+    lua_gettable(L, -2);
+    if (lua_istable(L,-1)) {
+      for (int i = 0; i < 50; i++) { 
+        lua_checktableinumber(L, payload->login[i], i+1, 0); // lua is 1 indexed
+      }
+    }
+    lua_pop(L, 1);
+    lua_pushstring(L, "password"); // array password[50]
+    lua_gettable(L, -2);
+    if (lua_istable(L,-1)) {
+      for (int i = 0; i < 50; i++) { 
+        lua_checktableinumber(L, payload->password[i], i+1, 0); // lua is 1 indexed
+      }
+    }
+    lua_pop(L, 1);
+    msg_out->crc_extra = FASTMAVLINK_MSG_AIRLINK_AUTH_CRCEXTRA;
+    msg_out->payload_max_len = FASTMAVLINK_MSG_AIRLINK_AUTH_PAYLOAD_LEN_MAX;
+    return 1;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_AUTH_RESPONSE: { // #52001
+    fmav_airlink_auth_response_t* payload = (fmav_airlink_auth_response_t*)(msg_out->payload);
+    lua_checktablenumber(L, payload->resp_type, "resp_type", 0);
+    msg_out->crc_extra = FASTMAVLINK_MSG_AIRLINK_AUTH_RESPONSE_CRCEXTRA;
+    msg_out->payload_max_len = FASTMAVLINK_MSG_AIRLINK_AUTH_RESPONSE_PAYLOAD_LEN_MAX;
+    return 1;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_EYE_GS_HOLE_PUSH_REQUEST: { // #52002
+    fmav_airlink_eye_gs_hole_push_request_t* payload = (fmav_airlink_eye_gs_hole_push_request_t*)(msg_out->payload);
+    lua_checktablenumber(L, payload->resp_type, "resp_type", 0);
+    msg_out->crc_extra = FASTMAVLINK_MSG_AIRLINK_EYE_GS_HOLE_PUSH_REQUEST_CRCEXTRA;
+    msg_out->payload_max_len = FASTMAVLINK_MSG_AIRLINK_EYE_GS_HOLE_PUSH_REQUEST_PAYLOAD_LEN_MAX;
+    return 1;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_EYE_GS_HOLE_PUSH_RESPONSE: { // #52003
+    fmav_airlink_eye_gs_hole_push_response_t* payload = (fmav_airlink_eye_gs_hole_push_response_t*)(msg_out->payload);
+    lua_checktablenumber(L, payload->resp_type, "resp_type", 0);
+    lua_checktablenumber(L, payload->ip_version, "ip_version", 0);
+    lua_pushstring(L, "ip_address_4"); // array ip_address_4[4]
+    lua_gettable(L, -2);
+    if (lua_istable(L,-1)) {
+      for (int i = 0; i < 4; i++) { 
+        lua_checktableinumber(L, payload->ip_address_4[i], i+1, 0); // lua is 1 indexed
+      }
+    }
+    lua_pop(L, 1);
+    lua_pushstring(L, "ip_address_6"); // array ip_address_6[16]
+    lua_gettable(L, -2);
+    if (lua_istable(L,-1)) {
+      for (int i = 0; i < 16; i++) { 
+        lua_checktableinumber(L, payload->ip_address_6[i], i+1, 0); // lua is 1 indexed
+      }
+    }
+    lua_pop(L, 1);
+    lua_checktablenumber(L, payload->ip_port, "ip_port", 0);
+    msg_out->crc_extra = FASTMAVLINK_MSG_AIRLINK_EYE_GS_HOLE_PUSH_RESPONSE_CRCEXTRA;
+    msg_out->payload_max_len = FASTMAVLINK_MSG_AIRLINK_EYE_GS_HOLE_PUSH_RESPONSE_PAYLOAD_LEN_MAX;
+    return 1;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_EYE_HP: { // #52004
+    fmav_airlink_eye_hp_t* payload = (fmav_airlink_eye_hp_t*)(msg_out->payload);
+    lua_checktablenumber(L, payload->resp_type, "resp_type", 0);
+    msg_out->crc_extra = FASTMAVLINK_MSG_AIRLINK_EYE_HP_CRCEXTRA;
+    msg_out->payload_max_len = FASTMAVLINK_MSG_AIRLINK_EYE_HP_PAYLOAD_LEN_MAX;
+    return 1;
+    }
+  case FASTMAVLINK_MSG_ID_AIRLINK_EYE_TURN_INIT: { // #52005
+    fmav_airlink_eye_turn_init_t* payload = (fmav_airlink_eye_turn_init_t*)(msg_out->payload);
+    lua_checktablenumber(L, payload->resp_type, "resp_type", 0);
+    msg_out->crc_extra = FASTMAVLINK_MSG_AIRLINK_EYE_TURN_INIT_CRCEXTRA;
+    msg_out->payload_max_len = FASTMAVLINK_MSG_AIRLINK_EYE_TURN_INIT_PAYLOAD_LEN_MAX;
     return 1;
     }
   case FASTMAVLINK_MSG_ID_AUTOPILOT_STATE_FOR_GIMBAL_DEVICE_EXT: { // #60000

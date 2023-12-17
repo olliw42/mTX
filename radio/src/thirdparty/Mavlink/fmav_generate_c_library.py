@@ -14,7 +14,7 @@ import sys
 
 mavlinkpathtorepository = 'fastmavlink'
 
-mavlinkdialect = "opentx.xml"
+mavlinkdialect = "mtx.xml"
 
 mavlinkoutputdirectory = 'out'
 

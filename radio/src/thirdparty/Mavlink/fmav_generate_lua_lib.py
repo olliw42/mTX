@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 '''
-fmav_generate_lua_lib.py
-calls fastMavlink generator modules
-(c) OlliW, OlliW42, www.olliw.eu
+*******************************************************
+ mTX: MAVLink for OpenTx Project
+ Copyright (c) OlliW, OlliW42, www.olliw.eu
+ LGPL3
+ https://www.gnu.org/licenses/lgpl-3.0.en.html
+*******************************************************
+ fmav_generate_lua_lib.py
+ calls fastMavlink generator modules
 '''
 import os, sys
 
@@ -10,7 +15,8 @@ import os, sys
 
 mavlinkpathtorepository = os.path.join('fastmavlink')
 
-mavlinkdialect = "opentx.xml"
+mavlinkdialect = "mtx.xml"
+
 
 '''
 Imports
@@ -21,6 +27,7 @@ from generator.modules import fmav_parse as mavparse
 from generator.modules import mavtemplate
 from generator.modules import fmav_flags as mavflags
 
+
 '''
 Attention: names must not be longer than 32 chars
 '''
@@ -28,28 +35,48 @@ Attention: names must not be longer than 32 chars
 print_warnings = True
 print_verbose = True
 
+
 def printWarning(txt, warn=True):
     if not print_warnings: return
     if not warn: return
     print(txt)
+
 
 def printVerbose(txt, verbose=True):
     if not print_verbose: return
     if not verbose: return
     print(txt)
 
+
 def excludeMessage(msg):
     #return True
     return False
-    if msg.name in ['AHRS','ATTITUDE','VIBRATION']: return False
+    if msg.name in ['AHRS','ATTITUDE','VIBRATION']: return False  # 30, 241
     #if msg.name in ['AHRS']: return False
     return True
+
+
+def includeEnum(enumname):
+    return True
+    if enumname in [
+        'MAV_AUTOPILOT','MAV_TYPE','MAV_MODE_FLAG','MAV_STATE',
+        'MAV_COMPONENT',
+        'MAV_CMD'
+        'MAV_MOUNT_MODE',
+        'GIMBAL_DEVICE_CAP_FLAGS','GIMBAL_MANAGER_CAP_FLAGS',
+        'GIMBAL_DEVICE_FLAGS','GIMBAL_MANAGER_FLAGS','GIMBAL_DEVICE_ERROR_FLAGS',
+        'MAV_PARAM_TYPE','MAV_PARAM_EXT_TYPE','MAV_RESULT','MAV_SEVERITY',
+        'GPS_FIX_TYPE'
+        ]: return True
+    return False
+
 
 def cvtInvalidAttr(invalid_str):
     if invalid_str == 'NaN':
         return 'NAN'
     else:
         return invalid_str
+
 
 def shortenName(name, width):
     nameshort = name[:]
@@ -64,6 +91,7 @@ def shortenName(name, width):
             printWarning(' ! ! !   msg id too long even after shortening')
             nameshort = nameshort[:width]
     return nameshort 
+
 
 def shortenNameEnum(name, width):
     nameshort = name[:]
@@ -82,6 +110,7 @@ def shortenNameEnum(name, width):
     
     return nameshort 
 
+
 def msgFieldCount(msg, excludetargets):
     count = 0
     for field in msg.fields:
@@ -92,6 +121,7 @@ def msgFieldCount(msg, excludetargets):
         else:    
             count += 1
     return count        
+
 
 def generateLibMessageForPush(msg, m):
     m.append('  case FASTMAVLINK_MSG_ID_'+msg.name+': { // #'+str(msg.id))
@@ -175,6 +205,10 @@ def generateLibMessageForCheck(msg, m):
     m.append('    }')
 
 
+'''
+Generate Lua header files
+'''
+
 def generateLuaLibHeaders(dialectname):
     print("Run XML %s" % os.path.basename(dialectname))
     dialectnamewoext = os.path.splitext(os.path.basename(dialectname))[0]
@@ -202,10 +236,18 @@ def generateLuaLibHeaders(dialectname):
         for enum in xml.enums_merged:
             enums_all_by_name[enum.name] = enum
 
+    #-- generate messages
     printVerbose("Messages")
     printVerbose('-> '+dialectxml.basename)
     m = []
-    m.append('''//------------------------------------------------------------
+    m.append('''//*******************************************************
+// mTX: MAVLink for OpenTx Project
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************
+    
+//------------------------------------------------------------
 // mavlink messages
 //------------------------------------------------------------
 // all message from opentx.xml
@@ -221,6 +263,7 @@ def generateLuaLibHeaders(dialectname):
 #define lua_pushtablestring_raw(L, k, v)   (lua_pushstring(L,(k)), lua_pushstring(L,(v)), lua_rawset(L,-3))
 #define lua_pushtableinumber_raw(L, i, v)  (lua_pushnumber(L,(i)), lua_pushnumber(L,(v)), lua_rawset(L,-3))
 #define lua_pushtableinumber(L, i, v)      (lua_pushnumber(L,(i)), lua_pushnumber(L,(v)), lua_settable(L,-3))
+
 
 static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
 {
@@ -249,6 +292,7 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
 #define lua_checktablenumber(L, r, k, d)   (lua_pushstring(L,(k)), lua_gettable(L,-2 ), r = (lua_isnumber(L,-1))?lua_tonumber(L,-1):(d), lua_pop(L,1))
 #define lua_checktableinumber(L, r, i, d)  (lua_pushnumber(L,(i)), lua_gettable(L,-2 ), r = (lua_isnumber(L,-1))?lua_tonumber(L,-1):(d), lua_pop(L,1))
 
+
 static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
 {
   uint32_t msgid;
@@ -271,11 +315,18 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
 }
 ''')
 
-    # constants
+    #-- generate constants
     printVerbose("Constants")
     printVerbose('-> '+dialectxml.basename)
     s = []
-    s.append('''//------------------------------------------------------------
+    s.append('''//*******************************************************
+// mTX: MAVLink for OpenTx Project
+// Copyright (c) OlliW, OlliW42, www.olliw.eu
+// LGPL3
+// https://www.gnu.org/licenses/lgpl-3.0.en.html
+//*******************************************************    
+
+//------------------------------------------------------------
 // mavlink constants
 //------------------------------------------------------------
 // all message and enum constants from opentx.xml
@@ -288,6 +339,7 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
         s.append('  { "M_'+nameshort+'", FASTMAVLINK_MSG_ID_'+name+' }, \\')
 
     for enumname in enums_all_by_name:
+        if not includeEnum(enumname): continue
         s.append( '  \\')
         for entry in enums_all_by_name[enumname].entries[:-1]:
             nameshort = shortenNameEnum(entry.name, 30)
@@ -307,6 +359,10 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     F.write('\n')
     F.close()
 
+
+'''
+Main
+'''
 
 if __name__ == "__main__":
     dialectname = os.path.join(mavlinkdialect)

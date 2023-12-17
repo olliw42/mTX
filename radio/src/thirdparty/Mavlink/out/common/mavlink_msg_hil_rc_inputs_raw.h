@@ -227,9 +227,9 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_hil_rc_inputs_raw_encode_to_ser
 //----------------------------------------
 //-- Message HIL_RC_INPUTS_RAW decode routines, for receiving
 //----------------------------------------
-// For these functions to work correctly, the msg payload must be zero filled.
+// For these functions to work correctly, the msg payload must be zero-filled.
 // Call the helper fmav_msg_zerofill() if needed, or set FASTMAVLINK_ALWAYS_ZEROFILL to 1
-// Note that the parse functions do zerofill the msg payload, but that message generator functions
+// Note that the parse functions do zero-fill the msg payload, but that message generator functions
 // do not. This means that for the msg obtained from parsing the below functions can safely be used,
 // but that this is not so for the msg obtained from pack/encode functions.
 
@@ -238,14 +238,14 @@ FASTMAVLINK_FUNCTION_DECORATOR void fmav_msg_hil_rc_inputs_raw_decode(fmav_hil_r
 #if FASTMAVLINK_ALWAYS_ZEROFILL
     if (msg->len < FASTMAVLINK_MSG_HIL_RC_INPUTS_RAW_PAYLOAD_LEN_MAX) {
         memcpy(payload, msg->payload, msg->len);
-        // ensure that returned payload is zero filled
+        // ensure that returned payload is zero-filled
         memset(&(((uint8_t*)payload)[msg->len]), 0, FASTMAVLINK_MSG_HIL_RC_INPUTS_RAW_PAYLOAD_LEN_MAX - msg->len);
     } else {
-		// note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
+        // note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
         memcpy(payload, msg->payload, FASTMAVLINK_MSG_HIL_RC_INPUTS_RAW_PAYLOAD_LEN_MAX);
     }
 #else
-    // this requires that msg payload had been zero filled before
+    // this requires that msg payload had been zero-filled before
     memcpy(payload, msg->payload, FASTMAVLINK_MSG_HIL_RC_INPUTS_RAW_PAYLOAD_LEN_MAX);
 #endif
 }
@@ -399,6 +399,20 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_hil_rc_inputs_raw_pack(
         _msg, sysid, compid,
         time_usec, chan1_raw, chan2_raw, chan3_raw, chan4_raw, chan5_raw, chan6_raw, chan7_raw, chan8_raw, chan9_raw, chan10_raw, chan11_raw, chan12_raw, rssi,
         _status);
+}
+
+
+FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_hil_rc_inputs_raw_encode(
+    uint8_t sysid,
+    uint8_t compid,
+    mavlink_message_t* _msg,
+    const mavlink_hil_rc_inputs_raw_t* _payload)
+{
+    return mavlink_msg_hil_rc_inputs_raw_pack(
+        sysid,
+        compid,
+        _msg,
+        _payload->time_usec, _payload->chan1_raw, _payload->chan2_raw, _payload->chan3_raw, _payload->chan4_raw, _payload->chan5_raw, _payload->chan6_raw, _payload->chan7_raw, _payload->chan8_raw, _payload->chan9_raw, _payload->chan10_raw, _payload->chan11_raw, _payload->chan12_raw, _payload->rssi);
 }
 
 #endif

@@ -252,9 +252,9 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t fmav_msg_gps_input_encode_to_serial(
 //----------------------------------------
 //-- Message GPS_INPUT decode routines, for receiving
 //----------------------------------------
-// For these functions to work correctly, the msg payload must be zero filled.
+// For these functions to work correctly, the msg payload must be zero-filled.
 // Call the helper fmav_msg_zerofill() if needed, or set FASTMAVLINK_ALWAYS_ZEROFILL to 1
-// Note that the parse functions do zerofill the msg payload, but that message generator functions
+// Note that the parse functions do zero-fill the msg payload, but that message generator functions
 // do not. This means that for the msg obtained from parsing the below functions can safely be used,
 // but that this is not so for the msg obtained from pack/encode functions.
 
@@ -263,14 +263,14 @@ FASTMAVLINK_FUNCTION_DECORATOR void fmav_msg_gps_input_decode(fmav_gps_input_t* 
 #if FASTMAVLINK_ALWAYS_ZEROFILL
     if (msg->len < FASTMAVLINK_MSG_GPS_INPUT_PAYLOAD_LEN_MAX) {
         memcpy(payload, msg->payload, msg->len);
-        // ensure that returned payload is zero filled
+        // ensure that returned payload is zero-filled
         memset(&(((uint8_t*)payload)[msg->len]), 0, FASTMAVLINK_MSG_GPS_INPUT_PAYLOAD_LEN_MAX - msg->len);
     } else {
-		// note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
+        // note: msg->len can be larger than PAYLOAD_LEN_MAX if the message has unknown extensions
         memcpy(payload, msg->payload, FASTMAVLINK_MSG_GPS_INPUT_PAYLOAD_LEN_MAX);
     }
 #else
-    // this requires that msg payload had been zero filled before
+    // this requires that msg payload had been zero-filled before
     memcpy(payload, msg->payload, FASTMAVLINK_MSG_GPS_INPUT_PAYLOAD_LEN_MAX);
 #endif
 }
@@ -464,6 +464,20 @@ FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_gps_input_pack(
         _msg, sysid, compid,
         time_usec, gps_id, ignore_flags, time_week_ms, time_week, fix_type, lat, lon, alt, hdop, vdop, vn, ve, vd, speed_accuracy, horiz_accuracy, vert_accuracy, satellites_visible, yaw,
         _status);
+}
+
+
+FASTMAVLINK_FUNCTION_DECORATOR uint16_t mavlink_msg_gps_input_encode(
+    uint8_t sysid,
+    uint8_t compid,
+    mavlink_message_t* _msg,
+    const mavlink_gps_input_t* _payload)
+{
+    return mavlink_msg_gps_input_pack(
+        sysid,
+        compid,
+        _msg,
+        _payload->time_usec, _payload->gps_id, _payload->ignore_flags, _payload->time_week_ms, _payload->time_week, _payload->fix_type, _payload->lat, _payload->lon, _payload->alt, _payload->hdop, _payload->vdop, _payload->vn, _payload->ve, _payload->vd, _payload->speed_accuracy, _payload->horiz_accuracy, _payload->vert_accuracy, _payload->satellites_visible, _payload->yaw);
 }
 
 #endif
