@@ -19,8 +19,8 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v35-rc2"
-#define OWVERSION     3500 // used by mavlink/mbridge.cpp
+#define OWVERSIONSTR  "v36-rc1"
+#define OWVERSION     3600 // used by mavlink/mbridge.cpp   txGpsIsAvailable
 //OWEND
 
 /*
