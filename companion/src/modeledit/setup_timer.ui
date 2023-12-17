@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Timer</class>
+ <widget class="QWidget" name="Timer">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>874</width>
+    <height>33</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string/>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <property name="spacing">
+    <number>6</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="AutoLineEdit" name="name">
+     <property name="minimumSize">
+      <size>
+       <width>80</width>
+       <height>0</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="AutoTimeEdit" name="value">
+     <property name="accelerated">
+      <bool>true</bool>
+     </property>
+     <property name="currentSection">
+      <enum>QDateTimeEdit::HourSection</enum>
+     </property>
+     <property name="displayFormat">
+      <string notr="true">hh:mm:ss</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="AutoComboBox" name="mode"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="countdownBeepLabel">
+     <property name="text">
+      <string>Countdown</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="AutoComboBox" name="countdownBeep"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="countdownStartLabel">
+     <property name="text">
+      <string>Start</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="AutoComboBox" name="countdownStart"/>
+   </item>
+   <item>
+    <widget class="AutoCheckBox" name="minuteBeep">
+     <property name="text">
+      <string>Minute Call</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="AutoComboBox" name="persistent"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="persistentValue">
+     <property name="text">
+      <string notr="true"> (00:00:00)</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="spacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>255</width>
+       <height>17</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>AutoComboBox</class>
+   <extends>QComboBox</extends>
+   <header>autocombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>AutoLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>autolineedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>AutoCheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>autocheckbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>AutoTimeEdit</class>
+   <extends>QTimeEdit</extends>
+   <header>autotimeedit.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
