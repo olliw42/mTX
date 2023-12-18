@@ -8,7 +8,7 @@
 //------------------------------------------------------------
 // mavlink messages
 //------------------------------------------------------------
-// all message from opentx.xml
+// all message from mtx.xml
 // auto generated
 
 

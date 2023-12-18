@@ -8,7 +8,7 @@
 //------------------------------------------------------------
 // mavlink constants
 //------------------------------------------------------------
-// all message and enum constants from opentx.xml
+// all message and enum constants from mtx.xml
 // auto generated
 
 #define MAVLINK_LIB_CONSTANTS \

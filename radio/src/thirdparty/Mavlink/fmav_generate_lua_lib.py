@@ -250,7 +250,7 @@ def generateLuaLibHeaders(dialectname):
 //------------------------------------------------------------
 // mavlink messages
 //------------------------------------------------------------
-// all message from opentx.xml
+// all message from mtx.xml
 // auto generated
 
 
@@ -329,7 +329,7 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
 //------------------------------------------------------------
 // mavlink constants
 //------------------------------------------------------------
-// all message and enum constants from opentx.xml
+// all message and enum constants from mtx.xml
 // auto generated
 
 #define MAVLINK_LIB_CONSTANTS \\''')
