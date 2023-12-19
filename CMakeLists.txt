@@ -34,8 +34,6 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(RADIO_DIRECTORY ${PROJECT_SOURCE_DIR}/radio)
 set(RADIO_SRC_DIRECTORY ${RADIO_DIRECTORY}/src)
-set(COMPANION_SRC_DIRECTORY ${PROJECT_SOURCE_DIR}/companion/src)
-set(SIMU_SRC_DIRECTORY ${COMPANION_SRC_DIRECTORY}/simulation)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
@@ -59,11 +57,6 @@ set(APP_CUSTOM_DBG_SHOW_FILE "DEFAULT" CACHE STRING
 option(VERBOSE_CMAKELISTS "Show extra information while processing CMakeLists.txt files." OFF)
 option(WARNINGS_AS_ERRORS "Treat any compiler warning as an error (adds -Werror flag)." OFF)
 
-if(WIN32)
-  set(WIN_EXTRA_LIBS_PATH "C:/Programs" CACHE PATH
-    "Base path to extra libs/headers on Windows (SDL & pthreads folders should be in here).")
-  list(APPEND CMAKE_PREFIX_PATH "${WIN_EXTRA_LIBS_PATH}" "${WIN_EXTRA_LIBS_PATH}/SDL")  # hints for FindSDL
-endif()
 
 # Python check
 find_package("PythonInterp")
@@ -81,175 +74,14 @@ endif()
 
 option(DISABLE_COMPANION "Disable building companion and simulators" OFF)
 
-if(NOT DISABLE_COMPANION)  # FIXME cosmetics/style
 
-if(APPLE AND EXISTS /usr/local/opt/qt5)
-	# Homebrew installs Qt5 (up to at least 5.9.1) in
-	# /usr/local/qt5, ensure it can be found by CMake since
-	# it is not in the default /usr/local prefix.
-	list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
-endif()
-
-find_package(Qt5Core)
-find_package(Qt5Widgets)
-find_package(Qt5Xml)
-find_package(Qt5LinguistTools)
-find_package(Qt5PrintSupport)
-find_package(Qt5Multimedia)
-find_package(Qt5Svg)
-
-if(Qt5Core_FOUND)
-  message(STATUS "Qt Version: ${Qt5Core_VERSION}")
-
-  ### Get locations of Qt binary executables & libs (libs are for distros, not for linking)
-  # first set up some hints
-  get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
-  get_filename_component(qt_core_path ${QtCore_LOCATION} PATH)
-  if(APPLE)
-    get_filename_component(qt_core_path "${qt_core_path}/.." ABSOLUTE)
-  endif()
-
-  set(QT_LIB_DIR ${qt_core_path} CACHE PATH "Path to Qt libraries (.dll|.framework|.so).")
-  find_path(QT_BIN_DIR NAMES "qmake" "qmake.exe" HINTS "${CMAKE_PREFIX_PATH}/bin" "${qt_core_path}/../bin" "${qt_core_path}" DOC "Path to Qt binaries (qmake, lupdate, etc.).")
-  find_program(QT_QMAKE_EXECUTABLE qmake HINTS "${QT_BIN_DIR}" DOC "Location of qmake program.")
-  find_program(QT_LUPDATE_EXECUTABLE lupdate HINTS "${QT_BIN_DIR}" DOC "Location of Qt's 'lupdate' program for updating translation files.")
-
-  # Try to find Qt translations
-  if(QT_QMAKE_EXECUTABLE)
-    execute_process(
-      COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_TRANSLATIONS
-      OUTPUT_VARIABLE qt_translations_hint
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      )
-  endif()
-  find_path(QT_TRANSLATIONS_DIR NAMES "qt_en.qm" HINTS "${qt_translations_hint}" DOC "Path to prebuilt Qt translations (qt_*.qm).")
-
-  ### Common definitions for the Qt-based apps
-  list(APPEND APP_COMMON_DEFINES -DSIMU)
-  list(APPEND APP_COMMON_DEFINES -DQXT_STATIC)
-  list(APPEND APP_COMMON_DEFINES -DQT_USE_QSTRINGBUILDER)  # more efficient QString construction using % operator
-
-  if(MSVC)
-    list(APPEND APP_COMMON_DEFINES -D__STDC_LIMIT_MACROS)
-  endif()
-  if(APP_CUSTOM_DBG_HANDLER)
-    # provide full qDebug log context to our custom handler. This may also affect libsimulator, which is why it is here
-    list(APPEND APP_COMMON_DEFINES -DQT_MESSAGELOGCONTEXT)
-    list(APPEND APP_COMMON_DEFINES -DAPP_DBG_HANDLER_ENABLE=1)
-    if(APP_CUSTOM_DBG_LEVEL GREATER -1 AND APP_CUSTOM_DBG_LEVEL LESS 5)
-      list(APPEND APP_COMMON_DEFINES -DAPP_DBG_HANDLER_DEFAULT_LEVEL=${APP_CUSTOM_DBG_LEVEL})
-    endif()
-    if(NOT APP_CUSTOM_DBG_SHOW_FILE STREQUAL "DEFAULT" AND (APP_CUSTOM_DBG_SHOW_FILE STREQUAL "1" OR APP_CUSTOM_DBG_SHOW_FILE STREQUAL "0"))
-      list(APPEND APP_COMMON_DEFINES -DAPP_DBG_HANDLER_SHOW_SRC_PATH=${APP_CUSTOM_DBG_SHOW_FILE})
-    endif()
-  else()
-    list(APPEND APP_COMMON_DEFINES -DAPP_DBG_HANDLER_ENABLE=0)
-  endif()
-
-else()
-  message(WARNING "Qt not found! Companion and Simulator builds disabled.")
-endif()
-
-if(NOT WIN32)
-  find_package(Fox QUIET)  # QUIET not working on WIN32?
-  if (FOX_FOUND)
-    message(STATUS "Foxlib found at ${FOX_LIBRARY}")
-  else() # if(NOT WIN32)
-    message("Libfox not found, simu target will not be available")
-  endif()
-endif()
-
-if(Qt5Core_FOUND OR FOX_FOUND)
-  set(SDL_BUILDING_LIBRARY YES)  # this prevents FindSDL from appending SDLmain lib to the results, which we don't want
-  find_package("SDL")
-  if(SDL_FOUND)
-    message(STATUS "SDL Lib: ${SDL_LIBRARY}; Headers: ${SDL_INCLUDE_DIR}; Version: ${SDL_VERSION_STRING}")
-    if (NOT ${SDL_VERSION_STRING} VERSION_LESS "2.0")
-      message(FATAL_ERROR "OpenTX requires SDL 1.x, not 2.x")
-    endif()
-  else()
-    message(STATUS "SDL not found! Simulator audio, and joystick inputs, will not work.")
-  endif()
-endif()
-endif(NOT DISABLE_COMPANION)
 
 # Check for a file that is typically left from a OpenTX 2.1 build and abort if found
 if (EXISTS ${RADIO_SRC_DIRECTORY}/stamp.h OR EXISTS ${RADIO_SRC_DIRECTORY}/translations/en.h)
    message(FATAL_ERROR "Source directory contains files leftover from a OpenTX 2.1 build. Please run `git clean -f` in source directory (Careful: Will remove any extra files) or do a new clean git checkout")
 endif()
 
-# Windows-specific includes and libs shared by sub-projects
-if(WIN32)
-  list(APPEND WIN_INCLUDE_DIRS "${RADIO_SRC_DIRECTORY}/thirdparty/windows/dirent")
-  if(MSVC)
-    list(APPEND WIN_INCLUDE_DIRS "${RADIO_SRC_DIRECTORY}/thirdparty/windows/msinttypes")
-    set(WIN_PTHREAD_BASE_PATH "${WIN_EXTRA_LIBS_PATH}/pthreads/Pre-built.2" CACHE PATH "Where to find pthreads include and lib folders.")
-    list(APPEND WIN_INCLUDE_DIRS "${WIN_PTHREAD_BASE_PATH}/include")
-    find_file(WIN_PTHREAD_LIB pthreadVC2.lib PATHS "${WIN_PTHREAD_BASE_PATH}" PATH_SUFFIXES lib/x86 lib NO_DEFAULT_PATH)
-    find_file(WIN_PTHREAD_DLL pthreadVC2.dll PATHS "${WIN_PTHREAD_BASE_PATH}" PATH_SUFFIXES lib/x86 lib dll/x86 dll NO_DEFAULT_PATH)
-    if(WIN_PTHREAD_LIB)
-      list(APPEND WIN_LINK_LIBRARIES "${WIN_PTHREAD_LIB}")
-    else()
-      message(SEND_ERROR "pthreadVC2.lib not found!")
-    endif()
-  else()
-    set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
-    set(CMAKE_C_USE_RESPONSE_FILE_FOR_LIBRARIES OFF)
-    set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
-    set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_LIBRARIES OFF)
-  endif()
-endif()
-
-set(GTEST_ROOT /usr CACHE STRING "Base path to Google Test headers and source.")
-
-find_path(GTEST_INCDIR gtest/gtest.h HINTS "${GTEST_ROOT}/include" DOC "Path to Google Test header files folder ('gtest/gtest.h').")
-find_path(GTEST_SRCDIR src/gtest-all.cc HINTS "${GTEST_ROOT}" "${GTEST_ROOT}/src/gtest" DOC "Path of Google Test 'src' folder.")
-
-if(NOT GTEST_INCDIR OR NOT GTEST_SRCDIR)
-  message(STATUS "Googletest will be downloaded")
-
-  set(GTEST_VERSION 1.8.1)
-
-  set(GTEST_SRCDIR "${RADIO_SRC_DIRECTORY}/tests/googletest-release-${GTEST_VERSION}/googletest")
-  set(GTEST_INCDIR "${GTEST_SRCDIR}/include")
-
-  set(GTEST_URL     "https://github.com/google/googletest/archive/release-${GTEST_VERSION}.tar.gz")
-  set(GTEST_ARCHIVE "${RADIO_SRC_DIRECTORY}/tests/gtest-${GTEST_VERSION}.tar.gz")
-
-  if (NOT EXISTS "${GTEST_SRCDIR}")
-    file(DOWNLOAD "${GTEST_URL}" ${GTEST_ARCHIVE} SHOW_PROGRESS)
-    execute_process(
-      COMMAND ${CMAKE_COMMAND} -E tar -xf ${GTEST_ARCHIVE}
-      WORKING_DIRECTORY ${RADIO_SRC_DIRECTORY}/tests)
-    execute_process(
-      COMMAND ${CMAKE_COMMAND} -E remove -f ${GTEST_ARCHIVE})
-  endif()
-endif()
 
 add_subdirectory(${RADIO_SRC_DIRECTORY})
 
-add_custom_target(tests-radio
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/gtests-radio
-  DEPENDS gtests-radio
-  )
 
-if(Qt5Core_FOUND AND NOT DISABLE_COMPANION)
-  add_subdirectory(${COMPANION_SRC_DIRECTORY})
-  add_custom_target(tests-companion
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/gtests-companion
-    DEPENDS gtests-companion
-    )
-  add_custom_target(gtests
-    DEPENDS gtests-radio gtests-companion
-    )
-  add_custom_target(tests
-    DEPENDS tests-radio tests-companion
-  )
-else()
-  add_custom_target(gtests
-    DEPENDS gtests-radio
-    )
-  add_custom_target(tests
-    DEPENDS tests-radio
-  )
-endif()
