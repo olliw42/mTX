@@ -672,7 +672,7 @@ local function drawPrearm()
     if bit32.btest(sensors.present, mavlink.SYS_STATUS_PREARM_CHECK) then
         if bit32.btest(sensors.enabled, mavlink.SYS_STATUS_PREARM_CHECK) then
             if bit32.btest(sensors.health, mavlink.SYS_STATUS_PREARM_CHECK) then
-                lcd.setColor(CUSTOM_COLOR, p.GREEN)
+                lcd.setColor(CUSTOM_COLOR, p.BRIGHTGREEN)
                 lcd.drawText(x+20+105, y+25, "OK", CUSTOM_COLOR+MIDSIZE)
             else    
                 lcd.setColor(CUSTOM_COLOR, p.RED)
@@ -709,17 +709,17 @@ local function drawPrearm()
     lcd.drawText(x+20, y+50, "checks:", CUSTOM_COLOR+MIDSIZE)    
     lcd.drawText(x+20, y+75, "armed:", CUSTOM_COLOR+MIDSIZE)
     if mavsdk.isReceiving() and mavsdk.gimbalIsReceiving() then    
-        lcd.setColor(CUSTOM_COLOR, p.GREEN)
+        lcd.setColor(CUSTOM_COLOR, p.BRIGHTGREEN)
         lcd.drawText(x+20+130, y+25, "OK", CUSTOM_COLOR+MIDSIZE)    
         if mavsdk.gimbalGetStatus().prearm_ok then
-            lcd.setColor(CUSTOM_COLOR, p.GREEN)
+            lcd.setColor(CUSTOM_COLOR, p.BRIGHTGREEN)
             lcd.drawText(x+20+130, y+50, "OK", CUSTOM_COLOR+MIDSIZE)    
         else
             lcd.setColor(CUSTOM_COLOR, p.RED)
             lcd.drawText(x+20+130, y+50, "fail", CUSTOM_COLOR+MIDSIZE)    
         end  
         if mavsdk.gimbalGetStatus().is_armed then
-            lcd.setColor(CUSTOM_COLOR, p.GREEN)
+            lcd.setColor(CUSTOM_COLOR, p.BRIGHTGREEN)
             lcd.drawText(x+20+130, y+75, "OK", CUSTOM_COLOR+MIDSIZE)    
         else
             lcd.setColor(CUSTOM_COLOR, p.RED)
@@ -738,7 +738,7 @@ local function drawPrearm()
     if not config_g.cameraPrearmCheck then camera_ok = true end
     if not config_g.gimbalPrearmCheck then gimbal_ok = true end
     if autopilot_ok and camera_ok and gimbal_ok then
-        lcd.setColor(CUSTOM_COLOR, p.GREEN)
+        lcd.setColor(CUSTOM_COLOR, p.BRIGHTGREEN)
         lcd.drawText(draw.xmid, 20-4, "PREARM  OK", CUSTOM_COLOR+DBLSIZE+CENTER)
     else  
         lcd.setColor(CUSTOM_COLOR, p.RED)

@@ -179,7 +179,7 @@ static int luaMavsdkGimbalClientGetInfo(lua_State *L)
   return 1;
 }
 
-static int luaMavsdkGimbalClientGetStatus(lua_State *L)
+static int luaMavsdkGimbalManagerGetStatus(lua_State *L)
 {
   lua_newtable(L);
   lua_pushtableinteger(L, "device_flags", mavlinkTelem.gimbalmanagerStatus.device_flags);
@@ -1437,7 +1437,7 @@ const luaL_Reg mavsdkLib[] = {
   { "gimbalClientIsReceiving", luaMavsdkGimbalClientIsReceiving },
   { "gimbalClientIsInitialized", luaMavsdkGimbalClientIsInitialized },
   { "gimbalClientGetInfo", luaMavsdkGimbalClientGetInfo },
-  { "gimbalClientGetStatus", luaMavsdkGimbalClientGetStatus },
+  { "gimbalManagerGetStatus", luaMavsdkGimbalManagerGetStatus },
   { "gimbalClientSetLock", luaMavsdkGimbalClientSetLock },
   { "gimbalClientSetRcControl", luaMavsdkGimbalClientSetRcControl },
   { "gimbalClientSendPitchYawDeg", luaMavsdkGimbalClientSendPitchYawDeg },

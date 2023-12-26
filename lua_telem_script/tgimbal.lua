@@ -150,16 +150,17 @@ local function gimbalDoAlways()
         gimbal_menu.idx = gimbal_menu.default
         gimbal.set_mode_cnt = 4  -- send mode 4 times, to be sure it is received
         gimbal.set_roisysid_cnt = 0
-        gimbal.is_in_control = false
     end
     
-    if not gimbal.is_in_control then
-        local gm_status = mavsdk.gimbalClientGetStatus()
-        if gm_status.primary_sysid == 0 and gm_status.primary_compid == 0 then
-            gimbal.is_in_control = true
-        end
+    local gm_status = mavsdk.gimbalManagerGetStatus()
+    local my_sysid, my_compid = mavlink.getMyIds()
+    if (gm_status.primary_sysid == 0 and gm_status.primary_compid == 0) or 
+       (gm_status.primary_sysid == my_sysid and gm_status.primary_compid == my_compid) then
+        gimbal.is_in_control = true
+    else     
+        gimbal.is_in_control = false
         return
-    end  
+    end
     
     if gimbal.set_mode_cnt > 0 then
         gimbal.set_mode_cnt = gimbal.set_mode_cnt - 1
@@ -211,11 +212,13 @@ local function doPageGimbal()
     local y = 0
     
     -- MENU HANDLING
-    tmenu.handle(gimbal_menu)
+    if gimbal.is_in_control then
+        tmenu.handle(gimbal_menu)
+    end     
     
     -- DISPLAY
-    local info =  mavsdk.gimbalGetInfo()
-    local compid =  info.compid
+    local info = mavsdk.gimbalGetInfo()
+    local compid = info.compid
     local gimbalStr = string.format("%s %d", string.upper(getGimbalIdStr(compid)), compid)
     lcd.setColor(CUSTOM_COLOR, p.WHITE)
     lcd.drawText(1, 20, gimbalStr, CUSTOM_COLOR)
@@ -248,9 +251,12 @@ if config_g.gimbalUseGimbalManager then
         local s = string.format("manager %d", clientInfo.gimbal_manager_id)
         lcd.drawText(1, 50, s, CUSTOM_COLOR)
     end
+    --local my_sysid, my_compid = mavlink.getMyIds()
+    --local s = string.format("me %d %d", my_sysid, my_compid)
+    --lcd.drawText(1, 65, s, CUSTOM_COLOR)
     
     y = 208
-    local gm_status = mavsdk.gimbalClientGetStatus()
+    local gm_status = mavsdk.gimbalManagerGetStatus()
     lcd.setColor(CUSTOM_COLOR, p.WHITE)
     lcd.drawText(1, y, "1st:", CUSTOM_COLOR)
       lcd.drawNumber(45, y, gm_status.primary_sysid, CUSTOM_COLOR)
@@ -307,8 +313,12 @@ end
     x = 220
     y = y + 15
     local r = 80
+    local sqrtr = 56
     lcd.setColor(CUSTOM_COLOR, p.YELLOW)
     lcd.drawCircleQuarter(x, y, r, 4, CUSTOM_COLOR)    
+    lcd.drawLine(x+r-10, y, x+r, y, SOLID, CUSTOM_COLOR)
+    lcd.drawLine(x+sqrtr-6, y+sqrtr-6, x+sqrtr, y+sqrtr, SOLID, CUSTOM_COLOR)
+    lcd.drawLine(x, y+r-10, x, y+r, SOLID, CUSTOM_COLOR)
     
     lcd.setColor(CUSTOM_COLOR, p.WHITE)
     if gimbal.pitch_cntrl_deg ~= nil then
@@ -324,9 +334,13 @@ end
     
     lcd.setColor(CUSTOM_COLOR, p.RED)
     local gangle = pitch
-    if gangle > 10 then gangle = 10 end
+    if gangle > 20 then gangle = 20 end
     if gangle < -100 then gangle = -100 end
     lcd.drawFilledCircle(x + (r-10)*math.cos(math.rad(gangle)), y - (r-10)*math.sin(math.rad(gangle)), 5, CUSTOM_COLOR)
+
+    if not gimbal.is_in_control then
+        draw:WarningBox("gimbal not in control")
+    end  
 
     -- MENU DISPLAY
     tmenu.draw(gimbal_menu)
