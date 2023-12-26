@@ -320,18 +320,21 @@ void MavlinkTelem::handleMessage(void)
          ((_msg.compid >= MAV_COMP_ID_GIMBAL2) && (_msg.compid <= MAV_COMP_ID_GIMBAL6))) ) ) {
       _resetGimbalAndGimbalClient();
       gimbal.compid = _msg.compid;
-      gimbal.is_initialized = true; // no startup requests, so true
+      gimbal.is_initialized = true; // no startup requests, so true ?????
     }
   }
 
-  if ((gimbalmanager.compid == 0) && (gimbal.compid > 0) && (_msg.msgid == FASTMAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_STATUS)) {
-    fmav_storm32_gimbal_manager_status_t payload;
-    fmav_msg_storm32_gimbal_manager_status_decode(&payload, &_msg);
-    if (payload.gimbal_id == gimbal.compid) { // this is the gimbal's gimbal manager
+  if ((gimbalmanager.compid == 0) && (gimbal.compid > 0) && (_msg.msgid == FASTMAVLINK_MSG_ID_GIMBAL_MANAGER_STATUS)) {
+    fmav_gimbal_manager_status_t payload;
+    fmav_msg_gimbal_manager_status_decode(&payload, &_msg);
+    if (payload.gimbal_device_id == gimbal.compid) { // this is the gimbal's gimbal manager
       _resetGimbalClient();
       gimbalmanager.compid = _msg.compid;
-      gimbalmanagerOut.device_flags = payload.device_flags;
-      gimbalmanagerOut.manager_flags = payload.manager_flags;
+      gimbalmanagerStatus.device_flags = (uint16_t)(payload.flags);
+      gimbalmanagerStatus.primary_sysid = payload.primary_control_sysid;
+      gimbalmanagerStatus.primary_compid = payload.primary_control_compid;
+      gimbalmanagerStatus.secondary_sysid = payload.secondary_control_sysid;
+      gimbalmanagerStatus.secondary_compid = payload.secondary_control_compid;
       gimbalmanager.requests_triggered = 1; // we schedule them
     }
   }
@@ -367,9 +370,6 @@ void MavlinkTelem::handleMessage(void)
     handleMessageGcsAndAlike();
   }
 
-  // we handle all qshot wherever they come from
-  handleMessageQShot();
-
   // handle parameter
   paramHandleMessage(&_msg);
 
@@ -386,7 +386,7 @@ void MavlinkTelem::handleMessage(void)
     handleMessageGimbal();
   }
   if (gimbalmanager.compid && (_msg.compid == gimbalmanager.compid)) {
-    handleMessageGimbalClient();
+    handleMessageGimbalManager();
   }
 }
 
@@ -449,7 +449,7 @@ void MavlinkTelem::doTask(void)
     if (tick_1Hz) gimbalmanager.requests_triggered++;
     if (gimbalmanager.requests_triggered > 1) { // wait for the next heartbeat
       gimbalmanager.requests_triggered = 0;
-      setGimbalClientStartupRequests();
+      setGimbalManagerStartupRequests();
     }
   }
 
@@ -505,23 +505,23 @@ void MavlinkTelem::doTask(void)
       _txgps_tlast = gps_msg_received_tlast;
       _is_sending_pos_int = true;
 
-        // lat,lon in 1e7, alt in mm, v in cm/s, heading in cdeg
-        _gpi_lat = gpsData2.lat_1e7;
-        _gpi_lon = gpsData2.lon_1e7;
-        _gpi_alt = gpsData2.alt_mm; // the gps height is extremely inaccurate
-        _gpi_relative_alt = 1250; // home altitude ??? just set it to 1.25m
-        _gpi_vx = _gpi_vy = _gpi_vz = 0;
-        _gpi_hdg = UINT16_MAX;
-        if (0) { // gpsData2.speed_mms > 5000) { //from m8 tests: above 5m/s the speed and heading is good
-          constexpr float FPI = 3.141592653589793f;
-          constexpr float FDEGTORAD = FPI/180.0f;
-          float v = gpsData2.speed_mms * 0.001f;
-          float course = gpsData2.cog_cdeg * 0.01f * FDEGTORAD;
-          _gpi_vx = 100.0f * cosf(course) * v;
-          _gpi_vy = 100.0f * sinf(course) * v;
-          _gpi_hdg = gpsData2.cog_cdeg;
-        }
-        SETTASK(TASK_ME, TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
+      // lat,lon in 1e7, alt in mm, v in cm/s, heading in cdeg
+      _gpi_lat = gpsData2.lat_1e7;
+      _gpi_lon = gpsData2.lon_1e7;
+      _gpi_alt = gpsData2.alt_mm; // the gps height is extremely inaccurate
+      _gpi_relative_alt = 1250; // home altitude ??? just set it to 1.25m
+      _gpi_vx = _gpi_vy = _gpi_vz = 0;
+      _gpi_hdg = UINT16_MAX;
+      if (0) { // gpsData2.speed_mms > 5000) { //from m8 tests: above 5m/s the speed and heading is good
+        constexpr float FPI = 3.141592653589793f;
+        constexpr float FDEGTORAD = FPI/180.0f;
+        float v = gpsData2.speed_mms * 0.001f;
+        float course = gpsData2.cog_cdeg * 0.01f * FDEGTORAD;
+        _gpi_vx = 100.0f * cosf(course) * v;
+        _gpi_vy = 100.0f * sinf(course) * v;
+        _gpi_hdg = gpsData2.cog_cdeg;
+      }
+      SETTASK(TASK_ME, TASK_ME_SENDMSG_GLOBAL_POSITION_INT);
     }
   }
 
@@ -599,7 +599,6 @@ void MavlinkTelem::doTask(void)
     // other TASKS low priority
     if (doTaskAutopilotLowPriority()) return;
     if (doTaskCameraLowPriority()) return;
-    if (doTaskQShot()) return;
   }
 }
 
@@ -854,7 +853,7 @@ void MavlinkTelem::_reset(void)
   _sysid = 0;
   autopilottype = MAV_AUTOPILOT_GENERIC; //TODO: shouldn't these be in _resetAutopilot() ??
   vehicletype = MAV_TYPE_GENERIC;
-  flightmode = 0;
+  flightmode = UINT8_MAX; // UINT8_MAX = unknown
 
   for (uint16_t i = 0; i < TASKIDX_MAX; i++) _task[i] = 0;
   _taskFifo.clear();
@@ -873,8 +872,6 @@ void MavlinkTelem::_reset(void)
   _resetAutopilot();
   _resetGimbalAndGimbalClient();
   _resetCamera();
-
-  _resetQShot();
 
   fmav_status_reset(&_status1);
   fmav_status_reset(&_status2);

@@ -135,41 +135,34 @@ class MavlinkTelem
     void generateCmdDoMountControl(uint8_t tsystem, uint8_t tcomponent, float pitch_deg, float yaw_deg, uint8_t mode);
     void generateCmdRequestGimbalDeviceInformation(uint8_t tsystem, uint8_t tcomponent);
     void generateGimbalDeviceSetAttitude(uint8_t tsystem, uint8_t tcomponent, float pitch_deg, float yaw_deg, uint16_t flags);
-    void generateCmdRequestStorm32GimbalManagerInformation(uint8_t tsystem, uint8_t tcomponent);
-    void generateStorm32GimbalManagerControlPitchYaw(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags);
-    void generateStorm32GimbalManagerControl(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags);
-    void generateCmdStorm32DoGimbalManagerControlPitchYaw(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags, uint16_t manager_flags);
-    void generateCmdDoQShotConfigure(uint8_t tsystem, uint8_t tcomponent, uint8_t mode, uint8_t shot_state);
-    void generateQShotStatus(uint8_t mode, uint8_t shot_state);
-    void generateButtonChange(uint8_t button_state);
+    void generateCmdRequestGimbalManagerInformation(uint8_t tsystem, uint8_t tcomponent);
+    void generateGimbalManagerSetAttitude(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags);
+    void generateGimbalManagerSetPitchYaw(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags);
+    void generateCmdDoGimbalManagerPitchYaw(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, float pitch_deg, float yaw_deg, uint16_t device_flags);
+    void generateCmdDoGimbalManagerConfigure(uint8_t tsystem, uint8_t tcomponent, uint8_t gimbal_id, uint8_t primary_sysid, uint8_t primary_compid, uint8_t secondary_sysid, uint8_t secondary_compid);
 
     // TASK AND MESSAGE HANDLERS
 
-    bool isSystemIdValid(void)
-    {
-      return (_sysid > 0);
-    }
+    bool isSystemIdValid(void) { return (_sysid > 0); }
 
     bool doTaskAutopilot(void);
     bool doTaskAutopilotLowPriority(void);
     bool doTaskCamera(void);
     bool doTaskCameraLowPriority(void);
-    bool doTaskGimbalAndGimbalClient(void);
-    bool doTaskQShot(void);
+    bool doTaskGimbalAndGimbalClient(void); // GimbalClient is this radio
     void doTask(void);
 
     void handleMessageAutopilot(void);
     void handleMessageGcsAndAlike(void);
     void handleMessageCamera(void);
     void handleMessageGimbal(void);
-    void handleMessageGimbalClient(void);
-    void handleMessageQShot(void);
+    void handleMessageGimbalManager(void);
     void handleMessage(void);
 
     void setAutopilotStartupRequests(void);
     void setCameraStartupRequests(void);
     void setGimbalStartupRequests(void);
-    void setGimbalClientStartupRequests(void);
+    void setGimbalManagerStartupRequests(void);
 
     // TASKS
 
@@ -177,7 +170,7 @@ class MavlinkTelem
 
     #define SETTASK(idx,x)    {_task[idx] |= (x);}
     #define RESETTASK(idx,x)  {_task[idx] &=~ (x);}
-    bool TASK_IS_PENDING()    {for(uint16_t i=0; i<TASKIDX_MAX; i++){ if (_task[i] > 0) return true;} return false;}
+    bool TASK_IS_PENDING()    { for (uint16_t i=0; i<TASKIDX_MAX; i++) { if (_task[i] > 0) return true; } return false; }
 
     // REQUESTS
 
@@ -263,7 +256,7 @@ class MavlinkTelem
     bool sendParamSet(uint8_t i, float param_value);
     bool paramIsArdupilot(uint8_t i);
 
-    void mavapiInit(void){};
+    void mavapiInit(void) {};
 
     // MAVSDK mBridge
 
@@ -279,10 +272,7 @@ class MavlinkTelem
 
     // MAVSDK GENERAL
 
-    bool isReceiving(void)
-    {
-      return (_is_receiving > 0);
-    }
+    bool isReceiving(void) { return (_is_receiving > 0); }
 
     struct Radio {
       uint16_t is_receiving; // RADIO_STATUS (msg 109) has priority
@@ -343,7 +333,7 @@ class MavlinkTelem
 
     uint8_t autopilottype = MAV_AUTOPILOT_GENERIC;
     uint8_t vehicletype = MAV_TYPE_GENERIC;
-    uint8_t flightmode = 0;
+    uint8_t flightmode = UINT8_MAX; // UINT8_MAX = unknown
 
     struct SysStatus {
       uint32_t sensors_present; // MAV_SYS_STATUS_SENSOR
@@ -517,57 +507,48 @@ class MavlinkTelem
     uint16_t _tovr_chan_raw[18];
 
     // convenience task wrapper
-    void setTaskParamRequestList(void)
-    {
-      SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_PARAM_REQUEST_LIST);
-    }
+    void setTaskParamRequestList(void) { SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_PARAM_REQUEST_LIST); }
+
     /* not used
     void setTaskParamRequestRead(const char* pname)
     {
       strncpy(_prr_param_id, pname, 16);
       SETTASK(TASK_AUTOPILOT, TASK_SENDMSG_PARAM_REQUEST_READ);
     }*/
+
     void requestMissionRequestInt(uint16_t seq)
     {
-      _tmri_seq = seq; _tmri_missiontype = MAV_MISSION_TYPE_MISSION;
+      _tmri_seq = seq;
+      _tmri_missiontype = MAV_MISSION_TYPE_MISSION;
       set_request(TASK_AUTOPILOT, TASK_SENDMSG_MISSION_REQUEST_INT, 10, 473);
     }
 
     void apSetFlightMode(uint32_t ap_flight_mode)
     {
-      _tcsm_base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED; _tcsm_custom_mode = ap_flight_mode;
+      _tcsm_base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+      _tcsm_custom_mode = ap_flight_mode;
       SETTASK(TASK_AUTOPILOT, TASK_SENDCMD_DO_SET_MODE);
     }
-    void apRequestBanner(void)
-    {
-      SETTASK(TASK_AP, TASK_AP_REQUESTBANNER);
-    }
-    void apArm(bool arm)
-    {
-      SETTASK(TASK_AP, (arm) ? TASK_AP_ARM : TASK_AP_DISARM);
-    }
+
+    void apRequestBanner(void) { SETTASK(TASK_AP, TASK_AP_REQUESTBANNER); }
+    void apArm(bool arm) { SETTASK(TASK_AP, (arm) ? TASK_AP_ARM : TASK_AP_DISARM); }
+
     void apCopterTakeOff(float alt)
     {
       _tact_takeoff_alt_m = alt;
       SETTASK(TASK_AP, TASK_AP_COPTER_TAKEOFF);
     }
-    void apLand(void)
-    {
-      SETTASK(TASK_AP, TASK_AP_LAND);
-    }
-    void apCopterFlyClick(void)
-    {
-      SETTASK(TASK_AP, TASK_AP_COPTER_FLYCLICK);
-    }
+
+    void apLand(void) { SETTASK(TASK_AP, TASK_AP_LAND); }
+    void apCopterFlyClick(void) { SETTASK(TASK_AP, TASK_AP_COPTER_FLYCLICK); }
+
     void apCopterFlyHold(float alt)
     {
       _tacf_takeoff_alt_m = alt;
       SETTASK(TASK_AP, TASK_AP_COPTER_FLYHOLD);
     }
-    void apCopterFlyPause(void)
-    {
-      SETTASK(TASK_AP, TASK_AP_COPTER_FLYPAUSE);
-    }
+
+    void apCopterFlyPause(void) { SETTASK(TASK_AP, TASK_AP_COPTER_FLYPAUSE); }
 
     // MAVSDK CAMERA
 
@@ -595,26 +576,11 @@ class MavlinkTelem
     struct CameraStatus cameraStatus; // Status: variable data
 
     // convenience task wrapper
-    void sendCameraSetVideoMode(void)
-    {
-      SETTASK(TASK_CAMERA, TASK_SENDCMD_SET_CAMERA_VIDEO_MODE);
-    }
-    void sendCameraSetPhotoMode(void)
-    {
-      SETTASK(TASK_CAMERA, TASK_SENDCMD_SET_CAMERA_PHOTO_MODE);
-    }
-    void sendCameraStartVideo(void)
-    {
-      SETTASK(TASK_CAMERA, TASK_SENDCMD_VIDEO_START_CAPTURE);
-    }
-    void sendCameraStopVideo(void)
-    {
-      SETTASK(TASK_CAMERA, TASK_SENDCMD_VIDEO_STOP_CAPTURE);
-    }
-    void sendCameraTakePhoto(void)
-    {
-      SETTASK(TASK_CAMERA, TASK_SENDCMD_IMAGE_START_CAPTURE);
-    }
+    void sendCameraSetVideoMode(void) { SETTASK(TASK_CAMERA, TASK_SENDCMD_SET_CAMERA_VIDEO_MODE); }
+    void sendCameraSetPhotoMode(void) { SETTASK(TASK_CAMERA, TASK_SENDCMD_SET_CAMERA_PHOTO_MODE); }
+    void sendCameraStartVideo(void) { SETTASK(TASK_CAMERA, TASK_SENDCMD_VIDEO_START_CAPTURE); }
+    void sendCameraStopVideo(void) { SETTASK(TASK_CAMERA, TASK_SENDCMD_VIDEO_STOP_CAPTURE); }
+    void sendCameraTakePhoto(void) { SETTASK(TASK_CAMERA, TASK_SENDCMD_IMAGE_START_CAPTURE); }
 
     // MAVSDK GIMBAL & GIMBAL CLIENT
 
@@ -625,15 +591,15 @@ class MavlinkTelem
       float yaw_deg_earth_frame;
       uint8_t updated;
     };
-    struct GimbalAtt gimbalAtt;
+    struct GimbalAtt gimbalAtt; // populated from GIMBAL_DEVICE_ATTITUDE_STATUS
 
     // some tasks need some additional data
-    uint8_t _t_gimbal_mode;
     float _t_gimbal_pitch_deg, _t_gimbal_yaw_deg;
+    uint8_t _t_gimbal_mode;
 
     // convenience task wrapper
-    void sendGimbalTargetingMode(uint8_t mode);
-    void sendGimbalPitchYawDeg(float pitch, float yaw);
+    void sendGimbalPitchYawDeg(float pitch, float yaw); // gimbal protocol v1
+    void sendGimbalTargetingMode(uint8_t mode); // gimbal protocol v1 & v2
 
     // MAVSDK GIMBAL CLIENT only
 
@@ -649,77 +615,45 @@ class MavlinkTelem
     };
     struct GimbalDeviceInfo gimbaldeviceInfo;
 
-    struct Storm32GimbalManagerInfo {
+    struct GimbalManagerInfo {
       uint32_t device_cap_flags; // are the same as gimbal device cap_flags
       uint32_t manager_cap_flags;
       uint8_t updated;
     };
-    struct Storm32GimbalManagerInfo gimbalmanagerInfo;
+    struct GimbalManagerInfo gimbalmanagerInfo;
 
-    struct Storm32GimbalManagerStatus {
-      uint8_t supervisor;
-      uint16_t device_flags;
-      uint16_t manager_flags;
-      uint8_t profile;
+    struct GimbalManagerStatus {
+      uint16_t device_flags; // updated from GIMBAL_DEVICE_ATTITUDE_STATUS and GIMBAL_MANAGER_STATUS
+      uint8_t primary_sysid;
+      uint8_t primary_compid;
+      uint8_t secondary_sysid;
+      uint8_t secondary_compid;
       uint8_t updated;
     };
-    struct Storm32GimbalManagerStatus gimbalmanagerStatus;
+    struct GimbalManagerStatus gimbalmanagerStatus;
 
     // some tasks need some additional data
-    float _t_GD_pitch_deg, _t_GD_yaw_deg;
-    uint16_t _t_GD_flags;
-    float _t_storm32GM_pitch_deg, _t_storm32GM_yaw_deg;
-    uint16_t _t_storm32GM_gdflags, _t_storm32GM_gmflags;
-    float _t_storm32GMcntrl_pitch_deg, _t_storm32GMcntrl_yaw_deg;
-    uint16_t _t_storm32GMcntrl_gdflags, _t_storm32GMcntrl_gmflags;
-    float _t_storm32GMcmd_pitch_deg, _t_storm32GMcmd_yaw_deg;
-    uint16_t _t_storm32GMcmd_gdflags, _t_storm32GMcmd_gmflags;
+    float _t_GM_pitch_deg, _t_GM_yaw_deg;
+    uint16_t _t_GM_gdflags;
+    float _t_GMatt_pitch_deg, _t_GMatt_yaw_deg;
+    uint16_t _t_GMatt_gdflags;
+    float _t_GMcmd_pitch_deg, _t_GMcmd_yaw_deg;
+    uint16_t _t_GMcmd_gdflags;
 
     // convenience task wrapper
-    void sendGimbalDevicePitchYawDeg(float pitch, float yaw);
-    void sendStorm32GimbalManagerPitchYawDeg(float pitch, float yaw);
-    void sendStorm32GimbalManagerCntrlPitchYawDeg(float pitch, float yaw);
-    void sendStorm32GimbalManagerCmdPitchYawDeg(float pitch, float yaw);
+    void sendGimbalManagerPitchYawDeg(float pitch, float yaw);
+    void sendGimbalManagerSetAttitudePitchYawDeg(float pitch, float yaw);
+    void sendGimbalManagerCmdPitchYawDeg(float pitch, float yaw);
 
     struct GimbalManagerOut { // collective structure to handle gimbalmanager outgoing flags
-      uint8_t mount_mode; // copy of the mount_mode
       uint16_t device_flags;
-      uint16_t manager_flags;
     };
     struct GimbalManagerOut gimbalmanagerOut;
 
-    void _refreshGimbalClientFlags(uint16_t* device_flags, uint16_t* manager_flags);
-    void setStorm32GimbalClientRetract(bool enable);
-    void setStorm32GimbalClientNeutral(bool enable);
-    void setStorm32GimbalClientLock(bool roll_lock, bool pitch_lock, bool yaw_lock);
-    void setStorm32GimbalClientFlags(uint16_t manager_flags);
-
-    // gimbal protocol v1 vs v2
-    void setStorm32GimbalProtocol(bool flag)
-    {
-      _use_storm32_gimbal_protocol = flag;
-    }
-    bool isStorm32GimbalProtocol(void)
-    {
-      return _use_storm32_gimbal_protocol;
-    }
+    void setGimbalLock(bool roll_lock, bool pitch_lock, bool yaw_lock);
+    void setGimbalRcControl(uint8_t flag);
 
     // MAVSDK QSHOT
-
-    struct QShot {
-      uint8_t mode;
-      uint8_t shot_state;
-    };
-    struct QShot qshot;
-
-    // some tasks need some additional data
-    struct QShot _t_qshot, _t_qshot_cmd;
-    uint8_t _t_qshot_button_state;
-
-    // convenience task wrapper
-    void sendQShotCmdConfigure(uint8_t mode, uint8_t shot_state);
-    void sendQShotStatus(uint8_t mode, uint8_t shot_state);
-    void sendQShotButtonState(uint8_t button_state);
 
     // local tx GPS for POSITION INT
     bool isSendingPositionInt(void) { return _is_sending_pos_int; }
@@ -730,10 +664,7 @@ class MavlinkTelem
     const uint8_t myCompId(void) { return _my_compid; }
     const uint8_t systemSysId(void) { return _sysid; }
 
-    const fmav_status_t* getChannelStatusOut(void)
-    {
-      return &_status_out;
-    }
+    const fmav_status_t* getChannelStatusOut(void) { return &_status_out; }
 
     uint32_t msg_rx_count;
     uint32_t msg_rx_persec;
@@ -754,7 +685,6 @@ class MavlinkTelem
     void _resetCamera(void);
     void _resetGimbalAndGimbalClient(void);
     void _resetGimbalClient(void);
-    void _resetQShot(void);
 
     void _init(void);
 
@@ -786,10 +716,6 @@ class MavlinkTelem
       TASK_ME_SENDMYPARAMLIST                     = 0x00000008,
       TASK_ME_SENDMYPARAMVALUE                    = 0x00000010,
       TASK_ME_SENDMSG_GLOBAL_POSITION_INT         = 0x08000020,
-
-      TASK_SENDCMD_DO_QSHOT_CONFIGFURE            = 0x00000100,
-      TASK_SENDMSG_QSHOT_STATUS                   = 0x00000200,
-      TASK_SENDMSG_QSHOT_BUTTON_STATE             = 0x00000400,
 
       TASK_SENDMSG_MAVLINK_API                    = 0x00001000,
       TASK_SENDMSG_MAVLINK_PARAM                  = 0x00002000,
@@ -843,14 +769,12 @@ class MavlinkTelem
       // gimbal & gimbal client
       TASK_SENDCMD_DO_MOUNT_CONFIGURE             = 0x00000001, // this goes to the autopilot
       TASK_SENDCMD_DO_MOUNT_CONTROL               = 0x00000002, // this goes to the autopilot
-
       TASK_SENDREQUEST_GIMBAL_DEVICE_INFORMATION  = 0x00000008, // this goes to the gimbal device
-      TASK_SENDMSG_GIMBAL_DEVICE_SET_ATTITUDE     = 0x00000010, // this goes to the gimbal device
-
-      TASK_SENDREQUEST_GIMBAL_MANAGER_INFORMATION     = 0x00000020, // this goes to the storm32 gimbal manager
-      TASK_SENDMSG_GIMBAL_MANAGER_CONTROL             = 0x00000040, // this goes to the storm32 gimbal manager
-      TASK_SENDMSG_GIMBAL_MANAGER_CONTROL_PITCHYAW    = 0x00000080, // this goes to the storm32 gimbal manager
-      TASK_SENDCMD_DO_GIMBAL_MANAGER_CONTROL_PITCHYAW = 0x00000100, // this goes to the storm32 gimbal manager
+      TASK_SENDREQUEST_GIMBAL_MANAGER_INFORMATION = 0x00000010, // this goes to the gimbal manager
+      TASK_SENDMSG_GIMBAL_MANAGER_SET_PITCHYAW    = 0x00000020, // this goes to the gimbal manager
+      TASK_SENDMSG_GIMBAL_MANAGER_SET_ATTITUDE    = 0x00000040, // this goes to the gimbal manager
+      TASK_SENDCMD_DO_GIMBAL_MANAGER_PITCHYAW     = 0x00000080, // this goes to the gimbal manager
+      TASK_SENDCMD_DO_GIMBAL_MANAGER_CONFIGURE    = 0x00000100, // this goes to the gimbal manager
     };
 
     uint32_t _task[TASKIDX_MAX];
@@ -888,7 +812,7 @@ class MavlinkTelem
     enum GimbalRequestWaitingFlags {
       GIMBAL_REQUESTWAITING_GIMBAL_DEVICE_INFORMATION  = 0x01,
       GIMBAL_REQUESTWAITING_GIMBAL_MANAGER_INFORMATION = 0x02,
-      GIMBAL_REQUESTWAITING_ALL                        = 0x01,
+      GIMBAL_REQUESTWAITING_ALL                        = 0x01, // gimbal is happy with just getting GIMBAL_DEVICE_INFORMATION, is not actually done!
       GIMBALCLIENT_REQUESTWAITING_ALL                  = 0x03,
     };
 
@@ -909,7 +833,6 @@ class MavlinkTelem
 
     // STUFF
 
-    bool _use_storm32_gimbal_protocol = false;
     bool _is_sending_pos_int = false;
 
     // MORE MAVLINK STUFF

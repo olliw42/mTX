@@ -19,8 +19,8 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v36-rc1"
-#define OWVERSION     3600 // used by mavlink/mbridge.cpp   txGpsIsAvailable
+#define OWVERSIONSTR  "v37-rc2"
+#define OWVERSION     3700 // used by mavlink/mbridge.cpp   txGpsIsAvailable hello.wav
 //OWEND
 
 /*
@@ -159,7 +159,6 @@ added files
     mavlink/mavlink_telem_gimbal.cpp
     mavlink/mavlink_telem_interface.cpp
     mavlink/mavlink_telem_mavapi.cpp
-    mavlink/mavlink_telem_qshot.cpp
     mavlink/mavlink_telem.cpp
     mavlink/mavlink_telem.h
     mavlink/mbridge.cpp

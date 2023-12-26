@@ -563,10 +563,7 @@ void audioTimerCountdown(uint8_t timer, int value);
 #define AUDIO_KEY_PRESS()        audioKeyPress()
 #define AUDIO_KEY_ERROR()        audioKeyError()
 
-//OW
-//#define AUDIO_HELLO()            audioPlay(AUDIO_HELLO)
-#define AUDIO_HELLO()
-//OWEND
+#define AUDIO_HELLO()            audioPlay(AUDIO_HELLO)
 #define AUDIO_BYE()              audioPlay(AU_BYE, ID_PLAY_PROMPT_BASE + AU_BYE)
 #define AUDIO_WARNING1()         AUDIO_BUZZER(audioEvent(AU_WARNING1), beep(3))
 #define AUDIO_WARNING2()         AUDIO_BUZZER(audioEvent(AU_WARNING2), beep(2))

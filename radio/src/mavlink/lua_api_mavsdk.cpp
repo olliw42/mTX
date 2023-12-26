@@ -105,8 +105,13 @@ static int luaMavsdkGimbalGetAttYawDeg(lua_State *L)
   return 1;
 }
 
-// gimbal protocol v1
-// can also be used for gimbal protocol v2, if _gimbal_protocol_v2 is set accordingly
+// -- gimbal protocol v1 & v2
+
+static int luaMavsdkGimbalSendRetractMode(lua_State *L)
+{
+  mavlinkTelem.sendGimbalTargetingMode(MAV_MOUNT_MODE_RETRACT);
+  return 0;
+}
 
 static int luaMavsdkGimbalSendNeutralMode(lua_State *L)
 {
@@ -138,6 +143,8 @@ static int luaMavsdkGimbalSendSysIdTargetingMode(lua_State *L)
   return 0;
 }
 
+// -- gimbal protocol v1
+
 static int luaMavsdkGimbalSendPitchYawDeg(lua_State *L)
 {
   float pitch = luaL_checknumber(L, 1);
@@ -147,20 +154,6 @@ static int luaMavsdkGimbalSendPitchYawDeg(lua_State *L)
 }
 
 // -- GIMBAL CLIENT -- gimbal protocol v2
-
-static int luaMavsdkIsSTorM32GimbalProtocol(lua_State *L)
-{
-  bool flag = mavlinkTelem.isStorm32GimbalProtocol();
-  lua_pushboolean(L, flag);
-  return 1;
-}
-
-static int luaMavsdkSetSTorM32GimbalProtocol(lua_State *L)
-{
-  bool flag = LUAL_CHECKBOOLEAN(L, 1);
-  mavlinkTelem.setStorm32GimbalProtocol(flag);
-  return 0;
-}
 
 static int luaMavsdkGimbalClientIsReceiving(lua_State *L)
 {
@@ -189,25 +182,12 @@ static int luaMavsdkGimbalClientGetInfo(lua_State *L)
 static int luaMavsdkGimbalClientGetStatus(lua_State *L)
 {
   lua_newtable(L);
-  lua_pushtableinteger(L, "supervisor", mavlinkTelem.gimbalmanagerStatus.supervisor);
   lua_pushtableinteger(L, "device_flags", mavlinkTelem.gimbalmanagerStatus.device_flags);
-  lua_pushtableinteger(L, "manager_flags", mavlinkTelem.gimbalmanagerStatus.manager_flags);
-  lua_pushtableinteger(L, "profile", mavlinkTelem.gimbalmanagerStatus.profile);
+  lua_pushtableinteger(L, "primary_sysid", mavlinkTelem.gimbalmanagerStatus.primary_sysid);
+  lua_pushtableinteger(L, "primary_compid", mavlinkTelem.gimbalmanagerStatus.primary_compid);
+  lua_pushtableinteger(L, "secondary_sysid", mavlinkTelem.gimbalmanagerStatus.secondary_sysid);
+  lua_pushtableinteger(L, "secondary_compid", mavlinkTelem.gimbalmanagerStatus.secondary_compid);
   return 1;
-}
-
-static int luaMavsdkGimbalClientSetRetract(lua_State *L)
-{
-  bool flag = LUAL_CHECKBOOLEAN(L, 1);
-  mavlinkTelem.setStorm32GimbalClientRetract(flag);
-  return 0;
-}
-
-static int luaMavsdkGimbalClientSetNeutral(lua_State *L)
-{
-  bool flag = LUAL_CHECKBOOLEAN(L, 1);
-  mavlinkTelem.setStorm32GimbalClientNeutral(flag);
-  return 0;
 }
 
 static int luaMavsdkGimbalClientSetLock(lua_State *L)
@@ -215,14 +195,20 @@ static int luaMavsdkGimbalClientSetLock(lua_State *L)
   bool roll_lock = LUAL_CHECKBOOLEAN(L, 1);
   bool pitch_lock = LUAL_CHECKBOOLEAN(L, 2);
   bool yaw_lock = LUAL_CHECKBOOLEAN(L, 3);
-  mavlinkTelem.setStorm32GimbalClientLock(roll_lock, pitch_lock, yaw_lock);
+  mavlinkTelem.setGimbalLock(roll_lock, pitch_lock, yaw_lock);
   return 0;
 }
 
-static int luaMavsdkGimbalClientSetFlags(lua_State *L)
+static int luaMavsdkGimbalClientSetRcControl(lua_State *L)
 {
-  uint16_t manager_flags = luaL_checkinteger(L, 1);
-  mavlinkTelem.setStorm32GimbalClientFlags(manager_flags);
+  int32_t flag = luaL_checkinteger(L, 1);
+  mavlinkTelem.setGimbalRcControl(flag);
+  return 0;
+}
+
+static int luaMavsdkGimbalClientSendFlags(lua_State *L)
+{
+  mavlinkTelem.sendGimbalManagerPitchYawDeg(NAN, NAN);
   return 0;
 }
 
@@ -230,15 +216,15 @@ static int luaMavsdkGimbalClientSendPitchYawDeg(lua_State *L)
 {
   float pitch = luaL_checknumber(L, 1);
   float yaw = luaL_checknumber(L, 2);
-  mavlinkTelem.sendStorm32GimbalManagerPitchYawDeg(pitch, yaw);
+  mavlinkTelem.sendGimbalManagerPitchYawDeg(pitch, yaw);
   return 0;
 }
 
-static int luaMavsdkGimbalClientSendCntrlPitchYawDeg(lua_State *L)
+static int luaMavsdkGimbalClientSendSetAttitudePitchYawDeg(lua_State *L)
 {
   float pitch = luaL_checknumber(L, 1);
   float yaw = luaL_checknumber(L, 2);
-  mavlinkTelem.sendStorm32GimbalManagerCntrlPitchYawDeg(pitch, yaw);
+  mavlinkTelem.sendGimbalManagerSetAttitudePitchYawDeg(pitch, yaw);
   return 0;
 }
 
@@ -246,48 +232,7 @@ static int luaMavsdkGimbalClientSendCmdPitchYawDeg(lua_State *L)
 {
   float pitch = luaL_checknumber(L, 1);
   float yaw = luaL_checknumber(L, 2);
-  mavlinkTelem.sendStorm32GimbalManagerCmdPitchYawDeg(pitch, yaw);
-  return 0;
-}
-
-static int luaMavsdkGimbalDeviceSendPitchYawDeg(lua_State *L)
-{
-  float pitch = luaL_checknumber(L, 1);
-  float yaw = luaL_checknumber(L, 2);
-  mavlinkTelem.sendGimbalDevicePitchYawDeg(pitch, yaw);
-  return 0;
-}
-
-// -- QSHOT --
-
-static int luaMavsdkQShotSendCmdConfigure(lua_State *L)
-{
-  uint8_t mode = luaL_checkinteger(L, 1);
-  uint8_t shot_state = luaL_checkinteger(L, 2);
-  mavlinkTelem.sendQShotCmdConfigure(mode, shot_state);
-  return 0;
-}
-
-static int luaMavsdkQShotSendStatus(lua_State *L)
-{
-  uint8_t mode = luaL_checkinteger(L, 1);
-  uint8_t shot_state = luaL_checkinteger(L, 2);
-  mavlinkTelem.sendQShotStatus(mode, shot_state);
-  return 0;
-}
-
-static int luaMavsdkQShotGetStatus(lua_State *L)
-{
-  lua_newtable(L);
-  lua_pushtableinteger(L, "mode", mavlinkTelem.qshot.mode);
-  lua_pushtableinteger(L, "shot_state", mavlinkTelem.qshot.shot_state);
-  return 1;
-}
-
-static int luaMavsdkQShotButtonState(lua_State *L)
-{
-  uint8_t button_state = luaL_checkinteger(L, 1);
-  mavlinkTelem.sendQShotButtonState(button_state);
+  mavlinkTelem.sendGimbalManagerCmdPitchYawDeg(pitch, yaw);
   return 0;
 }
 
@@ -438,7 +383,11 @@ static int luaMavsdkGetVehicleType(lua_State *L)
 static int luaMavsdkGetFlightMode(lua_State *L)
 {
   int nbr = mavlinkTelem.flightmode;
-  lua_pushnumber(L, nbr);
+  if (nbr >= UINT8_MAX || nbr < 0) {
+      lua_pushnil(L);
+  } else {
+      lua_pushnumber(L, nbr);
+  }
   return 1;
 }
 
@@ -1475,37 +1424,27 @@ const luaL_Reg mavsdkLib[] = {
   { "gimbalGetAttRollDeg", luaMavsdkGimbalGetAttRollDeg },
   { "gimbalGetAttPitchDeg", luaMavsdkGimbalGetAttPitchDeg },
   { "gimbalGetAttYawDeg", luaMavsdkGimbalGetAttYawDeg },
-  // gimbal protocol v1
+  // gimbal protocol v1 or v2
+  { "gimbalSendRetractMode", luaMavsdkGimbalSendRetractMode },
   { "gimbalSendNeutralMode", luaMavsdkGimbalSendNeutralMode },
   { "gimbalSendMavlinkTargetingMode", luaMavsdkGimbalSendMavlinkTargetingMode },
   { "gimbalSendRcTargetingMode", luaMavsdkGimbalSendRcTargetingMode },
   { "gimbalSendGpsPointMode", luaMavsdkGimbalSendGpsPointMode },
   { "gimbalSendSysIdTargetingMode", luaMavsdkGimbalSendSysIdTargetingMode },
+  // gimbal protocol v1
   { "gimbalSendPitchYawDeg", luaMavsdkGimbalSendPitchYawDeg },
-  // gimbal protocol
-  { "gimbalIsSTorM32Protocol", luaMavsdkIsSTorM32GimbalProtocol },
-  { "gimbalSetSTorM32Protocol", luaMavsdkSetSTorM32GimbalProtocol },
+  // gimbal manager protocol v2
   { "gimbalClientIsReceiving", luaMavsdkGimbalClientIsReceiving },
   { "gimbalClientIsInitialized", luaMavsdkGimbalClientIsInitialized },
   { "gimbalClientGetInfo", luaMavsdkGimbalClientGetInfo },
   { "gimbalClientGetStatus", luaMavsdkGimbalClientGetStatus },
-  { "gimbalClientSetRetract", luaMavsdkGimbalClientSetRetract },
-  { "gimbalClientSetNeutral", luaMavsdkGimbalClientSetNeutral },
   { "gimbalClientSetLock", luaMavsdkGimbalClientSetLock },
-  { "gimbalClientSetFlags", luaMavsdkGimbalClientSetFlags },
+  { "gimbalClientSetRcControl", luaMavsdkGimbalClientSetRcControl },
   { "gimbalClientSendPitchYawDeg", luaMavsdkGimbalClientSendPitchYawDeg },
+  { "gimbalClientSendFlags", luaMavsdkGimbalClientSendFlags },
   // should normally not be used
-  { "gimbalClientSendCntrlPitchYawDeg", luaMavsdkGimbalClientSendCntrlPitchYawDeg },
+  { "gimbalClientSendSetAttitudePitchYawDeg", luaMavsdkGimbalClientSendSetAttitudePitchYawDeg },
   { "gimbalClientSendCmdPitchYawDeg", luaMavsdkGimbalClientSendCmdPitchYawDeg },
-  { "gimbalDeviceSendPitchYawDeg", luaMavsdkGimbalDeviceSendPitchYawDeg },
-  // for backwards compatibility, should be deprecated
-  { "gimbalIsProtocolV2", luaMavsdkIsSTorM32GimbalProtocol },
-  { "gimbalSetProtocolV2", luaMavsdkSetSTorM32GimbalProtocol },
-
-  { "qshotSendCmdConfigure", luaMavsdkQShotSendCmdConfigure },
-  { "qshotSendStatus", luaMavsdkQShotSendStatus },
-  { "qshotGetStatus", luaMavsdkQShotGetStatus },
-  { "qshotButtonState", luaMavsdkQShotButtonState },
 
   { "cameraIsReceiving", luaMavsdkCameraIsReceiving },
   { "cameraIsInitialized", luaMavsdkCameraIsInitialized },
@@ -1651,37 +1590,6 @@ const luaR_value_entry mavsdkConstants[] = {
   { "GDFLAGS_ACCEPTS_YAW_IN_EF", GIMBAL_DEVICE_FLAGS_ACCEPTS_YAW_IN_EARTH_FRAME },
   { "GDFLAGS_RC_EXCLUSIVE", GIMBAL_DEVICE_FLAGS_RC_EXCLUSIVE },
   { "GDFLAGS_RC_MIXED", GIMBAL_DEVICE_FLAGS_RC_MIXED },
-
-  { "GMFLAGS_NONE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_NONE },
-  { "GMFLAGS_RC_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_RC_ACTIVE },
-  { "GMFLAGS_ONBOARD_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_CLIENT_ONBOARD_ACTIVE },
-  { "GMFLAGS_AUTOPILOT_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_CLIENT_AUTOPILOT_ACTIVE },
-  { "GMFLAGS_GCS_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_CLIENT_GCS_ACTIVE },
-  { "GMFLAGS_CAMERA_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_CLIENT_CAMERA_ACTIVE },
-  { "GMFLAGS_GCS2_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_CLIENT_GCS2_ACTIVE },
-  { "GMFLAGS_CAMERA2_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_CLIENT_CAMERA2_ACTIVE },
-  { "GMFLAGS_CLIENT_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_CLIENT_CUSTOM_ACTIVE },
-  { "GMFLAGS_CLIENT2_ACTIVE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_CLIENT_CUSTOM2_ACTIVE },
-  { "GMFLAGS_SET_SUPERVISON", MAV_STORM32_GIMBAL_MANAGER_FLAGS_SET_SUPERVISON },
-  { "GMFLAGS_SET_RELEASE", MAV_STORM32_GIMBAL_MANAGER_FLAGS_SET_RELEASE },
-
-  { "GMCLIENT_ONBOARD", MAV_STORM32_GIMBAL_MANAGER_CLIENT_ONBOARD },
-  { "GMCLIENT_AUTOPILOT", MAV_STORM32_GIMBAL_MANAGER_CLIENT_AUTOPILOT },
-  { "GMCLIENT_GCS", MAV_STORM32_GIMBAL_MANAGER_CLIENT_GCS },
-  { "GMCLIENT_CAMERA", MAV_STORM32_GIMBAL_MANAGER_CLIENT_CAMERA },
-  { "GMCLIENT_GCS2", MAV_STORM32_GIMBAL_MANAGER_CLIENT_GCS2 },
-  { "GMCLIENT_CAMERA2", MAV_STORM32_GIMBAL_MANAGER_CLIENT_CAMERA2 },
-  { "GMCLIENT_CUSTOM", MAV_STORM32_GIMBAL_MANAGER_CLIENT_CUSTOM },
-  { "GMCLIENT_CUSTOM2", MAV_STORM32_GIMBAL_MANAGER_CLIENT_CUSTOM2 },
-
-  { "QSHOT_MODE_UNDEFINED", MAV_QSHOT_MODE_UNDEFINED },
-  { "QSHOT_MODE_DEFAULT", MAV_QSHOT_MODE_DEFAULT },
-  { "QSHOT_MODE_RETRACT", MAV_QSHOT_MODE_GIMBAL_RETRACT },
-  { "QSHOT_MODE_NEUTRAL", MAV_QSHOT_MODE_GIMBAL_NEUTRAL },
-  { "QSHOT_MODE_RC_CONTROL", MAV_QSHOT_MODE_GIMBAL_RC_CONTROL },
-  { "QSHOT_MODE_POI", MAV_QSHOT_MODE_POI_TARGETING },
-  { "QSHOT_MODE_SYSID", MAV_QSHOT_MODE_SYSID_TARGETING },
-  { "QSHOT_MODE_CABLECAM", MAV_QSHOT_MODE_CABLECAM_2POINT },
 
   { nullptr, 0 }  /* sentinel */
 };

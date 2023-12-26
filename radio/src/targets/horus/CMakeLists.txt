@@ -367,7 +367,6 @@ if (TELEMETRY_MAVLINK)
     mavlink/mavlink_telem_gcs_and_alike.cpp
     mavlink/mavlink_telem_camera.cpp
     mavlink/mavlink_telem_gimbal.cpp 
-    mavlink/mavlink_telem_qshot.cpp
     mavlink/mbridge.cpp
     )
   if (NOT LUA STREQUAL NO)
