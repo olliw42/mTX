@@ -5,7 +5,7 @@
 ----------------------------------------------------------------------
 -- Page Gimbal
 ----------------------------------------------------------------------
-local config_g, status_g, p, draw, play, tmenu = ...
+local config_g, status_g, p, draw, play, tmenu, tbutton = ...
 
 
 local LCD_XMID = draw.xmid
@@ -31,6 +31,8 @@ end
 
 
 local gimbal = {
+    initialized = false,
+  
     pitch_cntrl_deg = nil,
     yaw_cntrl_deg = 0,
     mount_mode = nil,
@@ -78,8 +80,7 @@ end
 
 local function gimbalSetRoiSysId()
     local ap_sysid, ap_compid = mavlink.getAutopilotIds()
-    local my_sysid = 254 --TODO: mavlink.getMyIds()[1]
-    --local my_sysid = mavlink.getMyIds()[1]
+    local my_sysid, my_compid = mavlink.getMyIds()
     mavlink.sendMessage({
         msgid = mavlink.M_COMMAND_LONG,
         target_sysid = ap_sysid,
@@ -136,6 +137,37 @@ local gimbal_menu = {
 }
 
 
+local function gimbal_claim_control_button_click()
+    local gm_sysid, gm_compid = mavlink.getGimbalManagerIds()
+    local gd_sysid, gd_compid = mavlink.getGimbalIds()
+    local my_sysid, my_compid = mavlink.getMyIds()
+    mavlink.sendMessage({
+        msgid = mavlink.M_COMMAND_LONG,
+        target_sysid = gm_sysid,
+        target_compid = gm_compid,
+        command = mavlink.CMD_DO_GIM_MAN_CONFIGURE,
+        param1 = my_sysid, -- sysid primary control
+        param2 = my_compid, -- compid primary control
+        param3 = -1, -- sysid secondary control
+        param4 = -1, -- compid  secondary control
+        param7 = gd_compid, -- gimbal device id
+    })
+end
+
+
+local gimbal_claim_control_button = {
+    rect = { x = LCD_XMID - 240/2, y = 235, w = 240, h = 34 },
+    txt = "Claim Control",
+    click_func = gimbal_claim_control_button_click,
+}
+
+
+local function drawNoControl()
+    draw:WarningBox("gimbal not in control")
+end
+
+
+
 ----------------------------------------------------------------------
 -- Interface
 ----------------------------------------------------------------------
@@ -143,7 +175,11 @@ local gimbal_menu = {
 local function gimbalDoAlways()
     if not mavsdk.gimbalIsReceiving() then return end
   
-    tmenu.init(gimbal_menu)
+    if not gimbal.initialized then
+        gimbal.initialized = true
+        tmenu.init(gimbal_menu)
+        tbutton.init(gimbal_claim_control_button)
+    end    
   
     -- set gimbal into default MAVLink targeting mode upon connection
     if status_g.gimbal_changed_to_receiving then
@@ -214,6 +250,8 @@ local function doPageGimbal()
     -- MENU HANDLING
     if gimbal.is_in_control then
         tmenu.handle(gimbal_menu)
+    else    
+        tbutton.handle(gimbal_claim_control_button)
     end     
     
     -- DISPLAY
@@ -338,12 +376,13 @@ end
     if gangle < -100 then gangle = -100 end
     lcd.drawFilledCircle(x + (r-10)*math.cos(math.rad(gangle)), y - (r-10)*math.sin(math.rad(gangle)), 5, CUSTOM_COLOR)
 
-    if not gimbal.is_in_control then
-        draw:WarningBox("gimbal not in control")
-    end  
-
     -- MENU DISPLAY
-    tmenu.draw(gimbal_menu)
+    if gimbal.is_in_control then
+        tmenu.draw(gimbal_menu)
+    else    
+        drawNoControl()
+        tbutton.draw(gimbal_claim_control_button)
+    end    
 end  
 
 

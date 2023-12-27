@@ -16,7 +16,7 @@
 -- Yaapu FrSky Telemetry script. THX!
 -- https://github.com/yaapu/FrskyTelemetryScript
 ----------------------------------------------------------------------
-local versionStr = "0.37 2023-12-26"
+local versionStr = "0.37 2023-12-27"
 
 
 -- libraries: tplay, tutils, tobject, tvehicle, tautopilot, tgimbal, tcamera, taction, tdebug
@@ -853,7 +853,7 @@ local gimbalDoAlways, doPageGimbal
 if config_g.showGimbalPage then
     gimbalDoAlways,
     doPageGimbal
-    = loadLib("tgimbal.lua", config_g, status_g, p, draw, play, tmenu)
+    = loadLib("tgimbal.lua", config_g, status_g, p, draw, play, tmenu, tbutton)
 end    
 
 
