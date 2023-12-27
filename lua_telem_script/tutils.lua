@@ -31,6 +31,21 @@ function utils:LatLonToDms(dec,lat)
 end
 
 
+local function dpos_to_m(dposint)
+    -- flat earth math
+    -- y = rad[(lon-lon0) * 1e-7] * R = pi/180 * 1e-7 * 6.371e6 * (lon-lon0) 
+    return math.rad(0.6371) * dposint
+end    
+
+function utils:posDistance(lat1,lon1,lat2,lon2)
+    -- flat earth
+    local xScale = math.cos(math.rad((lat1+lat2) * 1.0e-7) * 0.5)
+    local x = dpos_to_m(lon2 - lon1) * xScale
+    local y = dpos_to_m(lat2 - lat1)
+    return math.sqrt(x*x + y*y) 
+end  
+
+
 
 ----------------------------------------------------------------------
 -- MavSDK Extensions

@@ -20,7 +20,7 @@
 
 //OW
 #define OWVERSIONSTR  "v37-rc2"
-#define OWVERSION     3700 // used by mavlink/mbridge.cpp   txGpsIsAvailable hello.wav
+#define OWVERSION     3700 // used by mavlink/mbridge.cpp
 //OWEND
 
 /*

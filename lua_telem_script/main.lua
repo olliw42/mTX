@@ -329,6 +329,9 @@ local status_g = {
     flight_timer_start_10ms = 0,
     flight_time_10ms = 0,
     
+    home_pos = nil,
+    flight_distance = 0,
+    
     gimbal_receiving = nil,
     gimbal_changed_to_receiving = false,
     camera_receiving = nil,
@@ -371,12 +374,20 @@ local function checkStatusChanges()
         if status_g.armed then
             play:Armed()
             status_g.flight_timer_start_10ms = getTime() --if it was nil that's the best guess we can do
+            if mavsdk.isGpsAvailable() and mavsdk.getGpsFix() >= mavlink.GPS_FIX_TYPE_3D_FIX then
+                status_g.home_pos = mavsdk.getGpsLatLonInt()
+            end
         else
             play:Disarmed()
         end    
     end
     if status_g.armed then
         status_g.flight_time_10ms = getTime() - status_g.flight_timer_start_10ms
+        if status_g.home_pos ~= nil then
+            local pos = mavsdk.getGpsLatLonInt()
+            status_g.flight_distance = 
+                  utils:posDistance(status_g.home_pos.lat,status_g.home_pos.lon,pos.lat,pos.lon)
+        end  
     end    
     
     if mavsdk.getFlightMode() ~= nil then
@@ -488,7 +499,7 @@ local function drawStatusBar()
     if mavsdk.isReceiving() then
         local rssi = mavsdk.getRadioRssi()
         if rssi == nil then rssi = 0 end
-        lcd.setColor(CUSTOM_COLOR, p.GREEN)
+        lcd.setColor(CUSTOM_COLOR, p.BRIGHTGREEN)
         if rssi < 50 then lcd.setColor(CUSTOM_COLOR, p.RED) end    
         lcd.drawText(x, y, "RS:", CUSTOM_COLOR)
         lcd.drawText(x + 42 -15, y, rssi, CUSTOM_COLOR+LEFT) --CENTER)  
@@ -504,7 +515,7 @@ local function drawStatusBar()
             end
         end
         if LQ ~= nil then
-            lcd.setColor(CUSTOM_COLOR, p.GREEN)
+            lcd.setColor(CUSTOM_COLOR, p.BRIGHTGREEN)
             if LQ < 30 then lcd.setColor(CUSTOM_COLOR, p.RED) end  
             lcd.drawText(x+66, y, "LQ:", CUSTOM_COLOR)
             lcd.drawText(x+66 + 42 -15, y, LQ, CUSTOM_COLOR+LEFT) --CENTER)
@@ -611,12 +622,20 @@ local function drawAutopilotPage()
     end
     
     -- draw speeds
+--[[    
     if not mavsdk.txGpsIsAvailable() then
         if mavsdk.isGps2Available() then 
             apdraw:SpeedsAt(2,147) 
         else
             apdraw:SpeedsAt(2,115)
         end
+    end --]]
+    
+    -- draw distance
+    if not mavsdk.isGps2Available() then 
+        lcd.setColor(CUSTOM_COLOR, p.YELLOW)
+        lcd.drawText(2, 110, "Distance", CUSTOM_COLOR+MIDSIZE)
+        lcd.drawNumber(2+5, 110+24, status_g.flight_distance, CUSTOM_COLOR+MIDSIZE)
     end    
     
     -- draw GPS coordinates in DMS format
@@ -693,7 +712,7 @@ local function drawPrearm()
     lcd.drawText(x, y, "Camera", CUSTOM_COLOR+MIDSIZE)
     lcd.drawText(x+20, y+25, "receiving:", CUSTOM_COLOR+MIDSIZE)    
     if mavsdk.isReceiving() and mavsdk.cameraIsReceiving() then    
-        lcd.setColor(CUSTOM_COLOR, p.GREEN)
+        lcd.setColor(CUSTOM_COLOR, p.BRIGHTGREEN)
         lcd.drawText(x+20+130, y+25, "OK", CUSTOM_COLOR+MIDSIZE)
         camera_ok = true
     else
