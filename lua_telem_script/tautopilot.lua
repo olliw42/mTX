@@ -10,10 +10,41 @@ local p, utils = ...
 
 local apdraw = {}
 
- 
+
 ----------------------------------------------------------------------
 -- draw helpers
 ----------------------------------------------------------------------
+
+local homebitmap = nil --Bitmap.open("/WIDGETS/OlliwTel/img/home.png")
+
+function apdraw:HomeBitmapAt(x,y)
+    if homebitmap == nil then homebitmap = Bitmap.open("/WIDGETS/OlliwTel/img/home.png") end
+    lcd.drawBitmap(homebitmap, x, y)
+end
+
+
+function apdraw:HomeIconAt(x,y,h,angle_to_home)
+    local icon_ang = angle_to_home - mavsdk.getAttYawDeg() --getVfrHeadingDeg() -- -180 .. 180 
+    if icon_ang < -180.0 then icon_ang = icon_ang + 360.0 end -- wrap into range -180 .. +180
+    if icon_ang > 180.0 then icon_ang = icon_ang - 360.0 end
+    
+    local icon_dx = 0
+    local icon_y = y + 10
+    if icon_ang > -90.0 and icon_ang < 90.0 then
+        icon_dx = icon_ang/90*130
+    elseif icon_ang < -90.0 then
+        icon_dx = - (180 + icon_ang)/90 * 130
+        icon_y = h + 3
+    elseif icon_ang > 90.0 then
+        icon_dx = (180 - icon_ang)/90 * 130
+        icon_y = h + 3
+    end
+    if icon_dx > 120 then icon_dx = 120 end 
+    if icon_dx < -120 then icon_dx = -120 end 
+    
+    apdraw:HomeBitmapAt(x-10 + icon_dx, icon_y)
+end
+
 
 function apdraw:TiltedLineWithClipping(ox, oy, angle, len, xmin, xmax, ymin, ymax, style, color)
     local xx = math.cos(math.rad(angle)) * len * 0.5

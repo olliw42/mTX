@@ -18,7 +18,8 @@ function utils:TimeToStr(time_s)
     local hours = math.floor(time_s/3600)
     local mins = math.floor(time_s/60 - hours*60)
     local secs = math.floor(time_s - hours*3600 - mins *60)
-    return string.format("%02d:%02d:%02d", hours, mins, secs)
+    --return string.format("%02d:%02d:%02d", hours, mins, secs)
+    return string.format("%01d:%02d:%02d", hours, mins, secs)
 end
 
 
@@ -37,14 +38,40 @@ local function dpos_to_m(dposint)
     return math.rad(0.6371) * dposint
 end    
 
-function utils:posDistance(lat1,lon1,lat2,lon2)
+-- pos1 in respect to pos0
+function utils:posDistance(lat1,lon1,lat0,lon0)
     -- flat earth
-    local xScale = math.cos(math.rad((lat1+lat2) * 1.0e-7) * 0.5)
-    local x = dpos_to_m(lon2 - lon1) * xScale
-    local y = dpos_to_m(lat2 - lat1)
+    local xScale = math.cos(math.rad((lat1+lat0) * 1.0e-7) * 0.5)
+    local x = dpos_to_m(lon1 - lon0) * xScale
+    local y = dpos_to_m(lat1 - lat0)
     return math.sqrt(x*x + y*y) 
 end  
 
+function utils:posAngle(lat1,lon1,lat0,lon0)
+    -- flat earth
+    local xScale = math.cos(math.rad((lat1+lat0) * 1.0e-7) * 0.5)
+    local x = dpos_to_m(lon1 - lon0) * xScale
+    local y = dpos_to_m(lat1 - lat0)
+    return math.deg(math.atan2(y,x))
+end  
+
+function utils:posDistanceAngle(lat1,lon1,lat0,lon0)
+    -- flat earth
+    local xScale = math.cos(math.rad((lat1+lat0) * 1.0e-7) * 0.5)
+    local x = dpos_to_m(lon1 - lon0) * xScale
+    local y = dpos_to_m(lat1 - lat0)
+    local phi = math.deg(math.atan2(x,y))
+    if phi < 0.0 then phi = phi + 360.0 end
+    return math.sqrt(x*x + y*y), phi
+end  
+
+function utils:posXY(lat1,lon1,lat0,lon0)
+    -- flat earth
+    local xScale = math.cos(math.rad((lat1+lat0) * 1.0e-7) * 0.5)
+    local x = dpos_to_m(lon1 - lon0) * xScale
+    local y = dpos_to_m(lat1 - lat0)
+    return x,y
+end  
 
 
 ----------------------------------------------------------------------

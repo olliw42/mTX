@@ -16,7 +16,7 @@
 -- Yaapu FrSky Telemetry script. THX!
 -- https://github.com/yaapu/FrskyTelemetryScript
 ----------------------------------------------------------------------
-local versionStr = "0.37 2023-12-27"
+local versionStr = "0.37 2024-01-01"
 
 
 -- libraries: tplay, tutils, tobject, tvehicle, tautopilot, tgimbal, tcamera, taction, tdebug
@@ -330,7 +330,10 @@ local status_g = {
     flight_time_10ms = 0,
     
     home_pos = nil,
-    flight_distance = 0,
+    distance_to_home = 0,
+    angle_to_home = 0,
+    home_x = 0,
+    home_y = 0,
     
     gimbal_receiving = nil,
     gimbal_changed_to_receiving = false,
@@ -385,8 +388,9 @@ local function checkStatusChanges()
         status_g.flight_time_10ms = getTime() - status_g.flight_timer_start_10ms
         if status_g.home_pos ~= nil then
             local pos = mavsdk.getGpsLatLonInt()
-            status_g.flight_distance = 
-                  utils:posDistance(status_g.home_pos.lat,status_g.home_pos.lon,pos.lat,pos.lon)
+            status_g.distance_to_home, status_g.angle_to_home = 
+                  utils:posDistanceAngle(pos.lat, pos.lon, status_g.home_pos.lat, status_g.home_pos.lon)
+--            status_g.home_x, status_g.home_y = utils:posXY(pos.lat, pos.lon, status_g.home_pos.lat, status_g.home_pos.lon)
         end  
     end    
     
@@ -635,9 +639,15 @@ local function drawAutopilotPage()
     if not mavsdk.isGps2Available() then 
         lcd.setColor(CUSTOM_COLOR, p.YELLOW)
         lcd.drawText(2, 110, "Distance", CUSTOM_COLOR+MIDSIZE)
-        lcd.drawNumber(2+5, 110+24, status_g.flight_distance, CUSTOM_COLOR+MIDSIZE)
-    end    
-    
+        lcd.drawNumber(2+5, 110+24, status_g.distance_to_home, CUSTOM_COLOR+MIDSIZE)
+        lcd.drawNumber(90, 110+24+4, status_g.angle_to_home, CUSTOM_COLOR)
+--        lcd.drawNumber(2+5, 110+48, status_g.home_x, CUSTOM_COLOR)
+--        lcd.drawNumber(2+5, 110+64, status_g.home_y, CUSTOM_COLOR)
+    end
+
+    -- draw home icon
+    apdraw:HomeIconAt(draw.xmid, 22, 146, status_g.angle_to_home)
+
     -- draw GPS coordinates in DMS format
     if not mavsdk.isGps2Available() then 
         apdraw:GpsCoordsAt(1, 2,165) -- 1 = Gps1
