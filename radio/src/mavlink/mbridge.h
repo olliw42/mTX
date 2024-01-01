@@ -154,7 +154,7 @@ class MBridge
 
     #define MBRIDGE_RSSI_LIST_LEN  32
 
-    struct LinkStats { // may not be exactly what is send in packet
+    struct LinkStats { // this is not exactly what is send in the mBridge LinkStats packet, see tMBridgeLinkStats
       uint8_t LQ;
       int8_t rssi1_instantaneous; // invalid = INT8_MAX
       int8_t rssi2_instantaneous; // invalid = INT8_MAX

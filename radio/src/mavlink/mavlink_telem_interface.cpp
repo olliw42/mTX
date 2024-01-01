@@ -197,8 +197,8 @@ void extmoduleMBridge_wakeup(void)
     mavlinkTelem.mbridgestats.is_receiving_linkstats = MAVLINK_TELEM_RADIO_RECEIVING_TIMEOUT;
     uint8_t rssi = 0;
     int8_t rssi_i8 = mBridge.link_stats.receiver_rssi_instantaneous;
-    // convert -127 .. 0 to 0 ... 254
-    if (rssi_i8 == 127) {
+    // convert -127 .. 0 to mavlink units using AP CRSF formula
+    if (rssi_i8 == 127) { // RSSI_INVALID
       rssi = UINT8_MAX;
     }
     else if (rssi_i8 > -50) {
@@ -211,19 +211,19 @@ void extmoduleMBridge_wakeup(void)
       constexpr int32_t m = (int32_t)(-50) - (-120);
       rssi = (r * 254 + m/2) / m;
     }
-    mavlinkTelem.mbridgestats.receiver_rssi = rssi;
+    mavlinkTelem.mbridgestats.receiver_rssi = rssi; // RSSI in mavlink units, 0 .. 254, 255 = invalid/unknown
 
     if (g_model.mavlinkRssiScale > 0) {
-      if (g_model.mavlinkRssiScale < 255) { //if not full range, respect  UINT8_MAX
+      if (g_model.mavlinkRssiScale < 255) { // if not full range, respect UINT8_MAX
         if (rssi == UINT8_MAX) rssi = 0;
       }
-      if (rssi > g_model.mavlinkRssiScale) rssi = g_model.mavlinkRssiScale; //constrain
-      rssi = (uint8_t)( ((uint16_t)rssi * 100) / g_model.mavlinkRssiScale); //scale to 0..100
+      if (rssi > g_model.mavlinkRssiScale) rssi = g_model.mavlinkRssiScale; // constrain
+      rssi = (uint8_t)( ((uint16_t)rssi * 100) / g_model.mavlinkRssiScale); // scale to 0..100
     }
-    else { //mavlink default
+    else { // mavlink default
       if (rssi == UINT8_MAX) rssi = 0;
     }
-    mavlinkTelem.mbridgestats.receiver_rssi_scaled = rssi;
+    mavlinkTelem.mbridgestats.receiver_rssi_scaled = rssi; // RSSI in percentage, 0 .. 100
 
     mavlinkTelem.mbridgestats.receiver_LQ = mBridge.link_stats.receiver_LQ;
 
@@ -511,11 +511,11 @@ void MavlinkTelem::telemetrySetValue(uint16_t id, uint8_t subId, uint8_t instanc
 void MavlinkTelem::telemetrySetRssiValue(uint8_t rssi)
 {
   if (g_model.mavlinkRssiScale > 0) {
-    if (g_model.mavlinkRssiScale < 255) { //if not full range, respect UINT8_MAX
+    if (g_model.mavlinkRssiScale < 255) { // if not full range, respect UINT8_MAX
       if (rssi == UINT8_MAX) rssi = 0;
     }
-    if (rssi > g_model.mavlinkRssiScale) rssi = g_model.mavlinkRssiScale; //constrain
-    rssi = (uint8_t)( ((uint16_t)rssi * 100) / g_model.mavlinkRssiScale); //scale to 0..100
+    if (rssi > g_model.mavlinkRssiScale) rssi = g_model.mavlinkRssiScale; // constrain
+    rssi = (uint8_t)( ((uint16_t)rssi * 100) / g_model.mavlinkRssiScale); // scale to 0..100
   }
   else { //mavlink default
     if (rssi == UINT8_MAX) rssi = 0;
