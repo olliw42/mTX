@@ -24,13 +24,17 @@ end
 
 
 function apdraw:HomeIconAt(x,y,h,angle_to_home)
+    -- angle_to_home: 0 .. 360 
+    -- invert direction, results also in range -180 .. 180
+    angle_to_home = angle_to_home - 180.0
+    
     local icon_ang = angle_to_home - mavsdk.getAttYawDeg() --getVfrHeadingDeg() -- -180 .. 180 
-    if icon_ang < -180.0 then icon_ang = icon_ang + 360.0 end -- wrap into range -180 .. +180
+    if icon_ang <= -180.0 then icon_ang = icon_ang + 360.0 end -- wrap into range -180 .. +180
     if icon_ang > 180.0 then icon_ang = icon_ang - 360.0 end
     
     local icon_dx = 0
     local icon_y = y + 10
-    if icon_ang > -90.0 and icon_ang < 90.0 then
+    if icon_ang >= -90.0 and icon_ang <= 90.0 then
         icon_dx = icon_ang/90*130
     elseif icon_ang < -90.0 then
         icon_dx = - (180 + icon_ang)/90 * 130

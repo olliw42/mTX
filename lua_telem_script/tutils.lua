@@ -52,7 +52,9 @@ function utils:posAngle(lat1,lon1,lat0,lon0)
     local xScale = math.cos(math.rad((lat1+lat0) * 1.0e-7) * 0.5)
     local x = dpos_to_m(lon1 - lon0) * xScale
     local y = dpos_to_m(lat1 - lat0)
-    return math.deg(math.atan2(y,x))
+    local phi = math.deg(math.atan2(x,y))
+    if phi < 0.0 then phi = phi + 360.0 end
+    return phi
 end  
 
 function utils:posDistanceAngle(lat1,lon1,lat0,lon0)
