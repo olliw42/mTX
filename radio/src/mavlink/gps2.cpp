@@ -1,8 +1,9 @@
 //*******************************************************
 // GPS Library
 // Copyright (c) OlliW, OlliW42, www.olliw.eu
-// LGPL3
-// https://www.gnu.org/licenses/lgpl-3.0.en.html
+// Licence GPL2 or (at your option) GPL3
+// https://www.gnu.org/licenses/gpl-2.0.en.html
+// https://www.gnu.org/licenses/gpl-3.0.en.html
 //*******************************************************
 
 #include "opentx.h"

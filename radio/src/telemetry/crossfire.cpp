@@ -26,21 +26,21 @@ uint8_t intTelemetryRxBufferCount;
 #endif
 
 const CrossfireSensor crossfireSensors[] = {
-  {LINK_ID,        0, ZSTR_RX_RSSI1,      UNIT_DB,                0},
-  {LINK_ID,        1, ZSTR_RX_RSSI2,      UNIT_DB,                0},
-  {LINK_ID,        2, ZSTR_RX_QUALITY,    UNIT_PERCENT,           0},
-  {LINK_ID,        3, ZSTR_RX_SNR,        UNIT_DB,                0},
-  {LINK_ID,        4, ZSTR_ANTENNA,       UNIT_RAW,               0},
-  {LINK_ID,        5, ZSTR_RF_MODE,       UNIT_RAW,               0},
-  {LINK_ID,        6, ZSTR_TX_POWER,      UNIT_MILLIWATTS,        0},  //OW -> "TPw2"
-  {LINK_ID,        7, ZSTR_TX_RSSI,       UNIT_DB,                0},
-  {LINK_ID,        8, ZSTR_TX_QUALITY,    UNIT_PERCENT,           0},
-  {LINK_ID,        9, ZSTR_TX_SNR,        UNIT_DB,                0},
-  {LINK_RX_ID,     0, ZSTR_RX_RSSI_PERC,  UNIT_PERCENT,           0},
+  {LINK_ID,        0, ZSTR_RX_RSSI1,      UNIT_DB,                0},  // "1RSS"    RX_RSSI1_INDEX
+  {LINK_ID,        1, ZSTR_RX_RSSI2,      UNIT_DB,                0},  // "2RSS"    RX_RSSI2_INDEX
+  {LINK_ID,        2, ZSTR_RX_QUALITY,    UNIT_PERCENT,           0},  // "RQly"    RX_QUALITY_INDEX
+  {LINK_ID,        3, ZSTR_RX_SNR,        UNIT_DB,                0},  // "RSNR"    RX_SNR_INDEX
+  {LINK_ID,        4, ZSTR_ANTENNA,       UNIT_RAW,               0},  // "ANT"     RX_ANTENNA_INDEX
+  {LINK_ID,        5, ZSTR_RF_MODE,       UNIT_RAW,               0},  // "RFMD"    RF_MODE_INDEX
+  {LINK_ID,        6, ZSTR_TX_POWER,      UNIT_MILLIWATTS,        0},  // "TPw2"    TX_POWER_INDEX        !!
+  {LINK_ID,        7, ZSTR_TX_RSSI,       UNIT_DB,                0},  // "TRSS"    TX_RSSI_INDEX
+  {LINK_ID,        8, ZSTR_TX_QUALITY,    UNIT_PERCENT,           0},  // "TQly"    TX_QUALITY_INDEX
+  {LINK_ID,        9, ZSTR_TX_SNR,        UNIT_DB,                0},  // "TSNR"    TX_SNR_INDEX
+  {LINK_RX_ID,     0, ZSTR_RX_RSSI_PERC,  UNIT_PERCENT,           0},  // "RRSP"    RX_RSSI_PERC_INDEX
   {LINK_RX_ID,     1, ZSTR_RX_RF_POWER,   UNIT_DBM,               0},  //OW -> "RPWR"   note: comes in fact from LINK_TX_ID!
-  {LINK_TX_ID,     0, ZSTR_TX_RSSI_PERC,  UNIT_PERCENT,           0},
+  {LINK_TX_ID,     0, ZSTR_TX_RSSI_PERC,  UNIT_PERCENT,           0},  // "TRSP"    TX_RSSI_PERC_INDEX
   {LINK_TX_ID,     1, ZSTR_TX_RF_POWER,   UNIT_DBM,               0},  //OW -> "TPWR"   note: comes in fact from LINK_RX_ID!
-  {LINK_TX_ID,     2, ZSTR_TX_FPS,        UNIT_HERTZ,             0},
+  {LINK_TX_ID,     2, ZSTR_TX_FPS,        UNIT_HERTZ,             0},  // "TFPS"    TX_FPS_INDEX
   {BATTERY_ID,     0, ZSTR_BATT,          UNIT_VOLTS,             1},
   {BATTERY_ID,     1, ZSTR_CURR,          UNIT_AMPS,              1},
   {BATTERY_ID,     2, ZSTR_CAPACITY,      UNIT_MAH,               0},
@@ -54,7 +54,7 @@ const CrossfireSensor crossfireSensors[] = {
   {ATTITUDE_ID,    0, ZSTR_PITCH,         UNIT_RADIANS,           3},
   {ATTITUDE_ID,    1, ZSTR_ROLL,          UNIT_RADIANS,           3},
   {ATTITUDE_ID,    2, ZSTR_YAW,           UNIT_RADIANS,           3},
-  {FLIGHT_MODE_ID, 0, ZSTR_FLIGHT_MODE,   UNIT_TEXT,              0},
+  {FLIGHT_MODE_ID, 0, ZSTR_FLIGHT_MODE,   UNIT_TEXT,              0},  // "FM"      FLIGHT_MODE_INDEX
   {CF_VARIO_ID,    0, ZSTR_VSPD,          UNIT_METERS_PER_SECOND, 2},
   {BARO_ALT_ID,    0, ZSTR_ALT,           UNIT_METERS,            2},
   {0,              0, "UNKNOWN",          UNIT_RAW,               0},

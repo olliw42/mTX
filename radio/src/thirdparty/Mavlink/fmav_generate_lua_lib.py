@@ -3,8 +3,9 @@
 *******************************************************
  mTX: MAVLink for OpenTx Project
  Copyright (c) OlliW, OlliW42, www.olliw.eu
- LGPL3
- https://www.gnu.org/licenses/lgpl-3.0.en.html
+ Licence GPL2 or (at your option) GPL3
+ https://www.gnu.org/licenses/gpl-2.0.en.html
+ https://www.gnu.org/licenses/gpl-3.0.en.html
 *******************************************************
  fmav_generate_lua_lib.py
  calls fastMavlink generator modules
@@ -32,6 +33,86 @@ from generator.modules import fmav_flags as mavflags
 Attention: names must not be longer than 32 chars
 '''
 
+def excludeMessage(msg):
+    return False #!!!!!
+    if msg.name in ['AHRS','ATTITUDE','VIBRATION']: return False  # 30, 241
+    #if msg.name in ['AHRS']: return False
+    return True
+
+
+def includeEnum(enumname):
+    #return True
+    if enumname in [
+        'MAV_MODE',
+        'MAV_FRAME',
+        'FENCE_ACTION',
+        'FENCE_BREACH',
+        'FENCE_MITIGATE',
+        'MAV_MOUNT_MODE',
+        'GIMBAL_DEVICE_CAP_FLAGS',
+        'GIMBAL_MANAGER_CAP_FLAGS',
+        'GIMBAL_DEVICE_FLAGS',
+        'GIMBAL_MANAGER_FLAGS',
+        'GIMBAL_DEVICE_ERROR_FLAGS',
+        'COMP_METADATA_TYPE',
+        'AUTOTUNE_AXIS',
+        'MAV_DATA_STREAM',
+        'MAV_PARAM_TYPE',
+        'MAV_PARAM_EXT_TYPE',
+        'MAV_RESULT',
+        'MAV_MISSION_RESULT',
+        'MAV_SEVERITY',
+        'MAV_DISTANCE_SENSOR',
+        'MAV_SENSOR_ORIENTATION',
+        'MAV_PROTOCOL_CAPABILITY',
+        'MAV_MISSION_TYPE',
+        'MAV_BATTERY_TYPE',
+        'MAV_BATTERY_FUNCTION',
+        'MAV_BATTERY_CHARGE_STATE',
+        'MAV_BATTERY_MODE',
+        'MAV_BATTERY_FAULT',
+        'MAV_VTOL_STATE',
+        'MAV_LANDED_STATE',
+        'SPEED_TYPE',
+        'GPS_FIX_TYPE',
+        'VTOL_TRANSITION_HEADING',
+        'CAMERA_CAP_FLAGS',
+        'VIDEO_STREAM_STATUS_FLAGS',
+        'VIDEO_STREAM_TYPE',
+        'CAMERA_TRACKING_STATUS_FLAGS',
+        'CAMERA_TRACKING_MODE',
+        'CAMERA_TRACKING_TARGET_DATA',
+        'CAMERA_ZOOM_TYPE',
+        'SET_FOCUS_TYPE',
+        'PARAM_ACK',
+        'CAMERA_MODE',
+        'MAV_ARM_AUTH_DENIED_REASON',
+        'MAV_TUNNEL_PAYLOAD_TYPE',
+        'NAV_VTOL_LAND_OPTIONS',
+        'MAG_CAL_STATUS',
+        'MISSION_STATE',
+        'MAV_CMD',
+        
+        'MAV_AUTOPILOT',
+        'MAV_TYPE',
+        'MAV_MODE_FLAG',
+        'MAV_STATE',
+        'MAV_COMPONENT',
+        
+        'ACCELCAL_VEHICLE_POS',
+        'EKF_STATUS_FLAGS',
+        'PID_TUNING_AXIS',
+        'PLANE_MODE',
+        'COPTER_MODE',
+        'SUB_MODE',
+        'ROVER_MODE',
+        'TRACKER_MODE',
+        
+        'MAV_QSHOT_MODE',
+        ]: return True
+    return False
+
+
 print_warnings = True
 print_verbose = True
 
@@ -46,29 +127,6 @@ def printVerbose(txt, verbose=True):
     if not print_verbose: return
     if not verbose: return
     print(txt)
-
-
-def excludeMessage(msg):
-    #return True
-    return False
-    if msg.name in ['AHRS','ATTITUDE','VIBRATION']: return False  # 30, 241
-    #if msg.name in ['AHRS']: return False
-    return True
-
-
-def includeEnum(enumname):
-    return True
-    if enumname in [
-        'MAV_AUTOPILOT','MAV_TYPE','MAV_MODE_FLAG','MAV_STATE',
-        'MAV_COMPONENT',
-        'MAV_CMD'
-        'MAV_MOUNT_MODE',
-        'GIMBAL_DEVICE_CAP_FLAGS','GIMBAL_MANAGER_CAP_FLAGS',
-        'GIMBAL_DEVICE_FLAGS','GIMBAL_MANAGER_FLAGS','GIMBAL_DEVICE_ERROR_FLAGS',
-        'MAV_PARAM_TYPE','MAV_PARAM_EXT_TYPE','MAV_RESULT','MAV_SEVERITY',
-        'GPS_FIX_TYPE'
-        ]: return True
-    return False
 
 
 def cvtInvalidAttr(invalid_str):
@@ -243,8 +301,9 @@ def generateLuaLibHeaders(dialectname):
     m.append('''//*******************************************************
 // mTX: MAVLink for OpenTx Project
 // Copyright (c) OlliW, OlliW42, www.olliw.eu
-// LGPL3
-// https://www.gnu.org/licenses/lgpl-3.0.en.html
+// Licence GPL2 or (at your option) GPL3
+// https://www.gnu.org/licenses/gpl-2.0.en.html
+// https://www.gnu.org/licenses/gpl-3.0.en.html
 //*******************************************************
     
 //------------------------------------------------------------
@@ -322,8 +381,9 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     s.append('''//*******************************************************
 // mTX: MAVLink for OpenTx Project
 // Copyright (c) OlliW, OlliW42, www.olliw.eu
-// LGPL3
-// https://www.gnu.org/licenses/lgpl-3.0.en.html
+// Licence GPL2 or (at your option) GPL3
+// https://www.gnu.org/licenses/gpl-2.0.en.html
+// https://www.gnu.org/licenses/gpl-3.0.en.html
 //*******************************************************    
 
 //------------------------------------------------------------

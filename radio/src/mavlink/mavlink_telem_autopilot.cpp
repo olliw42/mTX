@@ -1,8 +1,9 @@
 //*******************************************************
 // mTX: MAVLink for OpenTx Project
 // Copyright (c) OlliW, OlliW42, www.olliw.eu
-// LGPL3
-// https://www.gnu.org/licenses/lgpl-3.0.en.html
+// Licence GPL2 or (at your option) GPL3
+// https://www.gnu.org/licenses/gpl-2.0.en.html
+// https://www.gnu.org/licenses/gpl-3.0.en.html
 // MavTelem Library
 //*******************************************************
 
@@ -499,14 +500,14 @@ void MavlinkTelem::handleMessageAutopilot(void)
       bool validcellcount = true;
       for (uint8_t i=0; i<10; i++) {
         if (payload.voltages[i] != UINT16_MAX) {
-          voltage += payload.voltages[i]; //uint16_t mV, UINT16_MAX if not known
+          voltage += payload.voltages[i]; // uint16_t mV, UINT16_MAX if not known
           if (payload.voltages[i] == UINT16_MAX-1) validcellcount = false;
           cellcount++;
         }
       }
-      for (uint8_t i=0; i<4; i++) { //we assume this never is relevant if validcellcount = false
+      for (uint8_t i=0; i<4; i++) { // we assume this never is relevant if validcellcount = false
         if (payload.voltages_ext[i] != 0) {
-          voltage += payload.voltages_ext[i]; //uint16_t mV, 0 if not known
+          voltage += payload.voltages_ext[i]; // uint16_t mV, 0 if not known
           cellcount++;
         }
       }
@@ -514,12 +515,12 @@ void MavlinkTelem::handleMessageAutopilot(void)
       if (payload.id == 0) {
         bat1.charge_consumed_mAh = payload.current_consumed; // mAh, -1 if not known
         bat1.energy_consumed_hJ = payload.energy_consumed; // 0.1 kJ, -1 if not known
-        bat1.temperature_cC = payload.temperature; // centi-degrees C°, INT16_MAX if not known
+        bat1.temperature_cC = payload.temperature; // centi-degrees C deg, INT16_MAX if not known
         bat1.voltage_mV = voltage; // mV
         bat1.current_cA = payload.current_battery; // 10*mA, -1 if not known
-        bat1.remaining_pct = payload.battery_remaining; //(0%: 0, 100%: 100), -1 if not knwon
-        bat1.time_remaining = payload.time_remaining; // 0 if not knwon
-        bat1.charge_state = payload.charge_state; // 0 if not knwon
+        bat1.remaining_pct = payload.battery_remaining; // (0%: 0, 100%: 100), -1 if not known
+        bat1.time_remaining = payload.time_remaining; // 0 if not known
+        bat1.charge_state = payload.charge_state; // 0 if not known
         bat1.fault_bitmask = payload.fault_bitmask;
         bat1.cellcount = cellcount;
         INCU8(bat1.updated);
@@ -527,12 +528,12 @@ void MavlinkTelem::handleMessageAutopilot(void)
       if (payload.id == 1) {
         bat2.charge_consumed_mAh = payload.current_consumed; // mAh, -1 if not known
         bat2.energy_consumed_hJ = payload.energy_consumed; // 0.1 kJ, -1 if not known
-        bat2.temperature_cC = payload.temperature; // centi-degrees C°, INT16_MAX if not known
+        bat2.temperature_cC = payload.temperature; // centi-degrees C deg, INT16_MAX if not known
         bat2.voltage_mV = voltage; // mV
         bat2.current_cA = payload.current_battery; // 10*mA, -1 if not known
-        bat2.remaining_pct = payload.battery_remaining; //(0%: 0, 100%: 100), -1 if not knwon
-        bat2.time_remaining = payload.time_remaining; // 0 if not knwon
-        bat2.charge_state = payload.charge_state; // 0 if not knwon
+        bat2.remaining_pct = payload.battery_remaining; // (0%: 0, 100%: 100), -1 if not known
+        bat2.time_remaining = payload.time_remaining; // 0 if not known
+        bat2.charge_state = payload.charge_state; // 0 if not known
         bat2.fault_bitmask = payload.fault_bitmask;
         bat2.cellcount = cellcount;
         INCU8(bat2.updated);
@@ -630,8 +631,8 @@ void MavlinkTelem::handleMessageAutopilot(void)
     case FASTMAVLINK_MSG_ID_MISSION_ITEM_INT: {
       fmav_mission_item_int_t payload;
       fmav_msg_mission_item_int_decode(&payload, &_msg);
-      if (payload.mission_type != MAV_MISSION_TYPE_MISSION) break; //not a MISSION item
-      if (payload.frame == MAV_FRAME_MISSION) break; //not a coordinate frame, indicates a mission command
+      if (payload.mission_type != MAV_MISSION_TYPE_MISSION) break; // not a MISSION item
+      if (payload.frame == MAV_FRAME_MISSION) break; // not a coordinate frame, indicates a mission command
       missionItem.seq = payload.seq;
       missionItem.frame = payload.frame;
       missionItem.command = payload.command;

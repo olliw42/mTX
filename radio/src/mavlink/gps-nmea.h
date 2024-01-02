@@ -1,8 +1,9 @@
 //*******************************************************
 // GPS Library
 // Copyright (c) OlliW, OlliW42, www.olliw.eu
-// LGPL3
-// https://www.gnu.org/licenses/lgpl-3.0.en.html
+// Licence GPL2 or (at your option) GPL3
+// https://www.gnu.org/licenses/gpl-2.0.en.html
+// https://www.gnu.org/licenses/gpl-3.0.en.html
 //*******************************************************
 
 #ifndef GPS_NMEA_H
@@ -347,7 +348,7 @@ static inline int32_t nmea_tonumeric1(char* data)
 
 
 // the data is in format dddmm.mmmmm or degrees, minute, fractional minutes
-// shall be converted to degrees*10^7, the range is thus +-180.0000000°, which can be accommodated by a int32
+// shall be converted to degrees*10^7, the range is thus +-180.0000000 deg, which can be accommodated by a int32
 // the resolution is then 1.1 cm, this might not be sufficient for RTK!
 uint32_t nmea_todegrees(char* data)
 {
@@ -417,10 +418,10 @@ typedef enum {
 typedef struct {
   uint32_t time_utc;
   uint32_t date; // in BCD format yymmday
-  int32_t lat_1e7; // in 1e7 deg, 1e7 = 1°
-  int32_t lon_1e7; // in 1e7 deg, 1e7 = 1°
+  int32_t lat_1e7; // in 1e7 deg, 1e7 = 1 deg
+  int32_t lon_1e7; // in 1e7 deg, 1e7 = 1 deg
   int32_t speed_cms; // in cm/s, 100 = 1 m/s
-  uint16_t cog_cdeg; // in cdeg, 100 = 1°
+  uint16_t cog_cdeg; // in cdeg, 100 = 1 deg
   uint8_t status;
   uint8_t fix;
   uint16_t mask; // this tracks which fields are valid
@@ -506,8 +507,8 @@ typedef enum {
 
 typedef struct {
   uint32_t time_utc;
-  int32_t lat_1e7; // in 1e7 deg, 1e7 = 1°
-  int32_t lon_1e7; // in 1e7 deg, 1e7 = 1°
+  int32_t lat_1e7; // in 1e7 deg, 1e7 = 1 deg
+  int32_t lon_1e7; // in 1e7 deg, 1e7 = 1 deg
   int32_t alt_cm; // in cm, 100 = 1 m, is above sea level in m
   uint8_t fix;
   uint8_t sat;
