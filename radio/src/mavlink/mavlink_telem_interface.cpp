@@ -155,6 +155,9 @@ void extmoduleMBridgeStart(void)
 // 16 bytes per slot = 8000 bytes/s = effectively 80000 bps, should be way enough
 // 3+16 bytes @ 400000 bps = 0.475 ms, 16 bytes @ 400000 bps = 0.4 ms, => 0.875 ms
 
+// forward declaration, could/should be declared in crossfire.h
+void processCrossfireTelemetryValue(uint8_t index, int32_t value);
+
 void extmoduleMBridge_wakeup(void)
 {
   static uint8_t slot_counter = 0;
@@ -240,6 +243,37 @@ void extmoduleMBridge_wakeup(void)
         telemetryStreaming = 0;
       }
       telemetryData.telemetryValid &= ~(1 << EXTERNAL_MODULE);
+    }
+
+/*
+    OTX                     mLRS CRSF                                   mLRS mBbride
+    //-- LINK_ID
+    RX_RSSI1_INDEX,         crsf_cvt_rssi_tx(stats.received_rssi)       lstats.receiver_rssi_instantaneous
+    RX_RSSI2_INDEX,         0
+    RX_QUALITY_INDEX,       stats.received_LQ                           lstats.receiver_LQ
+    RX_SNR_INDEX,           0
+    RX_ANTENNA_INDEX,       stats.received_antenna                      lstats.receiver_receive_antenna
+    RF_MODE_INDEX,          crsf_cvt_mode(Config.Mode)
+    TX_POWER_INDEX,         crsf_cvt_power(sx.RfPower_dbm())
+    TX_RSSI_INDEX,          crsf_cvt_rssi_tx(stats.GetLastRssi())       (lstats.receive_antenna == 0) ? lstats.rssi1_instantaneous : lstats.rssi2_instantaneous
+    TX_QUALITY_INDEX,       txstats.GetLQ()                             lstats.LQ
+    TX_SNR_INDEX,           stats.GetLastSnr()                          lstats.snr_instantaneous
+    //-- LINK_RX_ID
+    RX_RSSI_PERC_INDEX,     crsf_cvt_rssi_percent(stats.received_rssi)
+    RX_RF_POWER_INDEX,      sx.RfPower_dbm()
+    //-- LINK_TX_ID
+    TX_RSSI_PERC_INDEX,     crsf_cvt_rssi_percent(stats.GetLastRssi())
+    TX_RF_POWER_INDEX,      UINT8_MAX
+    TX_FPS_INDEX,           crsf_cvt_fps(Config.Mode)
+*/
+    // do only if not mimicry enabled
+    if (!g_model.mavlinkMimicSensors) {
+      processCrossfireTelemetryValue(RX_RSSI1_INDEX, (mBridge.link_stats.receiver_rssi_instantaneous == 127) ? 0 : mBridge.link_stats.receiver_rssi_instantaneous);
+      processCrossfireTelemetryValue(RX_QUALITY_INDEX, mBridge.link_stats.receiver_LQ);
+      processCrossfireTelemetryValue(RX_ANTENNA_INDEX, mBridge.link_stats.receiver_receive_antenna);
+      processCrossfireTelemetryValue(TX_RSSI_INDEX, (mBridge.link_stats.receive_antenna == 0) ? mBridge.link_stats.rssi1_instantaneous : mBridge.link_stats.rssi2_instantaneous);
+      processCrossfireTelemetryValue(TX_QUALITY_INDEX, mBridge.link_stats.LQ);
+      processCrossfireTelemetryValue(TX_SNR_INDEX, mBridge.link_stats.snr_instantaneous);
     }
 
   }// end of if (mBridge.linkstats_updated())
