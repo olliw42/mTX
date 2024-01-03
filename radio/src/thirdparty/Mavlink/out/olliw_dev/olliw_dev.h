@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 #ifndef FASTMAVLINK_BUILD_DATE
-#define FASTMAVLINK_BUILD_DATE  "Sun Dec 17 2023"
+#define FASTMAVLINK_BUILD_DATE  "Wed Jan 03 2024"
 #endif
 
 #ifndef FASTMAVLINK_DIALECT_VERSION
@@ -54,10 +54,13 @@ extern "C" {
 #define FASTMAVLINK_HAS_ENUM_RADIO_LINK_TYPE
 typedef enum RADIO_LINK_TYPE {
     RADIO_LINK_TYPE_GENERIC = 0,  // Unknown radio link type. 
-    RADIO_LINK_TYPE_CROSSFIRE = 1,  // Radio link is Crossfire. 
-    RADIO_LINK_TYPE_EXPRESSLRS = 2,  // Radio link is ExpressLRS. 
-    RADIO_LINK_TYPE_MLRS = 3,  // Radio link is mLRS. 
-    RADIO_LINK_TYPE_ENUM_END = 4,  // end marker
+    RADIO_LINK_TYPE_HERELINK = 1,  // Radio link is HereLink. 
+    RADIO_LINK_TYPE_DRAGONLINK = 2,  // Radio link is Dragon Link. 
+    RADIO_LINK_TYPE_RFD900 = 3,  // Radio link is RFD900. 
+    RADIO_LINK_TYPE_CROSSFIRE = 4,  // Radio link is Crossfire. 
+    RADIO_LINK_TYPE_EXPRESSLRS = 5,  // Radio link is ExpressLRS. 
+    RADIO_LINK_TYPE_MLRS = 6,  // Radio link is mLRS. 
+    RADIO_LINK_TYPE_ENUM_END = 7,  // end marker
 } RADIO_LINK_TYPE;
 #endif
 
@@ -77,7 +80,9 @@ typedef enum RADIO_LINK_TYPE {
 
 #include "./mavlink_msg_autopilot_state_for_gimbal_device_ext.h"
 #include "./mavlink_msg_radio_link_flow_control.h"
-#include "./mavlink_msg_radio_link_information.h"
+#include "./mavlink_msg_radio_rc_channels_dev.h"
+#include "./mavlink_msg_radio_link_stats_dev.h"
+#include "./mavlink_msg_radio_link_information_dev.h"
 
 #ifdef FASTMAVLINK_IGNORE_WADDRESSOFPACKEDMEMBER
   #if defined __GNUC__ && __GNUC__ >= 9

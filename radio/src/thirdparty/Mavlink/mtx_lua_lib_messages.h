@@ -3751,6 +3751,50 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
     lua_pushtablenumber(L, "reason", payload->reason);
     return;
     }
+  case FASTMAVLINK_MSG_ID_RADIO_RC_CHANNELS_DEV: { // #420
+    fmav_radio_rc_channels_dev_t* payload = (fmav_radio_rc_channels_dev_t*)(mavmsg->payload_ptr);
+    lua_pushtablenumber(L, "count", payload->count);
+    lua_pushtablenumber(L, "flags", payload->flags);
+    lua_pushstring(L, "channels"); // array channels[32]
+    lua_newtable(L);
+    for (int i = 0; i < 32; i++) { 
+      lua_pushtableinumber(L, i+1, payload->channels[i]); // lua is 1 indexed
+    }
+    lua_rawset(L, -3);
+    return;
+    }
+  case FASTMAVLINK_MSG_ID_RADIO_LINK_STATS_DEV: { // #421
+    fmav_radio_link_stats_dev_t* payload = (fmav_radio_link_stats_dev_t*)(mavmsg->payload_ptr);
+    lua_pushtablenumber(L, "flags", payload->flags);
+    lua_pushtablenumber(L, "rx_LQ_rc", payload->rx_LQ_rc);
+    lua_pushtablenumber(L, "rx_LQ_ser", payload->rx_LQ_ser);
+    lua_pushtablenumber(L, "rx_rssi1", payload->rx_rssi1);
+    lua_pushtablenumber(L, "rx_snr1", payload->rx_snr1);
+    lua_pushtablenumber(L, "rx_rssi2", payload->rx_rssi2);
+    lua_pushtablenumber(L, "rx_snr2", payload->rx_snr2);
+    lua_pushtablenumber(L, "rx_receive_antenna", payload->rx_receive_antenna);
+    lua_pushtablenumber(L, "rx_transmit_antenna", payload->rx_transmit_antenna);
+    lua_pushtablenumber(L, "rx_power", payload->rx_power);
+    lua_pushtablenumber(L, "tx_LQ_ser", payload->tx_LQ_ser);
+    lua_pushtablenumber(L, "tx_rssi1", payload->tx_rssi1);
+    lua_pushtablenumber(L, "tx_snr1", payload->tx_snr1);
+    lua_pushtablenumber(L, "tx_rssi2", payload->tx_rssi2);
+    lua_pushtablenumber(L, "tx_snr2", payload->tx_snr2);
+    lua_pushtablenumber(L, "tx_receive_antenna", payload->tx_receive_antenna);
+    lua_pushtablenumber(L, "tx_transmit_antenna", payload->tx_transmit_antenna);
+    lua_pushtablenumber(L, "tx_power", payload->tx_power);
+    return;
+    }
+  case FASTMAVLINK_MSG_ID_RADIO_LINK_INFORMATION_DEV: { // #422
+    fmav_radio_link_information_dev_t* payload = (fmav_radio_link_information_dev_t*)(mavmsg->payload_ptr);
+    lua_pushtablenumber(L, "type", payload->type);
+    lua_pushtablenumber(L, "mode", payload->mode);
+    lua_pushtablenumber(L, "tx_rate", payload->tx_rate);
+    lua_pushtablenumber(L, "rx_rate", payload->rx_rate);
+    lua_pushtablenumber(L, "tx_receive_sensitivity", payload->tx_receive_sensitivity);
+    lua_pushtablenumber(L, "rx_receive_sensitivity", payload->rx_receive_sensitivity);
+    return;
+    }
   case FASTMAVLINK_MSG_ID_WHEEL_DISTANCE: { // #9000
     fmav_wheel_distance_t* payload = (fmav_wheel_distance_t*)(mavmsg->payload_ptr);
     lua_pushtablenumber(L, "time_usec", payload->time_usec);
@@ -4554,15 +4598,6 @@ static void luaMavlinkPushMavMsg(lua_State *L, MavlinkTelem::MavMsg* mavmsg)
     lua_pushtablenumber(L, "tx_used_bandwidth", payload->tx_used_bandwidth);
     lua_pushtablenumber(L, "rx_used_bandwidth", payload->rx_used_bandwidth);
     lua_pushtablenumber(L, "txbuf", payload->txbuf);
-    return;
-    }
-  case FASTMAVLINK_MSG_ID_RADIO_LINK_INFORMATION: { // #60048
-    fmav_radio_link_information_t* payload = (fmav_radio_link_information_t*)(mavmsg->payload_ptr);
-    lua_pushtablenumber(L, "type", payload->type);
-    lua_pushtablenumber(L, "mode", payload->mode);
-    lua_pushtablenumber(L, "rate", payload->rate);
-    lua_pushtablenumber(L, "tx_power", payload->tx_power);
-    lua_pushtablenumber(L, "rx_power", payload->rx_power);
     return;
     }
   }
@@ -9496,6 +9531,70 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     msg_out->payload_max_len = FASTMAVLINK_MSG_RESPONSE_EVENT_ERROR_PAYLOAD_LEN_MAX;
     return 1;
     }
+  case FASTMAVLINK_MSG_ID_RADIO_RC_CHANNELS_DEV: { // #420
+    fmav_radio_rc_channels_dev_t* payload = (fmav_radio_rc_channels_dev_t*)(msg_out->payload);
+    lua_checktablenumber(L, payload->target_system, "target_sysid", 0);
+    lua_checktablenumber(L, payload->target_component, "target_compid", 0);
+    lua_checktablenumber(L, payload->count, "count", 0);
+    lua_checktablenumber(L, payload->flags, "flags", 0);
+    lua_pushstring(L, "channels"); // array channels[32]
+    lua_gettable(L, -2);
+    if (lua_istable(L,-1)) {
+      for (int i = 0; i < 32; i++) { 
+        lua_checktableinumber(L, payload->channels[i], i+1, 0); // lua is 1 indexed
+      }
+    }
+    lua_pop(L, 1);
+    msg_out->target_sysid = payload->target_system;
+    msg_out->target_compid = payload->target_component;
+    msg_out->crc_extra = FASTMAVLINK_MSG_RADIO_RC_CHANNELS_DEV_CRCEXTRA;
+    msg_out->payload_max_len = FASTMAVLINK_MSG_RADIO_RC_CHANNELS_DEV_PAYLOAD_LEN_MAX;
+    return 1;
+    }
+  case FASTMAVLINK_MSG_ID_RADIO_LINK_STATS_DEV: { // #421
+    fmav_radio_link_stats_dev_t* payload = (fmav_radio_link_stats_dev_t*)(msg_out->payload);
+    lua_checktablenumber(L, payload->target_system, "target_sysid", 0);
+    lua_checktablenumber(L, payload->target_component, "target_compid", 0);
+    lua_checktablenumber(L, payload->flags, "flags", 0);
+    lua_checktablenumber(L, payload->rx_LQ_rc, "rx_LQ_rc", UINT8_MAX);
+    lua_checktablenumber(L, payload->rx_LQ_ser, "rx_LQ_ser", UINT8_MAX);
+    lua_checktablenumber(L, payload->rx_rssi1, "rx_rssi1", UINT8_MAX);
+    lua_checktablenumber(L, payload->rx_snr1, "rx_snr1", INT8_MAX);
+    lua_checktablenumber(L, payload->rx_rssi2, "rx_rssi2", UINT8_MAX);
+    lua_checktablenumber(L, payload->rx_snr2, "rx_snr2", INT8_MAX);
+    lua_checktablenumber(L, payload->rx_receive_antenna, "rx_receive_antenna", UINT8_MAX);
+    lua_checktablenumber(L, payload->rx_transmit_antenna, "rx_transmit_antenna", UINT8_MAX);
+    lua_checktablenumber(L, payload->rx_power, "rx_power", INT8_MAX);
+    lua_checktablenumber(L, payload->tx_LQ_ser, "tx_LQ_ser", UINT8_MAX);
+    lua_checktablenumber(L, payload->tx_rssi1, "tx_rssi1", UINT8_MAX);
+    lua_checktablenumber(L, payload->tx_snr1, "tx_snr1", INT8_MAX);
+    lua_checktablenumber(L, payload->tx_rssi2, "tx_rssi2", UINT8_MAX);
+    lua_checktablenumber(L, payload->tx_snr2, "tx_snr2", INT8_MAX);
+    lua_checktablenumber(L, payload->tx_receive_antenna, "tx_receive_antenna", UINT8_MAX);
+    lua_checktablenumber(L, payload->tx_transmit_antenna, "tx_transmit_antenna", UINT8_MAX);
+    lua_checktablenumber(L, payload->tx_power, "tx_power", INT8_MAX);
+    msg_out->target_sysid = payload->target_system;
+    msg_out->target_compid = payload->target_component;
+    msg_out->crc_extra = FASTMAVLINK_MSG_RADIO_LINK_STATS_DEV_CRCEXTRA;
+    msg_out->payload_max_len = FASTMAVLINK_MSG_RADIO_LINK_STATS_DEV_PAYLOAD_LEN_MAX;
+    return 1;
+    }
+  case FASTMAVLINK_MSG_ID_RADIO_LINK_INFORMATION_DEV: { // #422
+    fmav_radio_link_information_dev_t* payload = (fmav_radio_link_information_dev_t*)(msg_out->payload);
+    lua_checktablenumber(L, payload->target_system, "target_sysid", 0);
+    lua_checktablenumber(L, payload->target_component, "target_compid", 0);
+    lua_checktablenumber(L, payload->type, "type", 0);
+    lua_checktablenumber(L, payload->mode, "mode", UINT8_MAX);
+    lua_checktablenumber(L, payload->tx_rate, "tx_rate", 0);
+    lua_checktablenumber(L, payload->rx_rate, "rx_rate", 0);
+    lua_checktablenumber(L, payload->tx_receive_sensitivity, "tx_receive_sensitivity", 0);
+    lua_checktablenumber(L, payload->rx_receive_sensitivity, "rx_receive_sensitivity", 0);
+    msg_out->target_sysid = payload->target_system;
+    msg_out->target_compid = payload->target_component;
+    msg_out->crc_extra = FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_DEV_CRCEXTRA;
+    msg_out->payload_max_len = FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_DEV_PAYLOAD_LEN_MAX;
+    return 1;
+    }
   case FASTMAVLINK_MSG_ID_WHEEL_DISTANCE: { // #9000
     fmav_wheel_distance_t* payload = (fmav_wheel_distance_t*)(msg_out->payload);
     lua_checktablenumber(L, payload->time_usec, "time_usec", 0);
@@ -10588,17 +10687,6 @@ static uint8_t luaMavlinkCheckMsgOut(lua_State *L, fmav_message_t* msg_out)
     lua_checktablenumber(L, payload->txbuf, "txbuf", UINT8_MAX);
     msg_out->crc_extra = FASTMAVLINK_MSG_RADIO_LINK_FLOW_CONTROL_CRCEXTRA;
     msg_out->payload_max_len = FASTMAVLINK_MSG_RADIO_LINK_FLOW_CONTROL_PAYLOAD_LEN_MAX;
-    return 1;
-    }
-  case FASTMAVLINK_MSG_ID_RADIO_LINK_INFORMATION: { // #60048
-    fmav_radio_link_information_t* payload = (fmav_radio_link_information_t*)(msg_out->payload);
-    lua_checktablenumber(L, payload->type, "type", 0);
-    lua_checktablenumber(L, payload->mode, "mode", UINT8_MAX);
-    lua_checktablenumber(L, payload->rate, "rate", 0);
-    lua_checktablenumber(L, payload->tx_power, "tx_power", INT8_MAX);
-    lua_checktablenumber(L, payload->rx_power, "rx_power", INT8_MAX);
-    msg_out->crc_extra = FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_CRCEXTRA;
-    msg_out->payload_max_len = FASTMAVLINK_MSG_RADIO_LINK_INFORMATION_PAYLOAD_LEN_MAX;
     return 1;
     }
   }
