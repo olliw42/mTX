@@ -41,14 +41,14 @@ local function doPageDebug()
     
     x = 60;
     y = y - 45;
-    lcd.drawText(x, y, "rssi", CUSTOM_COLOR)  
+    lcd.drawText(x-10, y, "tx rssi", CUSTOM_COLOR)  
     if LStats.receive_antenna == 0 then
-        lcd.drawNumber(x+60, y, LStats.rssi1_inst, CUSTOM_COLOR)
+        lcd.drawNumber(x+70, y, LStats.rssi1_inst, CUSTOM_COLOR)
     else
-        lcd.drawNumber(x+60, y, LStats.rssi2_inst, CUSTOM_COLOR)
+        lcd.drawNumber(x+70, y, LStats.rssi2_inst, CUSTOM_COLOR)
     end
-    lcd.drawText(x, y+20, "LQ ser", CUSTOM_COLOR)  
-    lcd.drawNumber(x+60, y+20, LStats.LQ, CUSTOM_COLOR)
+    lcd.drawText(x-10, y+20, "tx LQ ser", CUSTOM_COLOR)  
+    lcd.drawNumber(x+70, y+20, LStats.LQ, CUSTOM_COLOR)
     
     if LStats.transmit_antenna == 0 then
         lcd.drawText(x+75, y+50, "a1", CUSTOM_COLOR)  
