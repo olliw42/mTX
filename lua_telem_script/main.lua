@@ -2,6 +2,7 @@
 -- OlliW Telemetry Widget Script for mTX
 -- (c) www.olliw.eu, OlliW, OlliW42
 -- licence: GPL 3.0
+-- https://www.gnu.org/licenses/gpl-3.0.de.html
 --
 -- Version: see versionStr
 -- requires mTX version: v37
