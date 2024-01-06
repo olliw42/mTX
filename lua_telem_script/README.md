@@ -3,7 +3,7 @@ OlliW's Telemetry Lua Script for mTX
 
 ## Lua Widget Script: Installation
 
-For the moment please visit the project web page for descriptions, or better, join the discussion thread.
+TBD
 
 ## Licence
 

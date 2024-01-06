@@ -17,101 +17,32 @@
 -- Yaapu FrSky Telemetry script. THX!
 -- https://github.com/yaapu/FrskyTelemetryScript
 ----------------------------------------------------------------------
-local versionStr = "0.37 2024-01-01"
+local versionStr = "0.37 2024-01-06"
 
 
--- libraries: tplay, tutils, tobject, tvehicle, tautopilot, tgimbal, tcamera, taction, tdebug
+-- libraries: tplay, tutils, tobject, tvehicle, tautopilot, tgimbal, tcamera, taction, tdebug, tconfig
+
+
+----------------------------------------------------------------------
+-- Library Loader
+----------------------------------------------------------------------
+local sourcePath = "/WIDGETS/OlliwTel/"
+
+local function loadLib(fname,...)
+  local f = assert(loadScript(sourcePath..fname))
+  collectgarbage()
+  collectgarbage()
+  return f(...)
+end
 
 
 ----------------------------------------------------------------------
 -- Widget Configuration
-----------------------------------------------------------------------
--- Please feel free to set these configuration options as you desire
-
-local config_g = {
-    -- Set to true if you want to see the Action page, else set to false
-    showActionPage = false, --true,
-    
-    -- Set to true if you want to see the Camera page, else set to false
-    showCameraPage = true,
-    
-    -- Set to true if you want to see the Gimbal page, else set to false
-    showGimbalPage = true,
-    
-    -- Set to a (toggle) source if you want control videoon/of & take photo with a switch,
-    -- else set to ""
-    cameraShootSwitch = "sh",
-    
-    -- Set to true if camera should be included in overall prearm check, else set to false
-    cameraPrearmCheck = false,
-    
-    -- Set to a source if you want control the gimbal pitch, else set to ""
-    gimbalPitchSlider = "rs",
-    
-    -- Set to the appropriate value if you want to start teh gimbal in a given targeting mode, 
-    -- else set to nil
-    -- 2: MAVLink Targeting, 3: RC Targeting, 4: GPS Point Targeting, 5: SysId Targeting
-    gimbalDefaultTargetingMode = 3,
-    
-    -- Set to true if gimbal should be included in overall prearm check, else set to false
-    gimbalPrearmCheck = false,
-    
-    -- Set to true for gimbal manager protocol v2, else false for old gimbal protocol v1
-    gimbalUseGimbalManager = true,
-
-    -- Set to a source if you want control the gimbal yaw,
-    -- else set to "", which also disables gimbal yaw control
-    -- only relevant if gimbalUseGimbalManager = true
-    gimbalYawSlider = "", --"ls",
-    
-    -- Set to true if you do not want to hear any voice, else set to false
-    disableSound = false,
-    
-    -- not for you ;)
-    disableEvents = false, -- not needed, just to have it safe
-    
-    -- Set to true if you want to see the Debug page, else set to false
-    showDebugPage = false, --true,
-}
-
-
-----------------------------------------------------------------------
--- general Widget Options
-----------------------------------------------------------------------
--- NOT USED CURRENTLY, JUST DUMMY
-
-local widgetOptions = {
-    { "Switch",       SOURCE,  0 }, --getFieldInfo("sc").id },
-    { "Baudrate",     VALUE,   57600, 115200, 115200 },
-}
---widgetOptions[#widgetOptions+1] = {"menuSwitch", SOURCE, getFieldInfo("sc").id}
-
-
-----------------------------------------------------------------------
 -- Color Map
 ----------------------------------------------------------------------
-local p = {
-    WHITE =       lcd.RGB(0xFF,0xFF,0xFF),
-    BLACK =       lcd.RGB(0,0,0),
-    RED =         RED,        --RGB(229, 32, 30)
-    DARKRED =     DARKRED,    --RGB(160, 0, 6)
-    GREEN =       lcd.RGB(25,150,50),
-    BLUE =        BLUE,       --RGB(0x30, 0xA0, 0xE0)
-    YELLOW =      YELLOW,     --RGB(0xF0, 0xD0, 0x10)
-    GREY =        GREY,       --RGB(96, 96, 96)
-    DARKGREY =    DARKGREY,   --RGB(64, 64, 64)
-    LIGHTGREY =   LIGHTGREY,  --RGB(180, 180, 180)
-    SKYBLUE =     lcd.RGB(135,206,235),
-    OLIVEDRAB =   lcd.RGB(107,142,35),
-    YAAPUBROWN =  lcd.RGB(0x63,0x30,0x00),
-    YAAPUBLUE =   lcd.RGB(0x08,0x54,0x88),
-    BRIGHTGREEN = lcd.RGB(0,255,0),
-}    
-p.HUD_SKY = p.SKYBLUE
-p.HUD_EARTH = p.OLIVEDRAB
-p.BACKGROUND = p.YAAPUBLUE
-p.CAMERA_BACKGROUND = p.YAAPUBLUE
-p.GIMBAL_BACKGROUND = p.YAAPUBLUE
+
+local config = loadLib("tconfig.lua")
+local config_g, p = config.Load()
 
 
 ----------------------------------------------------------------------
@@ -154,19 +85,6 @@ local tx16color = false
 if flavor == "tx16s" then 
     event_g = event_tx16s 
     tx16color = true
-end
-
-
-----------------------------------------------------------------------
--- Library Loader
-----------------------------------------------------------------------
-local sourcePath = "/WIDGETS/OlliwTel/"
-
-local function loadLib(fname,...)
-  local f = assert(loadScript(sourcePath..fname))
-  collectgarbage()
-  collectgarbage()
-  return f(...)
 end
 
 
@@ -694,14 +612,16 @@ local function drawPrearm()
     local camera_ok = false
     local gimbal_ok = false
     
+    local MAV_SYS_STATUS_PREARM_CHECK = 268435456
+    
     local x = 10;
     local y = 60;
     lcd.setColor(CUSTOM_COLOR, p.WHITE)
     lcd.drawText(x, y, "Autopilot", CUSTOM_COLOR+MIDSIZE)
     lcd.drawText(x+20, y+25, "checks:", CUSTOM_COLOR+MIDSIZE)
-    if bit32.btest(sensors.present, mavlink.SYS_STATUS_PREARM_CHECK) then
-        if bit32.btest(sensors.enabled, mavlink.SYS_STATUS_PREARM_CHECK) then
-            if bit32.btest(sensors.health, mavlink.SYS_STATUS_PREARM_CHECK) then
+    if bit32.btest(sensors.present, MAV_SYS_STATUS_PREARM_CHECK) then
+        if bit32.btest(sensors.enabled, MAV_SYS_STATUS_PREARM_CHECK) then
+            if bit32.btest(sensors.health, MAV_SYS_STATUS_PREARM_CHECK) then
                 lcd.setColor(CUSTOM_COLOR, p.BRIGHTGREEN)
                 lcd.drawText(x+20+105, y+25, "OK", CUSTOM_COLOR+MIDSIZE)
             else    
@@ -1092,7 +1012,7 @@ end
 
 return { 
     name="OlliwTel", 
-    options=widgetOptions, 
+    options={},
     create=widgetCreate, update=widgetUpdate, background=widgetBackground, refresh=widgetRefresh 
 }
 
