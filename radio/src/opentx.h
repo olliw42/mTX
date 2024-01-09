@@ -19,8 +19,8 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v37"
-#define OWVERSION     3700 // used by mavlink/mbridge.cpp
+#define OWVERSIONSTR  "v38-rc1"
+#define OWVERSION     3800 // used by mavlink/mbridge.cpp
 //OWEND
 
 /*
@@ -30,6 +30,7 @@ TODO:
 
 the type to getType() changes are not marked with //OW
 
+v37 2024-01-09
 migrate to gimbald device v2 & new storm32.xml
 add rc override 16 ch
 add mavlinkThrottleWarning option
