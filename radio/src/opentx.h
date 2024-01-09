@@ -19,7 +19,7 @@
  */
 
 //OW
-#define OWVERSIONSTR  "v37-rc2"
+#define OWVERSIONSTR  "v37"
 #define OWVERSION     3700 // used by mavlink/mbridge.cpp
 //OWEND
 
