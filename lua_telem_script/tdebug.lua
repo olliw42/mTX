@@ -157,7 +157,7 @@ local function doPageDebug()
     lcd.drawText(x, y+20, "LQ valid", CUSTOM_COLOR)  
     lcd.drawNumber(x+80, y+20, LStats.LQ_valid_received, CUSTOM_COLOR)
     lcd.drawText(x, y+40, "LQ rec", CUSTOM_COLOR)  
-    lcd.drawNumber(x+80, y+40, LStats.LQ_frames_received, CUSTOM_COLOR)
+    lcd.drawNumber(x+80, y+40, LStats.LQ_frames_received, CUSTOM_COLOR) // LQ_frames_received is deprecated
     
     local pitch = mavsdk.getAttPitchDeg()
     local roll = mavsdk.getAttRollDeg()

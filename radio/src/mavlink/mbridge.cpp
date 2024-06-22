@@ -234,18 +234,16 @@ void MBridge::set_linkstats(tMBridgeLinkStats* ls)
   link_stats.snr_instantaneous = ls->snr_instantaneous;
   link_stats.receive_antenna = ls->receive_antenna;
   link_stats.transmit_antenna = ls->transmit_antenna;
-  link_stats.diversity = ls->diversity;
-  link_stats.rssi1_filtered = ls->rssi1_filtered;
-  link_stats.rssi2_filtered = ls->rssi2_filtered;
-  link_stats.snr_filtered = ls->snr_filtered;
+
+  link_stats.rssi_instantaneous_percent = ls->rssi_instantaneous_percent;
 
   link_stats.receiver_LQ = ls->receiver_LQ;
   link_stats.receiver_LQ_serial = ls->receiver_LQ_serial;
   link_stats.receiver_rssi_instantaneous = ls->receiver_rssi_instantaneous;
   link_stats.receiver_receive_antenna = ls->receiver_receive_antenna;
   link_stats.receiver_transmit_antenna = ls->receiver_transmit_antenna;
-  link_stats.receiver_diversity = ls->receiver_diversity;
-  link_stats.receiver_rssi_filtered = ls->receiver_rssi_filtered;
+
+  link_stats.receiver_rssi_instantaneous_percent = ls->receiver_rssi_instantaneous_percent;
 
   link_stats.LQ_fresh_serial_packets_transmitted = ls->LQ_fresh_serial_packets_transmitted;
   link_stats.bytes_per_sec_transmitted = ls->bytes_per_sec_transmitted;
@@ -253,7 +251,7 @@ void MBridge::set_linkstats(tMBridgeLinkStats* ls)
   link_stats.LQ_fresh_serial_packets_received = ls->LQ_fresh_serial_packets_received;
   link_stats.bytes_per_sec_received = ls->bytes_per_sec_received;
 
-  link_stats.LQ_received = ls->LQ_received;
+  link_stats.mavlink_packet_LQ_received = ls->mavlink_packet_LQ_received;
 
   link_stats.rx1_valid = ls->rx1_valid;
   link_stats.rx2_valid = ls->rx2_valid;

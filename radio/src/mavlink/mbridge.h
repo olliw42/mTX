@@ -32,9 +32,9 @@
 
 
 typedef enum {
-  MBRIDGE_CHANNELPACKET_STX   = 0xFF, // marker which indicates a channel packet
-  MBRIDGE_COMMANDPACKET_STX   = 0xA0, // 0b101x marker which indicates a command packet
-  MBRIDGE_COMMANDPACKET_MASK  = 0xE0, // 0b111x
+    MBRIDGE_CHANNELPACKET_STX   = 0xFF, // marker which indicates a channel packet
+    MBRIDGE_COMMANDPACKET_STX   = 0xA0, // 0b101x marker which indicates a command packet
+    MBRIDGE_COMMANDPACKET_MASK  = 0xE0, // 0b111x
 } MBRIDGE_PACKET_STX_ENUM;
 
 
@@ -81,24 +81,25 @@ typedef struct
   int8_t rssi2_instantaneous; // invalid = INT8_MAX
   int8_t snr_instantaneous;
 
-  int8_t rssi1_filtered;
-  int8_t rssi2_filtered;
-  int8_t snr_filtered;
+  uint8_t rssi_instantaneous_percent; // was rssi1_filtered; // not used at all, appears pretty useless, so deprecate
+
+  int8_t spare1; // was rssi2_filtered;
+  int8_t spare2; // was snr_filtered;
 
   // receiver side of things
   uint8_t receiver_LQ;
   uint8_t receiver_LQ_serial;
   int8_t receiver_rssi_instantaneous;
 
-  int8_t receiver_rssi_filtered;
+  uint8_t receiver_rssi_instantaneous_percent; // was receiver_rssi_filtered; // not used at all, appears pretty useless, so deprecate
 
   // both
   uint8_t receive_antenna : 1;
   uint8_t transmit_antenna : 1;
   uint8_t receiver_receive_antenna : 1;
   uint8_t receiver_transmit_antenna : 1;
-  uint8_t diversity : 1;
-  uint8_t receiver_diversity : 1;
+  uint8_t spare3 : 1; // was diversity, pretty useless, so deprecate
+  uint8_t spare4 : 1; // was receiver_diversity, pretty useless, so deprecate
   uint8_t rx1_valid : 1;
   uint8_t rx2_valid : 1;
 
@@ -109,17 +110,17 @@ typedef struct
   uint8_t LQ_fresh_serial_packets_received;
   uint8_t bytes_per_sec_received;
 
-  uint8_t LQ_received; // number of packets received per sec, not practically relevant
+  uint8_t mavlink_packet_LQ_received; // MAVLink packet LQ
 
   uint8_t fhss_curr_i;
   uint8_t fhss_cnt;
 
   uint8_t vehicle_state : 2; // 0 = disarmed, 1 = armed 2 = flying, 3 = invalid/unknown
-  uint8_t spare : 6;
+  uint8_t spare5 : 6;
 
   uint8_t link_state_connected : 1;
   uint8_t link_state_binding : 1;
-  uint8_t spare2 : 6;
+  uint8_t spare6 : 6;
 }) tMBridgeLinkStats;
 
 
@@ -155,17 +156,16 @@ class MBridge
 
     #define MBRIDGE_RSSI_LIST_LEN  32
 
-    struct LinkStats { // this is not exactly what is send in the mBridge LinkStats packet, see tMBridgeLinkStats
+    // this is not exactly what is send in the mBridge LinkStats packet, see tMBridgeLinkStats
+    // it's our own container
+    struct LinkStats {
       uint8_t LQ;
       int8_t rssi1_instantaneous; // invalid = INT8_MAX
       int8_t rssi2_instantaneous; // invalid = INT8_MAX
       int8_t snr_instantaneous; // invalid = INT8_MAX
       uint8_t receive_antenna;
       uint8_t transmit_antenna;
-      uint8_t diversity;
-      int8_t rssi2_filtered;
-      int8_t rssi1_filtered;
-      int8_t snr_filtered;
+      uint8_t rssi_instantaneous_percent; // invalid = UINT8_MAX
 
       uint8_t receiver_LQ;
       uint8_t receiver_LQ_serial;
@@ -173,9 +173,7 @@ class MBridge
       int8_t receiver_snr_instantaneous; // invalid = INT8_MAX
       uint8_t receiver_receive_antenna;
       uint8_t receiver_transmit_antenna;
-      uint8_t receiver_diversity;
-      int8_t receiver_rssi_filtered;
-      int8_t receiver_snr_filtered;
+      uint8_t receiver_rssi_instantaneous_percent; // invalid = UINT8_MAX
 
       uint8_t LQ_fresh_serial_packets_transmitted;
       uint8_t bytes_per_sec_transmitted;
@@ -183,7 +181,7 @@ class MBridge
       uint8_t LQ_fresh_serial_packets_received;
       uint8_t bytes_per_sec_received;
 
-      uint8_t LQ_received; // number of packets received per sec, not practically relevant
+      uint8_t mavlink_packet_LQ_received; // MAVLink packet LQ
 
       uint8_t rx1_valid;
       uint8_t rx2_valid;

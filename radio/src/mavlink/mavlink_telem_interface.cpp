@@ -246,25 +246,25 @@ void extmoduleMBridge_wakeup(void)
     }
 
 /*
-    OTX                     mLRS CRSF                                   mLRS mBbride
+    OTX                             mLRS CRSF                                   mLRS mBbride
     //-- LINK_ID
-    RX_RSSI1_INDEX,         crsf_cvt_rssi_tx(stats.received_rssi)       lstats.receiver_rssi_instantaneous
-    RX_RSSI2_INDEX,         0
-    RX_QUALITY_INDEX,       stats.received_LQ                           lstats.receiver_LQ
-    RX_SNR_INDEX,           0
-    RX_ANTENNA_INDEX,       stats.received_antenna                      lstats.receiver_receive_antenna
-    RF_MODE_INDEX,          crsf_cvt_mode(Config.Mode)
-    TX_POWER_INDEX,         crsf_cvt_power(sx.RfPower_dbm())
-    TX_RSSI_INDEX,          crsf_cvt_rssi_tx(stats.GetLastRssi())       (lstats.receive_antenna == 0) ? lstats.rssi1_instantaneous : lstats.rssi2_instantaneous
-    TX_QUALITY_INDEX,       txstats.GetLQ()                             lstats.LQ
-    TX_SNR_INDEX,           stats.GetLastSnr()                          lstats.snr_instantaneous
+    1RSS    RX_RSSI1_INDEX,         crsf_cvt_rssi_tx(stats.received_rssi)       lstats.receiver_rssi_instantaneous
+    2RSS    RX_RSSI2_INDEX,         0
+    RQly    RX_QUALITY_INDEX,       stats.received_LQ                           lstats.receiver_LQ
+    RSNR    RX_SNR_INDEX,           0
+    ANT     RX_ANTENNA_INDEX,       stats.received_antenna                      lstats.receiver_receive_antenna
+    RFMD    RF_MODE_INDEX,          crsf_cvt_mode(Config.Mode)
+    TPw2    TX_POWER_INDEX,         crsf_cvt_power(sx.RfPower_dbm())
+    TRSS    TX_RSSI_INDEX,          crsf_cvt_rssi_tx(stats.GetLastRssi())       (lstats.receive_antenna == 0) ? lstats.rssi1_instantaneous : lstats.rssi2_instantaneous
+    TQly    TX_QUALITY_INDEX,       txstats.GetLQ()                             lstats.LQ
+    TSNR    TX_SNR_INDEX,           stats.GetLastSnr()                          lstats.snr_instantaneous
     //-- LINK_RX_ID
-    RX_RSSI_PERC_INDEX,     crsf_cvt_rssi_percent(stats.received_rssi)
-    RX_RF_POWER_INDEX,      sx.RfPower_dbm()
+    RRSP    RX_RSSI_PERC_INDEX,     crsf_cvt_rssi_percent(stats.received_rssi)
+    TPwr    RX_RF_POWER_INDEX,      sx.RfPower_dbm()
     //-- LINK_TX_ID
-    TX_RSSI_PERC_INDEX,     crsf_cvt_rssi_percent(stats.GetLastRssi())
-    TX_RF_POWER_INDEX,      UINT8_MAX
-    TX_FPS_INDEX,           crsf_cvt_fps(Config.Mode)
+    TRSP    TX_RSSI_PERC_INDEX,     crsf_cvt_rssi_percent(stats.GetLastRssi())
+    RPWR    TX_RF_POWER_INDEX,      UINT8_MAX
+    TFPS    TX_FPS_INDEX,           crsf_cvt_fps(Config.Mode)
 */
     // do only if not mimicry enabled
     if (!g_model.mavlinkMimicSensors) {
@@ -274,6 +274,12 @@ void extmoduleMBridge_wakeup(void)
       processCrossfireTelemetryValue(TX_RSSI_INDEX, (mBridge.link_stats.receive_antenna == 0) ? mBridge.link_stats.rssi1_instantaneous : mBridge.link_stats.rssi2_instantaneous);
       processCrossfireTelemetryValue(TX_QUALITY_INDEX, mBridge.link_stats.LQ);
       processCrossfireTelemetryValue(TX_SNR_INDEX, mBridge.link_stats.snr_instantaneous);
+
+      processCrossfireTelemetryValue(RX_RSSI_PERC_INDEX, (mBridge.link_stats.receiver_rssi_instantaneous_percent > 100) ? 0 : mBridge.link_stats.receiver_rssi_instantaneous_percent);
+      processCrossfireTelemetryValue(TX_RSSI_PERC_INDEX, (mBridge.link_stats.rssi_instantaneous_percent > 100) ? 0 : mBridge.link_stats.rssi_instantaneous_percent);
+
+      // misuse 2RSS for MAVLink packet LQ
+      processCrossfireTelemetryValue(RX_RSSI2_INDEX, mBridge.link_stats.mavlink_packet_LQ_received);
     }
 
   }// end of if (mBridge.linkstats_updated())
