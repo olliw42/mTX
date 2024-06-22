@@ -132,7 +132,7 @@ static int luaMBridgeCmdPop(lua_State * L)
 
 static int luaMBridgeCmdPush(lua_State * L)
 {
-  if (!mavlinkTelem.externalEnabled()) { // not enabled
+  if (!mavlinkTelem.mBridgeEnabled()) { // not enabled
     lua_pushnil(L);
   } else
   if (lua_gettop(L) == 0) { // called with no function parameters

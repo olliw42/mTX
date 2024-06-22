@@ -269,7 +269,7 @@ class MavlinkTelem
     };
     struct MBridgeStats mbridgestats;
 
-    bool externalEnabled(void) { return moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE; }
+    bool mBridgeEnabled(void) { return moduleState[EXTERNAL_MODULE].protocol == PROTOCOL_CHANNELS_MBRIDGE; }
 
     // MAVSDK GENERAL
 
@@ -481,13 +481,13 @@ class MavlinkTelem
     // this is very flight stack dependent
     struct Parameters {
       int16_t count;          // we use -1 to indicate nothing was obtained
-      int32_t BATT_CAPACITY;  // type int32 //we use -1 to indicate it wasn't obtained
-      int32_t BATT2_CAPACITY; // type int32 //we use -1 to indicate it wasn't obtained
-      float WPNAV_SPEED;      // type = float //we use NAN to indicate it wasn't obtained
-      float WPNAV_ACCEL;      // type = float //we use NAN to indicate it wasn't obtained
-      float WPNAV_ACCEL_Z;    // type = float //we use NAN to indicate it wasn't obtained
+      int32_t BATT_CAPACITY;  // type int32   // we use -1 to indicate it wasn't obtained
+      int32_t BATT2_CAPACITY; // type int32   // we use -1 to indicate it wasn't obtained
+      float WPNAV_SPEED;      // type = float // we use NAN to indicate it wasn't obtained
+      float WPNAV_ACCEL;      // type = float // we use NAN to indicate it wasn't obtained
+      float WPNAV_ACCEL_Z;    // type = float // we use NAN to indicate it wasn't obtained
       int16_t SYSID_MYGCS;    // we use -1 to indicate it wasn't obtained
-      int32_t ARMING_CHECK;   // type int32 //we use -1 to indicate it wasn't obtained
+      int32_t ARMING_CHECK;   // type int32   // we use -1 to indicate it wasn't obtained
     };
     struct Parameters param;
 

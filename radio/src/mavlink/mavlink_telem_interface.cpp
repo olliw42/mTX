@@ -162,7 +162,7 @@ void extmoduleMBridge_wakeup(void)
 {
   static uint8_t slot_counter = 0;
 
-  if (!mavlinkTelem.externalEnabled()) return;
+  if (!mavlinkTelem.mBridgeEnabled()) return;
 
   // read
   mBridge.read_packet();
